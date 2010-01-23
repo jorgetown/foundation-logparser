@@ -6,15 +6,15 @@ import java.util.Date;
 import net.jcip.annotations.Immutable;
 
 /**
- * Represents a finite length of time marked off by two {@link Time} instants.
+ * Represents a finite length of time marked off by two {@link Instant}s in time.
  * 
  * @author jorge.decastro
  * 
  */
 @Immutable
 public class SimpleTimeInterval implements ITimeInterval {
-	private final Time before;
-	private final Time after;
+	private final Instant before;
+	private final Instant after;
 	private static final Calendar cal;
 	private static final Calendar from;
 	private static final Calendar to;
@@ -26,11 +26,11 @@ public class SimpleTimeInterval implements ITimeInterval {
 		to = Calendar.getInstance();
 	}
 
-	public SimpleTimeInterval(final Time time) {
-		this(time, time);
+	public SimpleTimeInterval(final Instant instant) {
+		this(instant, instant);
 	}
 
-	public SimpleTimeInterval(final Time after, final Time before) {
+	public SimpleTimeInterval(final Instant after, final Instant before) {
 		this.after = after;
 		this.before = before;
 	}

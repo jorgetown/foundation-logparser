@@ -15,12 +15,12 @@ import org.junit.Test;
 public class InfiniteTimeIntervalTest {
 
 	@Test
-	public void testAnyDateIsAlwaysBetweenInfiniteTimeInterval() {
+	public void testAnyDateIsAlwaysBetweenAnInfiniteTimeInterval() {
 		// Given
-		InfiniteTimeInterval timeWindow = new InfiniteTimeInterval();
+		InfiniteTimeInterval timeInterval = new InfiniteTimeInterval();
 
 		// When
-		boolean isBetween = timeWindow.isBetweenInstants(new Date());
+		boolean isBetween = timeInterval.isBetweenInstants(new Date());
 
 		// Then
 		assertTrue(isBetween);
