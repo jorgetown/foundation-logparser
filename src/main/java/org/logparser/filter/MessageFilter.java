@@ -77,4 +77,8 @@ public class MessageFilter implements IMessageFilter<Message> {
 		String[] splitOnPathSeparator = path.split("/");
 		return splitOnPathSeparator[splitOnPathSeparator.length - 1];
 	}
+	
+	public Pattern getPattern(){
+		return pattern;
+	}
 }

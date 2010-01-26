@@ -23,7 +23,7 @@ public class AbstractLogParser<E> implements ILogParser<E> {
 	private final AtomicInteger count;
 	private final List<E> filteredEntries;
 
-	public AbstractLogParser(IMessageFilter<E> messageFilter) {
+	public AbstractLogParser(final IMessageFilter<E> messageFilter) {
 		this.messageFilter = messageFilter;
 		this.count = new AtomicInteger();
 		this.filteredEntries = new ArrayList<E>();

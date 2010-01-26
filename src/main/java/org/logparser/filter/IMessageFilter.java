@@ -3,7 +3,7 @@ package org.logparser.filter;
 /**
  * Specifies the protocol for parsers of log messages.
  * 
- * Typically, a {@link IMessageFilter} implementation will parse a log message
+ * Typically, an {@link IMessageFilter} implementation will parse a log message
  * and return a corresponding message E if successful.
  * 
  * @author jorge.decastro

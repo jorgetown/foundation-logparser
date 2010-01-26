@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 
 import org.logparser.filter.IMessageFilter;
 import org.logparser.filter.MessageFilter;
+import org.logparser.filter.MessageSamplingByFrequency;
+import org.logparser.filter.MessageSamplingByTime;
 import org.logparser.io.AbstractLogParser;
 import org.logparser.io.ChartWriter;
 import org.logparser.io.ILogParser;
@@ -48,9 +50,21 @@ public class CommandLineApplicationRunner {
 		// filter message patterns we're interested in within the given time interval
 		IMessageFilter<Message> entryFilter = new MessageFilter(timeInterval, pattern.pattern());
 
+		// sample message patterns we're interested in within the given time interval
+		// useful if log files are huge
+		IMessageFilter<Message> sampler = new MessageSamplingByTime(entryFilter, 5000); // every 5secs
+		
 		// inject the filter onto the log parser
 		ILogParser<Message> logParser = new AbstractLogParser<Message>(entryFilter);
 		logParser.parse(pathfile);
+		
+		System.out.println(String.format("Total: %s, Filtered: %s", logParser.getTotalEntries(), logParser.getParsedEntries().size()));
+		
+		// inject the sampler onto the log parser
+		logParser = new AbstractLogParser<Message>(sampler);
+		logParser.parse(pathfile);
+		
+		System.out.println(String.format("Total: %s, Sampled: %s", logParser.getTotalEntries(), logParser.getParsedEntries().size()));
 
 		// API allows looking for the same type of messages across many files
 
