@@ -1,5 +1,7 @@
 package org.logparser.filter;
 
+import net.jcip.annotations.Immutable;
+
 import org.logparser.Message;
 
 /**
@@ -12,6 +14,7 @@ import org.logparser.Message;
  * @author jorge.decastro
  * 
  */
+@Immutable
 public class MessageSamplingByFrequency implements IMessageFilter<Message> {
 	private final IMessageFilter<Message> filter;
 	private final int frequency;
@@ -30,5 +33,13 @@ public class MessageSamplingByFrequency implements IMessageFilter<Message> {
 		}
 		count++;
 		return null;
+	}
+	
+	public IMessageFilter<Message> getFilter(){
+		return filter;
+	}
+	
+	public int getFrequency(){
+		return frequency;
 	}
 }

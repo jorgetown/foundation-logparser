@@ -19,10 +19,11 @@ public class Message implements Serializable {
 	private final String message;
 
 	public Message(final String message, final Date date, final String url, final String milliseconds) {
+		// defensive copy since {@link Date}s are not immutable
+		this.date = new Date(date.getTime());
 		this.message = message;
 		this.url = url;
 		this.milliseconds = milliseconds;
-		this.date = date;
 	}
 
 	public String getMessage() {
@@ -38,11 +39,14 @@ public class Message implements Serializable {
 	}
 
 	public Date getDate() {
-		return date;
+		// defensive copy since {@link Date}s are not immutable
+		return new Date(date.getTime());
 	}
 
 	@Override
 	public String toString() {
 		return String.format("{[%s],[%s], %s, %sms}", message, date, url, milliseconds);
 	}
+	
+	
 }

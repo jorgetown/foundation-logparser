@@ -47,8 +47,10 @@ public class SimpleTimeInterval implements ITimeInterval {
 	}
 
 	public boolean isBefore(final Date date) {
-		cal.setTime(date);
-		to.setTime(date);
+		// defensive copy since {@link Date}s aren't immutable
+		Date d = new Date(date.getTime());
+		cal.setTime(d);
+		to.setTime(d);
 		to.set(Calendar.HOUR_OF_DAY, before.getHour());
 		to.set(Calendar.MINUTE, before.getMinute());
 
@@ -56,8 +58,10 @@ public class SimpleTimeInterval implements ITimeInterval {
 	}
 
 	public boolean isAfter(final Date date) {
-		cal.setTime(date);
-		from.setTime(date);
+		// defensive copy since {@link Date}s aren't immutable
+		Date d = new Date(date.getTime());
+		cal.setTime(d);
+		from.setTime(d);
 		from.set(Calendar.HOUR_OF_DAY, after.getHour());
 		from.set(Calendar.MINUTE, after.getMinute());
 
