@@ -8,16 +8,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.jcip.annotations.Immutable;
+
 import org.logparser.filter.IMessageFilter;
 
 /**
  * Skeletal implementation of {@link ILogParser} with typical parser
  * functionality.
  * 
+ * TODO: Allow passing list of filters
+ * 
  * @author jorge.decastro
  * 
  * @param <E>
  */
+@Immutable
 public class AbstractLogParser<E> implements ILogParser<E> {
 	private final IMessageFilter<E> messageFilter;
 	private final AtomicInteger count;

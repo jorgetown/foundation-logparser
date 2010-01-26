@@ -13,7 +13,7 @@ import org.logparser.Message;
 import org.logparser.time.ITimeInterval;
 
 /**
- * Message filter implementation to extract {@link Message}s from a log.
+ * Message filter implementation to extract {@link Message}s from a log file.
  * 
  * @author jorge.decastro
  * 
