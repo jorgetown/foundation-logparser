@@ -43,6 +43,6 @@ public class Message implements Serializable {
 
 	@Override
 	public String toString() {
-		return String.format("{message=%s,\ndate=%s, url=%s, milliseconds=%s}", message, date, url, milliseconds);
+		return String.format("{[%s],[%s], %s, %sms}", message, date, url, milliseconds);
 	}
 }

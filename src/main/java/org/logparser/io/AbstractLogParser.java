@@ -67,4 +67,18 @@ public class AbstractLogParser<E> implements ILogParser<E> {
 	public int getTotalEntries() {
 		return count.get();
 	}
+	
+	public E getEarliestEntry() {
+		if (!filteredEntries.isEmpty()) {
+			return filteredEntries.get(0);
+		}
+		return null;
+	}
+
+	public E getLatestEntry() {
+		if (!filteredEntries.isEmpty()) {
+			return filteredEntries.get(filteredEntries.size() - 1);
+		}
+		return null;
+	}
 }
