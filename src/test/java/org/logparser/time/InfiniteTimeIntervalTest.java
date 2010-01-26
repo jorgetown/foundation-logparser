@@ -15,6 +15,18 @@ import org.junit.Test;
 public class InfiniteTimeIntervalTest {
 
 	@Test
+	public void testNullDateIsAlwaysBetweenAnInfiniteTimeInterval() {
+		// Given
+		InfiniteTimeInterval timeInterval = new InfiniteTimeInterval();
+
+		// When
+		boolean isBetween = timeInterval.isBetweenInstants(null);
+
+		// Then
+		assertTrue(isBetween);
+	}
+
+	@Test
 	public void testAnyDateIsAlwaysBetweenAnInfiniteTimeInterval() {
 		// Given
 		InfiniteTimeInterval timeInterval = new InfiniteTimeInterval();

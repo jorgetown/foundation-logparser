@@ -6,8 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Calendar;
 
 import org.junit.Test;
-import org.logparser.time.SimpleTimeInterval;
-import org.logparser.time.Instant;
 
 /**
  * Tests for {@link SimpleTimeInterval}.
@@ -20,6 +18,17 @@ public class SimpleTimeIntervalTest {
 
 	static {
 		cal = Calendar.getInstance();
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testNullDateIsNotBetweenTimeInterval() {
+		// Given
+		Instant after = new Instant(12, 30);
+		Instant before = new Instant(19, 30);
+		SimpleTimeInterval timeInterval = new SimpleTimeInterval(after, before);
+
+		// When
+		timeInterval.isBetweenInstants(null);
 	}
 
 	@Test
