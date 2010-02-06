@@ -17,8 +17,9 @@ import org.logparser.time.ITimeInterval;
  * The {@link Message}s match patterns such as:
  * 
  * <pre>
- * 10.118.101.132 - - [15/Dec/2009:17:00:00 +0000] "POST /cms/statusCheck.do HTTP/1.1" 200 1779 2073
- * 10.117.101.80 - - [15/Dec/2009:17:00:09 +0000] "GET /cms/methode-event/lock.do?loid=26.0.1112948292&event=unlock&eventId=37234673 HTTP/1.1" 200 - 14
+ * 10.118.101.132 - - [15/Dec/2009:17:00:00 +0000] "POST /statusCheck.do HTTP/1.1" 200 1779 2073
+ * 10.117.101.80 - - [15/Dec/2009:17:00:09 +0000] "GET /lock.do?loid=26.0.1112948292&event=unlock&eventId=37234673 HTTP/1.1" 200 - 14
+ * ...
  * </pre>
  * 
  * @author jorge.decastro
@@ -71,8 +72,7 @@ public class MessageFilter implements IMessageFilter<Message> {
 		} catch (ParseException pe) {
 			// If the date format is wrong, fail quickly
 			throw new IllegalArgumentException(
-					String.format("Unable to parse the date for String :%s\n Expected format is: %s",
-									dateTime, MESSAGE_DATE_FORMAT), pe);
+					String.format("Unable to parse the date for String :%s\n Expected format is: %s", dateTime, MESSAGE_DATE_FORMAT), pe);
 		}
 		return date;
 	}

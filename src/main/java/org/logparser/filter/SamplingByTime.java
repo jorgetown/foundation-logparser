@@ -4,21 +4,21 @@ import java.util.Calendar;
 
 import net.jcip.annotations.Immutable;
 
-import org.logparser.ITimestampedEntry;
+import org.logparser.ITimeComparable;
 
 /**
  * A {@link IMessageFilter} implementation that maintains state, acting as a
- * sampling service.
+ * sampler.
  * 
- * In this particular case, extracts log entries each time the interval between
- * any 2 entries is longer than the value given by the 'timeInMillis' argument.
+ * In this particular case, it extracts log entries each time the interval
+ * between any 2 entries is longer than the value given by the 'timeInMillis'
+ * argument.
  * 
  * @author jorge.decastro
  * 
  */
 @Immutable
-public class SamplingByTime<E extends ITimestampedEntry> implements
-		IMessageFilter<E> {
+public class SamplingByTime<E extends ITimeComparable> implements IMessageFilter<E> {
 	private final IMessageFilter<E> filter;
 	private final long timeInMillis;
 	private Calendar previous;
@@ -36,10 +36,10 @@ public class SamplingByTime<E extends ITimestampedEntry> implements
 		}
 		E sampled = null;
 		if (previous.getTime() == null
-				|| (entry.getDate().getTime() - previous.getTimeInMillis() > timeInMillis)) {
+				|| (entry.getTime() - previous.getTimeInMillis() > timeInMillis)) {
 			sampled = entry;
 		}
-		previous.setTime(entry.getDate());
+		previous.setTimeInMillis(entry.getTime());
 		return sampled;
 	}
 

@@ -11,14 +11,14 @@ import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
-
 import org.logparser.IStatsView;
 import org.logparser.Message;
 
 /**
- * TODO enter a description 
- * TODO System.setProperty("java.awt.headless","true");
+ * Writes a .png file with a chart created from a collection of log entries.
  * 
+ * TODO System.setProperty("java.awt.headless","true");
+ * TODO customize chart type etc
  * @author jorge.decastro
  */
 public class ChartWriter {
@@ -35,7 +35,7 @@ public class ChartWriter {
 		this.x = DEFAULT_PIXELS_X;
 		this.y = DEFAULT_PIXELS_Y;
 	}
-	
+
 	public ChartWriter(final ILogParser<Message> logParser, final Map<String, IStatsView<Message>> keyStats, final int x, final int y) {
 		this.logParser = logParser;
 		this.statsView = keyStats;
@@ -54,8 +54,8 @@ public class ChartWriter {
 			}
 		}
 
-		JFreeChart jFreeChart = ChartFactory.createBarChart(fileName, String.format("%s entries, %s to %s", logParser.getTotalEntries(), logParser.getEarliestEntry().getDate(), logParser.getLatestEntry().getDate()),
-				"Milliseconds", dataset, PlotOrientation.VERTICAL, true, false,false);
+		JFreeChart jFreeChart = ChartFactory.createBarChart(fileName, String.format("%s entries, %s to %s", logParser.getTotalEntries(),
+						logParser.getEarliestEntry().getTime(), logParser.getLatestEntry().getTime()), "Milliseconds", dataset, PlotOrientation.VERTICAL, true, false, false);
 
 		jFreeChart.getPlot().setForegroundAlpha(0.5f);
 		jFreeChart.getPlot().setBackgroundAlpha(0.0f);
@@ -64,8 +64,8 @@ public class ChartWriter {
 
 		try {
 			ChartUtilities.saveChartAsPNG(new File(filenameAndPath), jFreeChart, x, y);
-		} catch (IOException iE) {
-			throw new RuntimeException(String.format("Failed to save chart: %s", filenameAndPath), iE);
+		} catch (IOException ioe) {
+			throw new RuntimeException(String.format("Failed to save chart: %s", filenameAndPath), ioe);
 		}
 	}
 

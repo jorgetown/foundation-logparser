@@ -20,6 +20,7 @@ public class MessageTest {
 	private Message message;
 	private static final String ORIGINAL_ENTRY = "10.118.101.132 - - [15/Dec/2009:17:15:00 +0000] \"POST /statusCheck.do HTTP/1.1\" 200 1779 2073";
 	private static final String URL = "statusCheck.do";
+	private static final String ANOTHER_URL = "edit.do";
 	private static final String MILLISECONDS = "2073";
 	private static Calendar calendar;
 	private Message x;
@@ -39,13 +40,13 @@ public class MessageTest {
 		x = new Message(ORIGINAL_ENTRY, date, URL, MILLISECONDS);
 		y = new Message(ORIGINAL_ENTRY, date, URL, MILLISECONDS);
 		z = new Message(ORIGINAL_ENTRY, date, URL, MILLISECONDS);
-		notx = new Message(ORIGINAL_ENTRY, date, "different.url", MILLISECONDS);
+		notx = new Message(ORIGINAL_ENTRY, date, ANOTHER_URL, MILLISECONDS);
 	}
 
 	@Test
 	@SuppressWarnings("deprecation")
 	public void testMessageImmutability() {
-		// only need to test Dates since Strings are immutable
+		// only need to test mutability on Dates since the other arguments are immutable
 		Date d = message.getDate();
 		d.setMinutes(30);
 		assertFalse("External date change mutated object", d.equals(message.getDate()));

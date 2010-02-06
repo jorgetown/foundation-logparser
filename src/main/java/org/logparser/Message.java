@@ -11,8 +11,9 @@ import net.jcip.annotations.Immutable;
  * @author jorge.decastro
  */
 @Immutable
-public final class Message implements Serializable, ITimestampedEntry {
+public final class Message implements Serializable, ITimeComparable {
 	private static final long serialVersionUID = -1019020702743392905L;
+	// TODO refactor to simplify by using date as a long
 	private final Date date;
 	private final String url;
 	private final String milliseconds;
@@ -44,17 +45,21 @@ public final class Message implements Serializable, ITimestampedEntry {
 		return new Date(date.getTime());
 	}
 
+	public long getTime() {
+		return date.getTime();
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if (other == this)
 			return true;
 		if (!(other instanceof Message))
 			return false;
-		Message m = (Message) other;
-		return ((date == null ? m.date == null : date.equals(m.date))
-				&& milliseconds == null ? m.milliseconds == null : milliseconds.equals(m.milliseconds))
+		final Message m = (Message) other;
+		return (date == null ? m.date == null : date.equals(m.date))
+				&& (milliseconds == null ? m.milliseconds == null : milliseconds.equals(m.milliseconds))
 				&& (url == null ? m.url == null : url.equals(m.url))
-				&& ((message == null ? m.message == null : message.equals(m.message)));
+				&& (message == null ? m.message == null : message.equals(m.message));
 	}
 
 	@Override

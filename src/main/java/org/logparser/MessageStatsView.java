@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.text.DecimalFormat;
 
 /**
- * A view that provides descriptive statistics for a parsed collection of
- * log {@link Message}s.
+ * Provides a summary and descriptive statistics for a collection of log
+ * {@link Message}s.
  * 
  * @author jorge.decastro
  * 
@@ -13,7 +13,7 @@ import java.text.DecimalFormat;
 public class MessageStatsView extends AbstractStatsView<Message> {
 	// TODO refactor to inject stats
 	private DescriptiveStats ds = new DescriptiveStats();
-	
+
 	public MessageStatsView() {
 		super();
 	}
@@ -39,7 +39,7 @@ public class MessageStatsView extends AbstractStatsView<Message> {
 		return String.format("\nMAX: %s\nMIN: %s\nMEAN: %s\nSTD: %s\nEARLIEST: %s\nLATEST: %s\n",
 						this.max, this.min, this.mean, this.std, this.getEarliestEntry(), this.getLatestEntry());
 	}
-	
+
 	public static class DescriptiveStats implements Serializable {
 		private static final long serialVersionUID = 2268207471613686207L;
 		private static final String PRECISION_PATTERN = "##.##";
