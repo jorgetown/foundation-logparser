@@ -13,6 +13,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.logparser.IStatsView;
 import org.logparser.Message;
+import org.logparser.Preconditions;
 
 /**
  * Writes a .png file with a chart created from a collection of log entries.
@@ -30,13 +31,12 @@ public class ChartWriter {
 	private static final int DEFAULT_PIXELS_Y = 768;
 
 	public ChartWriter(final ILogParser<Message> logParser, final Map<String, IStatsView<Message>> keyStats) {
-		this.logParser = logParser;
-		this.statsView = keyStats;
-		this.x = DEFAULT_PIXELS_X;
-		this.y = DEFAULT_PIXELS_Y;
+		this(logParser, keyStats, DEFAULT_PIXELS_X, DEFAULT_PIXELS_Y);
 	}
 
 	public ChartWriter(final ILogParser<Message> logParser, final Map<String, IStatsView<Message>> keyStats, final int x, final int y) {
+		Preconditions.checkNotNull(logParser);
+		Preconditions.checkNotNull(keyStats);
 		this.logParser = logParser;
 		this.statsView = keyStats;
 		this.x = x;
@@ -44,6 +44,8 @@ public class ChartWriter {
 	}
 
 	public void write(String filePath, String fileName) {
+		Preconditions.checkNotNull(filePath);
+		Preconditions.checkNotNull(fileName);
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
 		Set<Entry<String, IStatsView<Message>>> statsEntries = statsView.entrySet();
@@ -55,7 +57,7 @@ public class ChartWriter {
 		}
 
 		JFreeChart jFreeChart = ChartFactory.createBarChart(fileName, String.format("%s entries, %s to %s", logParser.getTotalEntries(),
-						logParser.getEarliestEntry().getTime(), logParser.getLatestEntry().getTime()), "Milliseconds", dataset, PlotOrientation.VERTICAL, true, false, false);
+						logParser.getEarliestEntry().getDate(), logParser.getLatestEntry().getDate()), "Milliseconds", dataset, PlotOrientation.VERTICAL, true, false, false);
 
 		jFreeChart.getPlot().setForegroundAlpha(0.5f);
 		jFreeChart.getPlot().setBackgroundAlpha(0.0f);
@@ -69,7 +71,7 @@ public class ChartWriter {
 		}
 	}
 
-	private String makeFileNameSafe(String fileName) {
+	private String makeFileNameSafe(final String fileName) {
 		String safeName = fileName.replaceAll("/", "-");
 		return String.format("%s.png", safeName);
 	}
