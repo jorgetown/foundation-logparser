@@ -11,6 +11,7 @@ import java.util.List;
  * @param <E>
  */
 public abstract class AbstractStatsView<E> implements IStatsView<E> {
+	private static String NEWLINE = System.getProperty("line.separator");
 	private final List<E> entries;
 	protected E max;
 	protected E min;
@@ -57,5 +58,12 @@ public abstract class AbstractStatsView<E> implements IStatsView<E> {
 
 	public double getMean() {
 		return mean;
+	}
+
+	public String toCsvString() {
+		// TODO CSV header?
+		// TODO loop through list of entries too?
+		// TODO require toCsvString() interface for log message implementations?
+		return String.format("\"%s\", \"%s\", \"%s\", \"%s\"%s", max, min, mean, std, NEWLINE);
 	}
 }

@@ -3,8 +3,8 @@ package org.logparser;
 import java.util.List;
 
 /**
- * Specifies the protocol of a view containing descriptive statistics of parsed
- * log data.
+ * Specifies the protocol of a view containing descriptive statistics of log
+ * entries.
  * 
  * @author jorge.decastro
  * 
@@ -27,4 +27,6 @@ public interface IStatsView<E> {
 	public double getMean();
 
 	public double getDeviation();
+
+	public String toCsvString();
 }
