@@ -55,7 +55,6 @@ public class MessageFilterTest {
 
 	@Test
 	public void testParseSuccess() {
-		// Given
 		entryFilter = new MessageFilter(timeInterval);
 		final String EXPECTED_DATE_TIME = "15/Dec/2009:01:22:33";
 		final String ACCESS_DATE_TIME = String.format("[%s]", EXPECTED_DATE_TIME);
@@ -69,10 +68,8 @@ public class MessageFilterTest {
 				"1.1.1.1 - - %s \"POST %s HTTP/1.1\" 200 1779 %s",
 				ACCESS_DATE_TIME, ACCESS_URL, EXPECTED_TIME_TAKEN);
 
-		// When
 		Message Message = entryFilter.parse(ACCESS_ENTRY);
 
-		// Then
 		assertEquals(ACCESS_ENTRY, Message.getMessage());
 		assertEquals(EXPECTED_DATE_TIME, MESSAGE_DATE_FORMATTER.format(Message.getDate()));
 		assertEquals(EXPECTED_URL, Message.getUrl());

@@ -5,13 +5,13 @@ import java.text.DecimalFormat;
 
 /**
  * A view that provides descriptive statistics for a parsed collection of
- * {@link Message}s.
+ * log {@link Message}s.
  * 
  * @author jorge.decastro
  * 
  */
 public class MessageStatsView extends AbstractStatsView<Message> {
-	// TODO: refactor to inject stats
+	// TODO refactor to inject stats
 	private DescriptiveStats ds = new DescriptiveStats();
 	
 	public MessageStatsView() {

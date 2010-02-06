@@ -8,26 +8,19 @@ import org.logparser.time.Instant;
 import net.jcip.annotations.NotThreadSafe;
 
 /**
- * Represents the arguments needed to run the analyzer.
+ * Represents the arguments needed to run the log analyzer.
  * 
  * @author jorge.decastro
  */
 @NotThreadSafe
-public class AnalyzeArguments {
-	// =================================================================================================================
-	// Field
-	// =================================================================================================================
-
+public final class AnalyzeArguments {
+	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	private static final String HELP_TEXT = "<path_filename> [optional regex pattern] [optional after HH:mm] [optional before HH:mm] \nExample: \n\tEXAMPLE_log_2009-12-15.log save.do|reload.do\n 17:25 18:10"
 			+ "Processed log files are created in this directory.";
 	/**
 	 * The time format that the before/after arguments should use
 	 */
 	public static final Pattern TIME_FORMAT = Pattern.compile("(\\d{1,2})\\:((\\d{1,2}))");
-
-	// =================================================================================================================
-	// Properties
-	// =================================================================================================================
 
 	private String pathFile;
 	private String path;
@@ -36,10 +29,6 @@ public class AnalyzeArguments {
 	private Pattern pattern = Pattern.compile(".*");
 	private Instant after;
 	private Instant before;
-
-	// =================================================================================================================
-	// Accessors
-	// =================================================================================================================
 
 	public String getPathFile() {
 		return pathFile;
@@ -64,10 +53,6 @@ public class AnalyzeArguments {
 	public Instant getBefore() {
 		return before;
 	}
-
-	// =================================================================================================================
-	// Constructors
-	// =================================================================================================================
 
 	public AnalyzeArguments() {
 	}
@@ -122,10 +107,6 @@ public class AnalyzeArguments {
 		}
 	}
 
-	// =================================================================================================================
-	// Private
-	// =================================================================================================================
-
 	/**
 	 * The processed logs are written to the same directory as the source log
 	 * file, this extracts that path. If the source log file was provided as
@@ -136,13 +117,13 @@ public class AnalyzeArguments {
 	 * @param pathFilename the provided path and filename of the log to analyze.
 	 * @return just the path element, empty String if no directory specified.
 	 */
-	private String resolvePath(String pathFilename) {
-		int lastPathSeparatorIndex = pathFilename.lastIndexOf(System.getProperty("file.separator"));
+	private String resolvePath(final String pathFilename) {
+		int lastPathSeparatorIndex = pathFilename.lastIndexOf(FILE_SEPARATOR);
 		return pathFilename.substring(0, lastPathSeparatorIndex + 1);
 	}
 
-	private String resolveFile(String pathFilename) {
-		int lastPathSeparatorIndex = pathFilename.lastIndexOf(System.getProperty("file.separator"));
+	private String resolveFile(final String pathFilename) {
+		int lastPathSeparatorIndex = pathFilename.lastIndexOf(FILE_SEPARATOR);
 		return pathFilename.substring(lastPathSeparatorIndex + 1);
 	}
 
