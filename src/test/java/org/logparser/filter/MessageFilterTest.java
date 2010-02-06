@@ -24,10 +24,10 @@ public class MessageFilterTest {
 	private static final DateFormat MESSAGE_DATE_FORMATTER = new SimpleDateFormat(MESSAGE_DATE_FORMAT);
 
 	private static final String[] LOG_MESSAGES = {
-			"10.118.101.132 - - [07/Jan/2010:10:03:46 +0000] \"GET /cms/scripts/N201039839/bundles/editor.js HTTP/1.1\" 200 557279 51",
-			"10.118.101.132 - - [07/Jan/2010:10:06:07 +0000] \"GET /cms/streamImage/b0f15942-75f8-11de-84c7-00144feabdc0.img HTTP/1.1\" 200 7120 289",
-			"10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /cms/methode-event/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14",
-			"10.118.101.132 - - [15/Dec/2009:17:00:00 +0000] \"POST /cms/statusCheck.do HTTP/1.1\" 200 1779 2073" };
+			"10.118.101.132 - - [07/Jan/2008:10:03:46 +0000] \"GET /scripts/N200839839/bundles/editor.js HTTP/1.1\" 200 557279 51",
+			"10.118.101.132 - - [07/Jan/2008:10:06:07 +0000] \"GET /streamImage/b0f15942-75f8-11de-84c7-00144feabdc0.img HTTP/1.1\" 200 7120 289",
+			"10.117.101.80 - - [15/Dec/2008:00:00:15 +0000] \"GET /lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14",
+			"10.118.101.132 - - [15/Dec/2008:17:00:00 +0000] \"POST /statusCheck.do HTTP/1.1\" 200 1779 2073" };
 
 	@Test
 	public void testMessagesFilteredSuccessfully() {
@@ -56,7 +56,7 @@ public class MessageFilterTest {
 	@Test
 	public void testParseSuccess() {
 		entryFilter = new MessageFilter(timeInterval);
-		final String EXPECTED_DATE_TIME = "15/Dec/2009:01:22:33";
+		final String EXPECTED_DATE_TIME = "15/Dec/2008:01:22:33";
 		final String ACCESS_DATE_TIME = String.format("[%s]", EXPECTED_DATE_TIME);
 
 		final String EXPECTED_URL = "servlet";

@@ -16,7 +16,7 @@ import org.logparser.time.Instant;
 public final class AnalyzeArguments {
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
-	private static final String HELP_TEXT = "<path_filename> [optional regex pattern] [optional after HH:mm] [optional before HH:mm] \nExample: \n\tEXAMPLE_log_2009-12-15.log save.do|edit.do\n 17:25 18:10"
+	private static final String HELP_TEXT = "<path_filename> [optional regex pattern] [optional after HH:mm] [optional before HH:mm] \nExample: \n\tEXAMPLE_log_2008-12-15.log save.do|edit.do\n 17:25 18:10"
 			+ "Processed log files are created in this directory.";
 	/**
 	 * The time format that the before/after {@link Instant} arguments should use.

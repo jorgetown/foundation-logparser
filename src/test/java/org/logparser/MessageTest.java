@@ -18,7 +18,7 @@ import org.junit.Test;
  */
 public class MessageTest {
 	private Message message;
-	private static final String ORIGINAL_ENTRY = "10.118.101.132 - - [15/Dec/2009:17:15:00 +0000] \"POST /statusCheck.do HTTP/1.1\" 200 1779 2073";
+	private static final String ORIGINAL_ENTRY = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /statusCheck.do HTTP/1.1\" 200 1779 2073";
 	private static final String URL = "statusCheck.do";
 	private static final String ANOTHER_URL = "edit.do";
 	private static final String MILLISECONDS = "2073";
@@ -34,7 +34,7 @@ public class MessageTest {
 
 	@Before
 	public void setUp() {
-		calendar.set(2009, 12, 15, 17, 15, 00);
+		calendar.set(2008, 12, 15, 17, 15, 00);
 		Date date = calendar.getTime();
 		message = new Message(ORIGINAL_ENTRY, date, URL, MILLISECONDS);
 		x = new Message(ORIGINAL_ENTRY, date, URL, MILLISECONDS);
