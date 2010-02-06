@@ -10,6 +10,7 @@ import java.util.List;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.Preconditions;
 import org.logparser.filter.IMessageFilter;
 
 /**
@@ -32,12 +33,14 @@ public class InMemoryLogParser<E> extends AbstractLogParser<E> {
 	}
 
 	public InMemoryLogParser(final List<IMessageFilter<E>> messageFilters) {
+		Preconditions.checkNotNull(messageFilters);
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.filteredEntries = new ArrayList<E>();
 		this.readEntries = new ArrayList<String>();
 	}
 
 	public List<E> parse(final String filePathAndName) {
+		Preconditions.checkNotNull(filePathAndName);
 		BufferedReader in = null;
 		try {
 			in = new BufferedReader(new FileReader(filePathAndName));

@@ -21,6 +21,8 @@ public class LogOrganiser<E> {
 	private final Map<String, IStatsView<E>> organisedByKey = new HashMap<String, IStatsView<E>>();
 
 	public LogOrganiser(final ILogParser<E> logParser, final Class<? extends IStatsView<E>> statsView) {
+		Preconditions.checkNotNull(logParser);
+		Preconditions.checkNotNull(statsView);
 		this.logParser = logParser;
 		this.statsView = statsView;
 	}
@@ -70,6 +72,7 @@ public class LogOrganiser<E> {
 	}
 
 	public Map<String, IStatsView<E>> groupBy(final String groupByKey) {
+		Preconditions.checkNotNull(groupByKey);
 		final List<E> accessEntries = logParser.getParsedEntries();
 		return groupBy(accessEntries, groupByKey);
 	}

@@ -2,6 +2,8 @@ package org.logparser.filter;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.Preconditions;
+
 /**
  * A {@link IMessageFilter} implementation that maintains state, acting as a
  * sampler.
@@ -19,6 +21,7 @@ public class SamplingByFrequency<E> implements IMessageFilter<E> {
 	private int count;
 
 	public SamplingByFrequency(final IMessageFilter<E> filter, final int frequency) {
+		Preconditions.checkNotNull(filter);
 		this.filter = filter;
 		this.frequency = frequency;
 		this.count = 0;

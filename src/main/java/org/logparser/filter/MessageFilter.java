@@ -10,15 +10,17 @@ import java.util.regex.Pattern;
 import net.jcip.annotations.Immutable;
 
 import org.logparser.Message;
+import org.logparser.Preconditions;
 import org.logparser.time.ITimeInterval;
+import org.logparser.time.InfiniteTimeInterval;
 
 /**
  * Message filter implementation to extract {@link Message}s from a log file.
  * The {@link Message}s match patterns such as:
  * 
  * <pre>
- * 10.118.101.132 - - [15/Dec/2009:17:00:00 +0000] "POST /statusCheck.do HTTP/1.1" 200 1779 2073
- * 10.117.101.80 - - [15/Dec/2009:17:00:09 +0000] "GET /lock.do?loid=26.0.1112948292&event=unlock&eventId=37234673 HTTP/1.1" 200 - 14
+ * 10.118.101.132 - - [15/Dec/2008:17:00:00 +0000] "POST /statusCheck.do HTTP/1.1" 200 1779 2073
+ * 10.117.101.80 - - [15/Dec/2008:17:00:09 +0000] "GET /lock.do?loid=26.0.1112948292&event=unlock&eventId=37234673 HTTP/1.1" 200 - 14
  * ...
  * </pre>
  * 
@@ -43,11 +45,21 @@ public class MessageFilter implements IMessageFilter<Message> {
 	private static final String MESSAGE_DATE_FORMAT = "dd/MMM/yyyy:HH:mm:ss";
 	private static final String MESSAGE_REGEX_PATTERN = "\\s-\\s-\\s\\[(.*)\\](.*)\\s.*[GETPOST]\\s/(.*)\\sHTTP.*\\s((\\d+$))";
 
+	public MessageFilter() {
+		this(new InfiniteTimeInterval());
+	}
+	
+	public MessageFilter(final String filterPattern) {
+		this(new InfiniteTimeInterval(), filterPattern);
+	}
+	
 	public MessageFilter(final ITimeInterval timeInterval) {
 		this(timeInterval, ".*");
 	}
 
 	public MessageFilter(final ITimeInterval timeInterval, final String filterPattern) {
+		Preconditions.checkNotNull(timeInterval);
+		Preconditions.checkNotNull(filterPattern);
 		pattern = Pattern.compile(MESSAGE_REGEX_PATTERN);
 		this.timeInterval = timeInterval;
 		this.filter = Pattern.compile(filterPattern);
@@ -65,7 +77,7 @@ public class MessageFilter implements IMessageFilter<Message> {
 		return null;
 	}
 
-	private Date getDateFromString(String dateTime) {
+	private Date getDateFromString(final String dateTime) {
 		Date date;
 		try {
 			date = DATE_FORMATTER.get().parse(dateTime);

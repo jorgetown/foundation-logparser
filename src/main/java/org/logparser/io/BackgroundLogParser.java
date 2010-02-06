@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.Preconditions;
 import org.logparser.filter.IMessageFilter;
 
 /**
@@ -44,6 +45,7 @@ public class BackgroundLogParser<E> extends AbstractLogParser<E> {
 	}
 
 	public BackgroundLogParser(final List<IMessageFilter<E>> messageFilters) {
+		Preconditions.checkNotNull(messageFilters);
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.count = new AtomicInteger();
 		this.filteredEntries = new ArrayList<E>();
@@ -52,7 +54,7 @@ public class BackgroundLogParser<E> extends AbstractLogParser<E> {
 	}
 
 	public List<E> parse(final String filePathAndName) {
-
+		Preconditions.checkNotNull(filePathAndName);
 		BackgroundParser worker = new BackgroundParser(queue, messageFilters);
 		Future<Collection<E>> future = background.submit(worker);
 

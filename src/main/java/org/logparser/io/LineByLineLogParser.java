@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.Preconditions;
 import org.logparser.filter.IMessageFilter;
 
 /**
@@ -33,12 +34,14 @@ public class LineByLineLogParser<E> extends AbstractLogParser<E> {
 	}
 
 	public LineByLineLogParser(final List<IMessageFilter<E>> messageFilters) {
+		Preconditions.checkNotNull(messageFilters);
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.filteredEntries = new ArrayList<E>();
 		this.count = new AtomicInteger(0);
 	}
 
 	public List<E> parse(final String filePathAndName) {
+		Preconditions.checkNotNull(filePathAndName);
 		BufferedReader in = null;
 		try {
 			in = new BufferedReader(new FileReader(filePathAndName));

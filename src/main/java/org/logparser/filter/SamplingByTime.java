@@ -5,6 +5,7 @@ import java.util.Calendar;
 import net.jcip.annotations.Immutable;
 
 import org.logparser.ITimeComparable;
+import org.logparser.Preconditions;
 
 /**
  * A {@link IMessageFilter} implementation that maintains state, acting as a
@@ -24,6 +25,7 @@ public class SamplingByTime<E extends ITimeComparable> implements IMessageFilter
 	private Calendar previous;
 
 	public SamplingByTime(final IMessageFilter<E> filter, final long timeInMillis) {
+		Preconditions.checkNotNull(filter);
 		this.filter = filter;
 		this.timeInMillis = timeInMillis;
 		this.previous = Calendar.getInstance();
