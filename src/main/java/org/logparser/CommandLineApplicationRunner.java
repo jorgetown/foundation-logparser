@@ -1,16 +1,15 @@
 package org.logparser;
 
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.logparser.filter.IMessageFilter;
 import org.logparser.filter.MessageFilter;
-import org.logparser.filter.MessageSamplingByFrequency;
-import org.logparser.filter.MessageSamplingByTime;
-import org.logparser.io.AbstractLogParser;
-import org.logparser.io.ChartWriter;
-import org.logparser.io.ILogParser;
+import org.logparser.filter.SamplingByTime;
+import org.logparser.io.BackgroundLogParser;
+import org.logparser.io.InMemoryLogParser;
+import org.logparser.io.LineByLineLogParser;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
 import org.logparser.time.Instant;
@@ -30,7 +29,8 @@ public class CommandLineApplicationRunner {
 	/**
 	 * Run with no args to see help information.
 	 * 
-	 * @param args Run with no args to see help information.
+	 * @param args
+	 *            Run with no args to see help information.
 	 */
 	public static void main(String[] args) {
 		AnalyzeArguments analyzeArguments = new AnalyzeArguments(args);
@@ -47,38 +47,58 @@ public class CommandLineApplicationRunner {
 			timeInterval = new SimpleTimeInterval(after, before);
 		}
 
-		// filter message patterns we're interested in within the given time interval
-		IMessageFilter<Message> entryFilter = new MessageFilter(timeInterval, pattern.pattern());
+		// filter message patterns we're interested in within the given time
+		// interval
+		IMessageFilter<Message> entryFilter = new MessageFilter(timeInterval,
+				pattern.pattern());
 
-		// sample message patterns we're interested in within the given time interval
+		IMessageFilter<Message> filter2 = new MessageFilter(timeInterval,
+				"lock.do");
+		IMessageFilter<Message> filter3 = new MessageFilter(timeInterval,
+				"statusCheck.do");
+		IMessageFilter<Message> filter4 = new MessageFilter(timeInterval,
+				"edit.do");
+		IMessageFilter<Message> filter5 = new MessageFilter(timeInterval,
+				"save.do");
+		
+		@SuppressWarnings("unchecked")
+		List<IMessageFilter<Message>> filters = Arrays.asList(filter2, filter3, filter4, filter5);
+
+		// sample message patterns we're interested in within the given time
+		// interval
 		// useful if log files are huge
-		IMessageFilter<Message> sampler = new MessageSamplingByTime(entryFilter, 5000); // every 5secs
-		
+		IMessageFilter<Message> sampler = new SamplingByTime<Message>(entryFilter, 5000); // every 5secs
+
 		// inject the filter onto the log parser
-		ILogParser<Message> logParser = new AbstractLogParser<Message>(entryFilter);
-		logParser.parse(pathfile);
-		
-		System.out.println(String.format("Total: %s, Filtered: %s", logParser.getTotalEntries(), logParser.getParsedEntries().size()));
-		
-		// inject the sampler onto the log parser
-		logParser = new AbstractLogParser<Message>(sampler);
-		logParser.parse(pathfile);
-		
-		System.out.println(String.format("Total: %s, Sampled: %s", logParser.getTotalEntries(), logParser.getParsedEntries().size()));
+		BackgroundLogParser<Message> blp = new BackgroundLogParser<Message>(filters);
+		long start = System.nanoTime();
+		blp.parse(pathfile);
+		long end = (System.nanoTime() - start) / 1000000;
+		System.out.println(String.format(
+								"BackgroundLogParser - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
+								end, blp.getTotalEntries() / end, blp.getTotalEntries(), blp.getParsedEntries().size()));
 
-		// API allows looking for the same type of messages across many files
-
-		// inject the parser onto the 'organiser'
-		LogOrganiser<Message> logOrganiser = new LogOrganiser<Message>(logParser, MessageStatsView.class);
+		blp.dispose();
+		blp = null;
 		
-		// pass the class field used to group by
-		Map<String, IStatsView<Message>> organisedEntries = logOrganiser.groupBy("url");
+		LineByLineLogParser<Message> rlp = new LineByLineLogParser<Message>(filters);
+		start = System.nanoTime();
+		rlp.parse(pathfile);
+		end = (System.nanoTime() - start) / 1000000;
+		System.out.println(String.format(
+								"LineByLineLogParser - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
+								end, rlp.getTotalEntries() / end, rlp.getTotalEntries(), rlp.getParsedEntries().size()));
+		rlp.dispose();
+		rlp = null;
 		
-		for (Entry<String, IStatsView<Message>> entry : organisedEntries.entrySet()) {
-			System.out.println(String.format("key=%s, stats=%s", entry.getKey(), entry.getValue()));
-		}
-
-		ChartWriter chartWriter = new ChartWriter(logParser, organisedEntries);
-		chartWriter.write(path, file);
+		InMemoryLogParser<Message> imlp = new InMemoryLogParser<Message>(filters);
+		start = System.nanoTime();
+		imlp.parse(pathfile);
+		end = (System.nanoTime() - start) / 1000000;
+		System.out.println(String.format(
+								"InMemoryLogParser - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
+								end, imlp.getTotalEntries() / end, imlp.getTotalEntries(), imlp.getParsedEntries().size()));
+		imlp.dispose();
+		imlp = null;
 	}
 }
