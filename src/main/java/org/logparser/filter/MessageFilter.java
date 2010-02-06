@@ -14,6 +14,12 @@ import org.logparser.time.ITimeInterval;
 
 /**
  * Message filter implementation to extract {@link Message}s from a log file.
+ * The {@link Message}s match patterns such as:
+ * 
+ * <pre>
+ * 10.118.101.132 - - [15/Dec/2009:17:00:00 +0000] "POST /cms/statusCheck.do HTTP/1.1" 200 1779 2073
+ * 10.117.101.80 - - [15/Dec/2009:17:00:09 +0000] "GET /cms/methode-event/lock.do?loid=26.0.1112948292&event=unlock&eventId=37234673 HTTP/1.1" 200 - 14
+ * </pre>
  * 
  * @author jorge.decastro
  * 
@@ -25,15 +31,16 @@ public class MessageFilter implements IMessageFilter<Message> {
 	private final ITimeInterval timeInterval;
 
 	/**
-	 * The date format to expect from access log entries.
+	 * The date format to expect from the log entries to be filtered.
 	 */
+	private final ThreadLocal<DateFormat> DATE_FORMATTER = new ThreadLocal<DateFormat>() {
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat(MESSAGE_DATE_FORMAT);
+		}
+	};
 	private static final String MESSAGE_DATE_FORMAT = "dd/MMM/yyyy:HH:mm:ss";
 	private static final String MESSAGE_REGEX_PATTERN = "\\s-\\s-\\s\\[(.*)\\](.*)\\s.*[GETPOST]\\s/(.*)\\sHTTP.*\\s((\\d+$))";
-
-	/**
-	 * Access log date format.
-	 */
-	private static final DateFormat MESSAGE_DATE_FORMATTER = new SimpleDateFormat(MESSAGE_DATE_FORMAT);
 
 	public MessageFilter(final ITimeInterval timeInterval) {
 		this(timeInterval, ".*");
@@ -60,7 +67,7 @@ public class MessageFilter implements IMessageFilter<Message> {
 	private Date getDateFromString(String dateTime) {
 		Date date;
 		try {
-			date = MESSAGE_DATE_FORMATTER.parse(dateTime);
+			date = DATE_FORMATTER.get().parse(dateTime);
 		} catch (ParseException pe) {
 			// If the date format is wrong, fail quickly
 			throw new IllegalArgumentException(
@@ -72,13 +79,13 @@ public class MessageFilter implements IMessageFilter<Message> {
 
 	private String cleanUpUrl(String url) {
 		// Only need the path, not the queryString
-		String[] splitOnQuestionMark = url.split("\\?");
-		String path = splitOnQuestionMark[0];
-		String[] splitOnPathSeparator = path.split("/");
-		return splitOnPathSeparator[splitOnPathSeparator.length - 1];
+		String[] split = url.split("\\?");
+		url = split[0];
+		split = url.split("/");
+		return split[split.length - 1];
 	}
-	
-	public Pattern getPattern(){
+
+	public Pattern getPattern() {
 		return pattern;
 	}
 }
