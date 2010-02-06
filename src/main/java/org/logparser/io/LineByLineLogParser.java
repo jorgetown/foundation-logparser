@@ -14,7 +14,7 @@ import net.jcip.annotations.Immutable;
 import org.logparser.filter.IMessageFilter;
 
 /**
- * Implementation of {@link ILogParser} that processes a log file one entry at a
+ * Implementation of {@link ILogParser} that processes a log file one line at a
  * time. It is expected to have slightly worse performance than
  * {@link InMemoryLogParser} but with better memory utilization.
  * 

@@ -3,22 +3,23 @@ package org.logparser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.logparser.time.Instant;
-
 import net.jcip.annotations.NotThreadSafe;
 
+import org.logparser.time.Instant;
+
 /**
- * Represents the arguments needed to run the log analyzer.
+ * Represents the arguments needed to run the log parser.
  * 
  * @author jorge.decastro
  */
 @NotThreadSafe
 public final class AnalyzeArguments {
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
-	private static final String HELP_TEXT = "<path_filename> [optional regex pattern] [optional after HH:mm] [optional before HH:mm] \nExample: \n\tEXAMPLE_log_2009-12-15.log save.do|reload.do\n 17:25 18:10"
+
+	private static final String HELP_TEXT = "<path_filename> [optional regex pattern] [optional after HH:mm] [optional before HH:mm] \nExample: \n\tEXAMPLE_log_2009-12-15.log save.do|edit.do\n 17:25 18:10"
 			+ "Processed log files are created in this directory.";
 	/**
-	 * The time format that the before/after arguments should use
+	 * The time format that the before/after {@link Instant} arguments should use.
 	 */
 	public static final Pattern TIME_FORMAT = Pattern.compile("(\\d{1,2})\\:((\\d{1,2}))");
 
@@ -58,13 +59,12 @@ public final class AnalyzeArguments {
 	}
 
 	/**
-	 * Gets all the necessary input arguments needed to run
-	 * {@link com.ft.loganalyzer.Analyze}.
+	 * Gets all the necessary input arguments needed.
 	 * 
 	 * @param args the provided {@link String} arguments.
-	 * @throws RuntimeException thrown if we do not have the arguments we need.
+	 * 
 	 */
-	public AnalyzeArguments(final String[] args) throws RuntimeException {
+	public AnalyzeArguments(final String[] args) {
 		validate(args);
 		parse(args);
 	}
@@ -77,13 +77,11 @@ public final class AnalyzeArguments {
 	public void validate(final String[] args) {
 		// expect 1 mandatory (filepath) and 3 optional arguments
 		if (args == null || args.length < 1 || args.length > 4) {
-			throw new IllegalArgumentException(String.format(
-					"Error in # of arguments, should be\n%s", HELP_TEXT));
+			throw new IllegalArgumentException(String.format("Error in # of arguments, should be\n%s", HELP_TEXT));
 		}
 		// force both time arguments to be present, if one of them is
 		if (args.length > 2 && args.length < 4) {
-			throw new IllegalArgumentException(String.format(
-					"Error in # of arguments, should be\n%s", HELP_TEXT));
+			throw new IllegalArgumentException(String.format("Error in # of arguments, should be\n%s", HELP_TEXT));
 		}
 	}
 
@@ -110,9 +108,9 @@ public final class AnalyzeArguments {
 	/**
 	 * The processed logs are written to the same directory as the source log
 	 * file, this extracts that path. If the source log file was provided as
-	 * "C:\temp\access.log", then just "C:\temp\" will be
-	 * returned. If just a filename was provided e.g.
-	 * "access.log", then an empty string will be returned.
+	 * "C:\temp\access.log", then just "C:\temp\" will be returned. If just a
+	 * filename was provided e.g. "access.log", then an empty string will be
+	 * returned.
 	 * 
 	 * @param pathFilename the provided path and filename of the log to analyze.
 	 * @return just the path element, empty String if no directory specified.

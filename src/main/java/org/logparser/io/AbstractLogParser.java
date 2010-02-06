@@ -6,7 +6,7 @@ import java.util.List;
 import org.logparser.filter.IMessageFilter;
 
 /**
- * Skeletal implementation of {@link ILogParser} with parser infrastructure.
+ * Skeletal implementation of {@link ILogParser} with basic parser infrastructure.
  * 
  * @author jorge.decastro
  * 

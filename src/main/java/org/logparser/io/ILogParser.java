@@ -3,7 +3,7 @@ package org.logparser.io;
 import java.util.List;
 
 /**
- * Specifies the protocol for log parser implementations.
+ * Specifies the protocol required of log parser implementations.
  * 
  * @author jorge.decastro
  * 

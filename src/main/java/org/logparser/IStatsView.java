@@ -3,7 +3,7 @@ package org.logparser;
 import java.util.List;
 
 /**
- * Specifies the protocol of a view containing descriptive statistics of log
+ * Specifies the protocol used to summarize and describe a collection of log
  * entries.
  * 
  * @author jorge.decastro
@@ -20,8 +20,10 @@ public interface IStatsView<E> {
 
 	public E getLatestEntry();
 
+	// TODO simply return the value? multiple entries might share same max value
 	public E getMax();
 
+	// TODO simply return the value? multiple entries might share same min value
 	public E getMin();
 
 	public double getMean();

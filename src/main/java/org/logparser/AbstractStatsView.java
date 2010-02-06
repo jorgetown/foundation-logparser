@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Skeletal implementation of a view containing descriptive statistics.
+ * Skeletal implementation containing a summary and description of a collection
+ * of log entries.
  * 
  * @author jorge.decastro
  * 

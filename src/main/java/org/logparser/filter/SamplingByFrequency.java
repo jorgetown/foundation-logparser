@@ -4,10 +4,10 @@ import net.jcip.annotations.Immutable;
 
 /**
  * A {@link IMessageFilter} implementation that maintains state, acting as a
- * sampling service.
+ * sampler.
  * 
- * In this particular case, extracts log entries at the rate given by the 'frequency'
- * argument.
+ * In this particular case, it extracts log entries at the rate given by the
+ * 'frequency' argument.
  * 
  * @author jorge.decastro
  * 

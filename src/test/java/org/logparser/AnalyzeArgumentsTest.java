@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Unit testing the {@link AnalyzeArguments}.
+ * Unit testing {@link AnalyzeArguments}.
  * 
  * @author jorge.decastro
  */
