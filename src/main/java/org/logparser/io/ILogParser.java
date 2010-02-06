@@ -16,7 +16,7 @@ public interface ILogParser<E> {
 	public List<E> getParsedEntries();
 
 	public int getTotalEntries();
-	
+
 	public E getEarliestEntry();
 
 	public E getLatestEntry();
