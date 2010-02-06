@@ -10,7 +10,7 @@ import net.jcip.annotations.Immutable;
 import org.logparser.io.ILogParser;
 
 /**
- * Responsible for grouping all the same types of requests together.
+ * Responsible for grouping messages of the same type together.
  * 
  * @author jorge.decastro
  */
@@ -37,28 +37,28 @@ public class LogOrganiser<E> {
 				 * *name* as the key e.g.:
 				 * 
 				 * <code>
-				 * Class eClass = accessEntry.getClass();
-				 * Method m = eClass.getMethod("getUrl");
-				 * key = (String) m.invoke(accessEntry);
+				 * Class aClass = entry.getClass();
+				 * Method m = aClass.getMethod("getUrl");
+				 * key = (String) m.invoke(entry);
 				 * </code>
 				 */
 				Field field = entry.getClass().getDeclaredField(groupByKey);
 				field.setAccessible(true);
 				key = (String) field.get(entry);
 			} catch (Throwable t) {
-				// TODO do something with it
+				// TODO handle properly
 			}
 
-			// If we have not had this type of request before, create a new stats wrapper for it
+			// new request? create a new stats wrapper for it
 			if (!organisedByKey.containsKey(key)) {
 				try {
 					IStatsView<E> stats = statsView.newInstance();
 					stats.add(entry);
 					organisedByKey.put(key, stats);
-				}catch (IllegalAccessException iae) {
-					// TODO: handle exception
-				}catch (InstantiationException ie) {
-					// TODO: handle exception
+				} catch (IllegalAccessException iae) {
+					// TODO  handle properly
+				} catch (InstantiationException ie) {
+					// TODO handle properly
 				}
 			} else {
 				IStatsView<E> existingEntriesList = organisedByKey.get(key);
