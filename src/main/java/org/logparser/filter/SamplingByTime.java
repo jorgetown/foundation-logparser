@@ -1,6 +1,7 @@
 package org.logparser.filter;
 
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import net.jcip.annotations.Immutable;
 
@@ -24,10 +25,15 @@ public class SamplingByTime<E extends ITimeComparable> implements IMessageFilter
 	private final long timeInMillis;
 	private Calendar previous;
 
-	public SamplingByTime(final IMessageFilter<E> filter, final long timeInMillis) {
+	public SamplingByTime(final IMessageFilter<E> filter, final long time) {
+		this(filter, time, TimeUnit.MILLISECONDS);
+	}
+
+	public SamplingByTime(final IMessageFilter<E> filter, final long time, final TimeUnit timeUnit) {
 		Preconditions.checkNotNull(filter);
+		Preconditions.checkNotNull(timeUnit);
 		this.filter = filter;
-		this.timeInMillis = timeInMillis;
+		this.timeInMillis = timeUnit.toMillis(time);
 		this.previous = Calendar.getInstance();
 	}
 
