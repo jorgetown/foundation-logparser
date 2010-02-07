@@ -34,7 +34,7 @@ public class MessageTest {
 
 	@Before
 	public void setUp() {
-		calendar.set(2008, 12, 15, 17, 15, 00);
+		calendar.set(2008, 11, 15, 17, 15, 00);
 		Date date = calendar.getTime();
 		message = new Message(ORIGINAL_ENTRY, date, URL, MILLISECONDS);
 		x = new Message(ORIGINAL_ENTRY, date, URL, MILLISECONDS);
