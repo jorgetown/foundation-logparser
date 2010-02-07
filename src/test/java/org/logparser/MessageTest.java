@@ -50,7 +50,7 @@ public class MessageTest {
 		Date d = message.getDate();
 		d.setMinutes(30);
 		assertFalse("External date change mutated object", d.equals(message.getDate()));
-		assertTrue(message.getDate().getMinutes() == 15);
+		assertEquals(15, message.getDate().getMinutes());
 	}
 
 	@Test
