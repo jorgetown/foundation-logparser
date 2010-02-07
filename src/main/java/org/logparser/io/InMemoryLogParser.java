@@ -25,7 +25,7 @@ import org.logparser.filter.IMessageFilter;
 @Immutable
 public class InMemoryLogParser<E> extends AbstractLogParser<E> {
 	private final List<IMessageFilter<E>> messageFilters;
-	private final List<E> filteredEntries;
+	private List<E> filteredEntries;
 	private final List<String> readEntries;
 
 	public InMemoryLogParser(final IMessageFilter<E>... messageFilter) {
@@ -60,18 +60,20 @@ public class InMemoryLogParser<E> extends AbstractLogParser<E> {
 			}
 		}
 		
-		parse(readEntries, messageFilters, filteredEntries);
+		filteredEntries = parse(readEntries, messageFilters);
 		return Collections.unmodifiableList(filteredEntries);
 	}
 
-	public void parse(final List<String> originalEntries, final List<IMessageFilter<E>> filters, final List<E> filtered) {
+	public List<E> parse(final List<String> entries, final List<IMessageFilter<E>> filters) {
 		E message;
-		for (String entry : originalEntries) {
+		List<E> filtered = new ArrayList<E>();
+		for (String entry : entries) {
 			message = applyFilters(entry, filters);
 			if (message != null) {
 				filtered.add(message);
 			}
 		}
+		return filtered;
 	}
 
 	public List<String> getReadEntries() {
