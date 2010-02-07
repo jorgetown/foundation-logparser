@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
 
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -14,9 +15,10 @@ import org.junit.Test;
  * 
  */
 public class SimpleTimeIntervalTest {
-	private static final Calendar cal;
-
-	static {
+	private Calendar cal;
+	
+	@Before
+	public void setUp() {
 		cal = Calendar.getInstance();
 	}
 

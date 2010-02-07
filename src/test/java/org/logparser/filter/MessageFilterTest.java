@@ -21,7 +21,7 @@ public class MessageFilterTest {
 	private MessageFilter entryFilter;
 	private ITimeInterval timeInterval = new InfiniteTimeInterval();
 	private static final String MESSAGE_DATE_FORMAT = "dd/MMM/yyyy:HH:mm:ss";
-	private static final DateFormat MESSAGE_DATE_FORMATTER = new SimpleDateFormat(MESSAGE_DATE_FORMAT);
+	private final DateFormat MESSAGE_DATE_FORMATTER = new SimpleDateFormat(MESSAGE_DATE_FORMAT);
 
 	private static final String[] LOG_MESSAGES = {
 			"10.118.101.132 - - [07/Jan/2008:10:03:46 +0000] \"GET /scripts/N200839839/bundles/editor.js HTTP/1.1\" 200 557279 51",
