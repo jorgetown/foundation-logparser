@@ -12,10 +12,10 @@ package org.logparser.filter;
  */
 public interface IMessageFilter<E> {
 	/**
-	 * Parse the given string text and return a populated message E.
+	 * Parse the given {@code text} and return a populated message E.
 	 * 
-	 * @param text the string text to parse.
-	 * @return a parsed message E, or NULL if the filter doesn't match.
+	 * @param text the {@code text} to parse.
+	 * @return a parsed message E, or null if the filter is unable to parse {@code text}.
 	 */
 	public E parse(String text);
 }

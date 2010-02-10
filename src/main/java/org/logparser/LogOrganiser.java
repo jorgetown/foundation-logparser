@@ -38,11 +38,11 @@ public class LogOrganiser<E> {
 				 * reflective access to a private field or passing the method
 				 * *name* as the key e.g.:
 				 * 
-				 * <code>
+				 * <pre>
 				 * Class aClass = entry.getClass();
 				 * Method m = aClass.getMethod("getUrl");
 				 * key = (String) m.invoke(entry);
-				 * </code>
+				 * </pre>
 				 */
 				Field field = entry.getClass().getDeclaredField(groupByKey);
 				field.setAccessible(true);

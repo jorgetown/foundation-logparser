@@ -46,7 +46,7 @@ public class MessageTest {
 	@Test
 	@SuppressWarnings("deprecation")
 	public void testMessageImmutability() {
-		// only need to test mutability on Dates since the other arguments are immutable
+		// only need to test mutability w/ {@link Dates} since the other arguments are immutable
 		Date d = message.getDate();
 		d.setMinutes(30);
 		assertFalse("External date change mutated object", d.equals(message.getDate()));

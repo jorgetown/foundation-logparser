@@ -13,8 +13,7 @@ import org.logparser.Preconditions;
  * sampler.
  * 
  * In this particular case, it extracts log entries each time the interval
- * between any 2 entries is longer than the value given by the 'timeInMillis'
- * argument.
+ * between any 2 entries is longer than the value given by {@code timeInMillis}.
  * 
  * @author jorge.decastro
  * 
