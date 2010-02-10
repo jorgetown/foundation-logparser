@@ -44,6 +44,7 @@ public class CommandLineApplicationRunner {
 		final Instant before = analyzeArguments.getBefore();
 		final Instant after = analyzeArguments.getAfter();
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
+		IStatsViewFactory<Message> factory = new MessageStatsViewFactory();
 
 		if (after != null && before != null) {
 			timeInterval = new SimpleTimeInterval(after, before);
@@ -95,7 +96,7 @@ public class CommandLineApplicationRunner {
 		// rlp = null;
 		
 		// inject the parser onto the 'organiser'
-		LogOrganiser<Message> logOrganiser = new LogOrganiser<Message>(rlp, MessageStatsView.class);
+		LogOrganiser<Message> logOrganiser = new LogOrganiser<Message>(rlp, factory);
 
 		// pass the class field used to group by
 		Map<String, IStatsView<Message>> organisedEntries = logOrganiser.groupBy("url");

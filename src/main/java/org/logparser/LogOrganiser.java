@@ -17,14 +17,14 @@ import org.logparser.io.ILogParser;
 @Immutable
 public class LogOrganiser<E> {
 	private final ILogParser<E> logParser;
-	private final Class<? extends IStatsView<E>> statsView;
+	private final IStatsViewFactory<E> statsViewFactory;
 	private final Map<String, IStatsView<E>> organisedByKey = new HashMap<String, IStatsView<E>>();
 
-	public LogOrganiser(final ILogParser<E> logParser, final Class<? extends IStatsView<E>> statsView) {
+	public LogOrganiser(final ILogParser<E> logParser, final IStatsViewFactory<E> statsViewFactory) {
 		Preconditions.checkNotNull(logParser);
-		Preconditions.checkNotNull(statsView);
+		Preconditions.checkNotNull(statsViewFactory);
 		this.logParser = logParser;
-		this.statsView = statsView;
+		this.statsViewFactory = statsViewFactory;
 	}
 
 	private Map<String, IStatsView<E>> groupBy(final List<E> entries, final String groupByKey) {
@@ -53,15 +53,9 @@ public class LogOrganiser<E> {
 
 			// new request? create a new stats wrapper for it
 			if (!organisedByKey.containsKey(key)) {
-				try {
-					IStatsView<E> stats = statsView.newInstance();
-					stats.add(entry);
-					organisedByKey.put(key, stats);
-				} catch (IllegalAccessException iae) {
-					// TODO  handle properly
-				} catch (InstantiationException ie) {
-					// TODO handle properly
-				}
+				IStatsView<E> stats = statsViewFactory.newInstance();
+				stats.add(entry);
+				organisedByKey.put(key, stats);
 			} else {
 				IStatsView<E> existingEntriesList = organisedByKey.get(key);
 				existingEntriesList.add(entry);
