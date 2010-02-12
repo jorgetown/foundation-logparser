@@ -1,4 +1,6 @@
-package org.logparser;
+package org.logparser.example;
+
+import org.logparser.IStatsViewFactory;
 
 /**
  * Factory implementation for {@link MessageStatsView} instances.

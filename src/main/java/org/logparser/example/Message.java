@@ -1,12 +1,14 @@
-package org.logparser;
+package org.logparser.example;
 
 import java.io.Serializable;
 import java.util.Date;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.ITimeComparable;
+
 /**
- * Represents a parsed log entry.
+ * Represents a parsed entry from the example log.
  * 
  * @author jorge.decastro
  */

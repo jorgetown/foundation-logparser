@@ -1,4 +1,4 @@
-package org.logparser;
+package org.logparser.example;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -9,6 +9,7 @@ import java.util.Date;
 
 import org.junit.Before;
 import org.junit.Test;
+
 
 /**
  * Unit tests for {@link Message}.

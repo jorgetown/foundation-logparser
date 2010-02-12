@@ -1,11 +1,14 @@
-package org.logparser;
+package org.logparser.example;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
 
+import org.logparser.AbstractStatsView;
+
+
 /**
- * Provides a summary and descriptive statistics for a collection of log
- * {@link Message}s.
+ * Provides a summary and descriptive statistics for a collection of
+ * {@link Message}s from the example log.
  * 
  * @author jorge.decastro
  * 
