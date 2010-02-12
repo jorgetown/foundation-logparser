@@ -12,8 +12,9 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.logparser.IStatsView;
-import org.logparser.Message;
 import org.logparser.Preconditions;
+import org.logparser.example.Message;
+
 
 /**
  * Writes a .png file with a chart created from a collection of log entries.

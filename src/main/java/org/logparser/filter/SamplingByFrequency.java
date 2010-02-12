@@ -8,8 +8,8 @@ import org.logparser.Preconditions;
  * A {@link IMessageFilter} implementation that maintains state, acting as a
  * sampler.
  * 
- * In this particular case, it extracts log entries at the rate given by the
- * 'frequency' argument.
+ * In this particular case, it extracts log entries at the rate given by {@code
+ * frequency}.
  * 
  * @author jorge.decastro
  * 

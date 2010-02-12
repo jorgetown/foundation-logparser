@@ -6,8 +6,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import org.logparser.example.Message;
+import org.logparser.example.MessageFilter;
+import org.logparser.example.MessageStatsViewFactory;
 import org.logparser.filter.IMessageFilter;
-import org.logparser.filter.MessageFilter;
 import org.logparser.filter.SamplingByTime;
 import org.logparser.io.BackgroundLogParser;
 import org.logparser.io.ChartWriter;
@@ -17,6 +19,7 @@ import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
 import org.logparser.time.Instant;
 import org.logparser.time.SimpleTimeInterval;
+
 
 /**
  * Responsible for running the log parser via the command line.
