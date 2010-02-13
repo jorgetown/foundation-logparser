@@ -1,4 +1,4 @@
-package org.logparser;
+package org.logparser.example;
 
 import java.util.Arrays;
 import java.util.List;
@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import org.logparser.example.Message;
-import org.logparser.example.MessageFilter;
-import org.logparser.example.MessageStatsViewFactory;
-import org.logparser.filter.IMessageFilter;
-import org.logparser.filter.SamplingByTime;
+import org.logparser.IMessageFilter;
+import org.logparser.IStatsView;
+import org.logparser.IStatsViewFactory;
+import org.logparser.LogOrganiser;
+import org.logparser.SamplingByTime;
 import org.logparser.io.BackgroundLogParser;
 import org.logparser.io.ChartWriter;
 import org.logparser.io.InMemoryLogParser;
@@ -19,7 +19,6 @@ import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
 import org.logparser.time.Instant;
 import org.logparser.time.SimpleTimeInterval;
-
 
 /**
  * Responsible for running the log parser via the command line.
@@ -47,7 +46,7 @@ public class CommandLineApplicationRunner {
 		final Instant before = analyzeArguments.getBefore();
 		final Instant after = analyzeArguments.getAfter();
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
-		IStatsViewFactory<Message> factory = new MessageStatsViewFactory();
+		IStatsViewFactory<Message> factory = new MessageStatsFactory();
 
 		if (after != null && before != null) {
 			timeInterval = new SimpleTimeInterval(after, before);

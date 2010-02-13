@@ -1,4 +1,4 @@
-package org.logparser;
+package org.logparser.example;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
