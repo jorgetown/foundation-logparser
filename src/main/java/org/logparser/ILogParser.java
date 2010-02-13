@@ -1,4 +1,4 @@
-package org.logparser.io;
+package org.logparser;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import java.util.List;
  * 
  * @author jorge.decastro
  * 
- * @param <E>
+ * @param <E> the type of log entries held.
  */
 public interface ILogParser<E> {
 

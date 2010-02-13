@@ -1,8 +1,6 @@
-package org.logparser.filter;
+package org.logparser;
 
 import net.jcip.annotations.Immutable;
-
-import org.logparser.Preconditions;
 
 /**
  * A {@link IMessageFilter} implementation that maintains state, acting as a

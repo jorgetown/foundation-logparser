@@ -1,12 +1,9 @@
-package org.logparser.filter;
+package org.logparser;
 
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 import net.jcip.annotations.Immutable;
-
-import org.logparser.ITimeComparable;
-import org.logparser.Preconditions;
 
 /**
  * A {@link IMessageFilter} implementation that maintains state, acting as a

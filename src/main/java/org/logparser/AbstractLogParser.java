@@ -1,16 +1,14 @@
-package org.logparser.io;
+package org.logparser;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.logparser.filter.IMessageFilter;
 
 /**
  * Skeletal implementation of {@link ILogParser} with basic parser infrastructure.
  * 
  * @author jorge.decastro
  * 
- * @param <E>
+ * @param <E> the type of log entries held.
  */
 public abstract class AbstractLogParser<E> implements ILogParser<E> {
 

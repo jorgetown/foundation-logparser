@@ -1,4 +1,4 @@
-package org.logparser.filter;
+package org.logparser;
 
 import org.junit.Test;
 
