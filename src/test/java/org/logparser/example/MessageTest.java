@@ -10,7 +10,6 @@ import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 
-
 /**
  * Unit tests for {@link Message}.
  * 

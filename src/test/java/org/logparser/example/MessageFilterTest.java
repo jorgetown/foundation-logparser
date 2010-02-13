@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
 
-
 /**
  * Unit tests for the {@link MessageFilter}.
  * 

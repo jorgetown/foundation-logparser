@@ -9,7 +9,7 @@ import java.util.List;
  * 
  * @author jorge.decastro
  * 
- * @param <E>
+ * @param <E> the type of log entries held.
  */
 public abstract class AbstractStatsView<E> implements IStatsView<E> {
 	private static String NEWLINE = System.getProperty("line.separator");
@@ -20,7 +20,7 @@ public abstract class AbstractStatsView<E> implements IStatsView<E> {
 	protected double std;
 
 	public AbstractStatsView() {
-		this.entries = new ArrayList<E>();
+		entries = new ArrayList<E>();
 	}
 
 	public void add(final E newEntry) {

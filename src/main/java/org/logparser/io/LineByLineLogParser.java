@@ -11,8 +11,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.AbstractLogParser;
+import org.logparser.ILogParser;
+import org.logparser.IMessageFilter;
 import org.logparser.Preconditions;
-import org.logparser.filter.IMessageFilter;
 
 /**
  * Implementation of {@link ILogParser} that processes a log file one line at a
@@ -21,7 +23,7 @@ import org.logparser.filter.IMessageFilter;
  * 
  * @author jorge.decastro
  * 
- * @param <E>
+ * @param <E> the type of elements held by this {@link ILogParser}.
  */
 @Immutable
 public class LineByLineLogParser<E> extends AbstractLogParser<E> {

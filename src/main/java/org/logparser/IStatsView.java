@@ -8,7 +8,7 @@ import java.util.List;
  * 
  * @author jorge.decastro
  * 
- * @param <E>
+ * @param <E> the type of log entries held.
  */
 public interface IStatsView<E> {
 
@@ -20,10 +20,10 @@ public interface IStatsView<E> {
 
 	public E getLatestEntry();
 
-	// TODO simply return the value? multiple entries might share same max value
+	// TODO simply return the value? multiple entries might share same max value.
 	public E getMax();
 
-	// TODO simply return the value? multiple entries might share same min value
+	// TODO simply return the value? multiple entries might share same min value.
 	public E getMin();
 
 	public double getMean();

@@ -9,11 +9,10 @@ import java.util.regex.Pattern;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.IMessageFilter;
 import org.logparser.Preconditions;
-import org.logparser.filter.IMessageFilter;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
-
 
 /**
  * Message filter implementation to extract {@link Message}s from a log file.

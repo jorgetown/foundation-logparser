@@ -10,8 +10,10 @@ import java.util.List;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.AbstractLogParser;
+import org.logparser.ILogParser;
+import org.logparser.IMessageFilter;
 import org.logparser.Preconditions;
-import org.logparser.filter.IMessageFilter;
 
 /**
  * Implementation of {@link ILogParser} that stores and processes a log file's
@@ -20,7 +22,7 @@ import org.logparser.filter.IMessageFilter;
  * 
  * @author jorge.decastro
  * 
- * @param <E>
+ * @param <E> the type of log entries held by this {@link ILogParser}.
  */
 @Immutable
 public class InMemoryLogParser<E> extends AbstractLogParser<E> {

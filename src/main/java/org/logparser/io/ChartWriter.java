@@ -11,6 +11,7 @@ import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.logparser.ILogParser;
 import org.logparser.IStatsView;
 import org.logparser.Preconditions;
 import org.logparser.example.Message;

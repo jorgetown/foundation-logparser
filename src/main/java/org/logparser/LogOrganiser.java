@@ -7,8 +7,6 @@ import java.util.Map;
 
 import net.jcip.annotations.Immutable;
 
-import org.logparser.io.ILogParser;
-
 /**
  * Responsible for grouping messages of the same type together, according to given criteria.
  * 
