@@ -5,7 +5,6 @@ import java.text.DecimalFormat;
 
 import org.logparser.AbstractStatsView;
 
-
 /**
  * Provides a summary and descriptive statistics for a collection of
  * {@link Message}s from the example log.
@@ -13,11 +12,11 @@ import org.logparser.AbstractStatsView;
  * @author jorge.decastro
  * 
  */
-public class MessageStatsView extends AbstractStatsView<Message> {
+public class MessageStats extends AbstractStatsView<Message> {
 	// TODO refactor to inject stats
 	private DescriptiveStats ds = new DescriptiveStats();
 
-	public MessageStatsView() {
+	public MessageStats() {
 		super();
 	}
 
