@@ -27,7 +27,7 @@
 						<archive>
 							<manifestEntries>
 								<Main-Class>
-									org.logparser.CommandLineApplicationRunner
+									org.logparser.example.CommandLineApplicationRunner
 								</Main-Class>
 							</manifestEntries>
 						</archive>
