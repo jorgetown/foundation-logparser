@@ -5,6 +5,7 @@ import java.util.Date;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.IStatsCapable;
 import org.logparser.ITimeComparable;
 
 /**
@@ -13,7 +14,7 @@ import org.logparser.ITimeComparable;
  * @author jorge.decastro
  */
 @Immutable
-public final class Message implements Serializable, ITimeComparable {
+public final class Message implements Serializable, ITimeComparable, IStatsCapable {
 	private static final long serialVersionUID = -1019020702743392905L;
 	// TODO refactor to simplify by using date as a long
 	private final Date date;
@@ -49,6 +50,10 @@ public final class Message implements Serializable, ITimeComparable {
 
 	public long getTime() {
 		return date.getTime();
+	}
+	
+	public long getElapsedTime() {
+		return Long.valueOf(milliseconds);
 	}
 
 	@Override

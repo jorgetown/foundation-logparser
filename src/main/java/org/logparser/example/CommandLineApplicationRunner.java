@@ -11,6 +11,7 @@ import org.logparser.IStatsView;
 import org.logparser.IStatsViewFactory;
 import org.logparser.LogOrganiser;
 import org.logparser.SamplingByTime;
+import org.logparser.StatsViewFactory;
 import org.logparser.io.BackgroundLogParser;
 import org.logparser.io.ChartWriter;
 import org.logparser.io.InMemoryLogParser;
@@ -46,7 +47,7 @@ public class CommandLineApplicationRunner {
 		final Instant before = analyzeArguments.getBefore();
 		final Instant after = analyzeArguments.getAfter();
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
-		IStatsViewFactory<Message> factory = new MessageStatsFactory();
+		IStatsViewFactory<Message> factory = new StatsViewFactory<Message>();
 
 		if (after != null && before != null) {
 			timeInterval = new SimpleTimeInterval(after, before);
