@@ -1,47 +1,92 @@
-package org.logparser.example;
+package org.logparser;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
-
-import org.logparser.AbstractStatsView;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Provides a summary and descriptive statistics for a collection of
- * {@link Message}s from the example log.
+ * {@link IStatsCapable} entries from a log.
  * 
  * @author jorge.decastro
  * 
+ * @param <E> the type of log entries held.
  */
-public class MessageStats extends AbstractStatsView<Message> {
-	// TODO refactor to inject stats
+public class StatsSnapshot<E extends IStatsCapable> implements IStatsView<E> {
+	private static String NEWLINE = System.getProperty("line.separator");
+	private final List<E> entries;
+	private E max;
+	private E min;
+	private double mean;
+	private double std;
 	private DescriptiveStats ds = new DescriptiveStats();
 
-	public MessageStats() {
-		super();
+	public StatsSnapshot() {
+		entries = new ArrayList<E>();
 	}
 
-	@Override
-	public void add(final Message newEntry) {
-		super.add(newEntry);
-		if (max == null
-				|| Long.valueOf(newEntry.getMilliseconds()) > Long.valueOf(max.getMilliseconds())) {
+	public void add(final E newEntry) {
+		entries.add(newEntry);
+		if (max == null || (newEntry.getElapsedTime() > max.getElapsedTime())) {
 			max = newEntry;
 		}
-		if (min == null
-				|| Long.valueOf(newEntry.getMilliseconds()) < Long.valueOf(min.getMilliseconds())) {
+		if (min == null || (newEntry.getElapsedTime() < min.getElapsedTime())) {
 			min = newEntry;
 		}
-		ds.calculate(Double.valueOf(newEntry.getMilliseconds()), ds.getMean(), ds.getVariance(), ds.getObservations());
+		ds.calculate(Double.valueOf(newEntry.getElapsedTime()), ds.getMean(), ds.getVariance(), ds.getObservations());
 		this.mean = ds.getMean();
 		this.std = ds.getStd();
+	}
+
+	public List<E> getEntries() {
+		return entries;
+	}
+
+	public E getEarliestEntry() {
+		if (!entries.isEmpty()) {
+			return entries.get(0);
+		}
+		return null;
+	}
+
+	public E getLatestEntry() {
+		if (!entries.isEmpty()) {
+			return entries.get(entries.size() - 1);
+		}
+		return null;
+	}
+
+	public E getMax() {
+		return max;
+	}
+
+	public E getMin() {
+		return min;
+	}
+
+	public double getDeviation() {
+		return std;
+	}
+
+	public double getMean() {
+		return mean;
+	}
+
+	public String toCsvString() {
+		// TODO CSV header?
+		// TODO loop through list of entries too?
+		// TODO require toCsvString() interface for log message implementations?
+		return String.format("\"%s\", \"%s\", \"%s\", \"%s\"%s", max, min, mean, std, NEWLINE);
 	}
 
 	@Override
 	public String toString() {
 		return String.format("\nMAX: %s\nMIN: %s\nMEAN: %s\nSTD: %s\nEARLIEST: %s\nLATEST: %s\n",
-						this.max, this.min, this.mean, this.std, this.getEarliestEntry(), this.getLatestEntry());
+						max, min, mean, std, getEarliestEntry(), getLatestEntry());
 	}
 
+	// TODO refactor; move out & inject here
 	public static class DescriptiveStats implements Serializable {
 		private static final long serialVersionUID = 2268207471613686207L;
 		private static final String PRECISION_PATTERN = "##.##";
@@ -49,7 +94,6 @@ public class MessageStats extends AbstractStatsView<Message> {
 		private double mean; // arithmetic mean
 		private double variance; // partial variance calculation
 		private final DecimalFormat decimalFormatter;
-		private static final String NEWLINE = System.getProperty("line.separator");
 
 		public DescriptiveStats() {
 			observations = 0;
