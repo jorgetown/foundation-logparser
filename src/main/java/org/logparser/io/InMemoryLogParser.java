@@ -36,6 +36,9 @@ public class InMemoryLogParser<E> extends AbstractLogParser<E> {
 
 	public InMemoryLogParser(final List<IMessageFilter<E>> messageFilters) {
 		Preconditions.checkNotNull(messageFilters);
+		for (IMessageFilter<E> filter : messageFilters) {
+			Preconditions.checkNotNull(filter);
+		}
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.filteredEntries = new ArrayList<E>();
 		this.readEntries = new ArrayList<String>();
@@ -62,20 +65,19 @@ public class InMemoryLogParser<E> extends AbstractLogParser<E> {
 			}
 		}
 		
-		filteredEntries = parse(readEntries, messageFilters);
+		parse(readEntries, messageFilters);
 		return Collections.unmodifiableList(filteredEntries);
 	}
 
 	public List<E> parse(final List<String> entries, final List<IMessageFilter<E>> filters) {
 		E message;
-		List<E> filtered = new ArrayList<E>();
 		for (String entry : entries) {
 			message = applyFilters(entry, filters);
 			if (message != null) {
-				filtered.add(message);
+				filteredEntries.add(message);
 			}
 		}
-		return filtered;
+		return filteredEntries;
 	}
 
 	public List<String> getReadEntries() {
