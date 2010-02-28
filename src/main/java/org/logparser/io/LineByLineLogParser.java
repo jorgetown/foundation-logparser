@@ -37,6 +37,9 @@ public class LineByLineLogParser<E> extends AbstractLogParser<E> {
 
 	public LineByLineLogParser(final List<IMessageFilter<E>> messageFilters) {
 		Preconditions.checkNotNull(messageFilters);
+		for (IMessageFilter<E> filter : messageFilters) {
+			Preconditions.checkNotNull(filter);
+		}
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.filteredEntries = new ArrayList<E>();
 		this.count = new AtomicInteger(0);

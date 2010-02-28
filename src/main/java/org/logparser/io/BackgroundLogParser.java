@@ -48,6 +48,9 @@ public class BackgroundLogParser<E> extends AbstractLogParser<E> {
 
 	public BackgroundLogParser(final List<IMessageFilter<E>> messageFilters) {
 		Preconditions.checkNotNull(messageFilters);
+		for (IMessageFilter<E> filter : messageFilters) {
+			Preconditions.checkNotNull(filter);
+		}
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.count = new AtomicInteger();
 		this.filteredEntries = new ArrayList<E>();
