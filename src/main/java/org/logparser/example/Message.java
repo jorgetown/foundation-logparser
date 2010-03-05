@@ -6,7 +6,7 @@ import java.util.Date;
 import net.jcip.annotations.Immutable;
 
 import org.logparser.IStatsCapable;
-import org.logparser.ITimeComparable;
+import org.logparser.time.ITimeComparable;
 
 /**
  * Represents a parsed entry from the example log.
@@ -51,7 +51,7 @@ public final class Message implements Serializable, ITimeComparable, IStatsCapab
 	public long getTime() {
 		return date.getTime();
 	}
-	
+
 	public long getElapsedTime() {
 		return Long.valueOf(milliseconds);
 	}
@@ -85,7 +85,7 @@ public final class Message implements Serializable, ITimeComparable, IStatsCapab
 
 	@Override
 	public String toString() {
-		return String.format("{[%s],[%s], %s, %sms}", message, date, url, milliseconds);
+		return String.format("{%s; %s; %s; %sms}", message != null ? message.replaceAll("\"", "") : message, date, url, milliseconds);
 	}
 
 	public String toCsvString() {
