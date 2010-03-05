@@ -46,7 +46,7 @@ public class LogOrganiser<E> {
 				field.setAccessible(true);
 				key = (String) field.get(entry);
 			} catch (Throwable t) {
-				// TODO handle properly
+				throw new IllegalArgumentException("Fatal error accessing log entry field by reflection", t);
 			}
 
 			// new request? create a new stats wrapper for it
