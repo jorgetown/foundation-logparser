@@ -1,4 +1,4 @@
-package org.logparser;
+package org.logparser.time;
 
 /**
  * Specifies the protocol used to compare log entries by time.
