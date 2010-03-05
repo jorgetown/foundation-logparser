@@ -77,7 +77,7 @@ public class StatsSnapshot<E extends IStatsCapable> implements IStatsView<E> {
 		// TODO CSV header?
 		// TODO loop through list of entries too?
 		// TODO require toCsvString() interface for log message implementations?
-		return String.format("\"%s\", \"%s\", \"%s\", \"%s\"%s", max, min, mean, std, NEWLINE);
+		return String.format("\"%s\", \"%s\", %s, %s%s", max, min, mean, std, NEWLINE);
 	}
 
 	@Override
