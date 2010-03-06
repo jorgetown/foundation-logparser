@@ -2,6 +2,7 @@ package org.logparser;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.time.ITimeComparable;
 import org.logparser.time.TimeComparator;
 
 /**
@@ -9,7 +10,11 @@ import org.logparser.time.TimeComparator;
  * sampler.
  * 
  * In this particular case, it extracts log entries each time the interval
- * between any 2 entries is longer than the value given by the given {@link TimeComparator}.
+ * between any 2 entries is longer than the value given by the given
+ * {@link TimeComparator}.
+ * 
+ * Note: if reflection's performance is an issue make your log entry implement
+ * {@link ITimeComparable}.
  * 
  * @author jorge.decastro
  * 
@@ -60,11 +65,11 @@ public class GenericSamplingByTime<E extends IStatsCapable> implements IMessageF
 	public TimeComparator<E> getTimeComparator() {
 		return timeComparator;
 	}
-	
+
 	public E getMax() {
 		return max;
 	}
-	
+
 	public E getMin() {
 		return min;
 	}
