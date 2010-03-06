@@ -2,34 +2,28 @@ package org.logparser;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import net.jcip.annotations.Immutable;
-
 /**
- * Responsible for grouping messages of the same type together, according to given criteria.
+ * Responsible for grouping messages of the same type together, according to
+ * given criteria.
  * 
  * @author jorge.decastro
  */
-@Immutable
-public class LogOrganiser<E> {
-	private final ILogParser<E> logParser;
-	private final IStatsViewFactory<E> statsViewFactory;
-	private final Map<String, IStatsView<E>> organisedByKey = new HashMap<String, IStatsView<E>>();
+public class LogOrganiser<E extends IStatsCapable> {
+	private final Map<String, IStatsView<E>> organisedByKey;
 
-	public LogOrganiser(final ILogParser<E> logParser, final IStatsViewFactory<E> statsViewFactory) {
-		Preconditions.checkNotNull(logParser);
-		Preconditions.checkNotNull(statsViewFactory);
-		this.logParser = logParser;
-		this.statsViewFactory = statsViewFactory;
+	public LogOrganiser() {
+		this.organisedByKey = new HashMap<String, IStatsView<E>>();
 	}
 
-	private Map<String, IStatsView<E>> groupBy(final List<E> entries, final String groupByKey) {
+	public Map<String, IStatsView<E>> groupBy(final LogSnapshot<E> logSnapshot, final String groupByKey) {
+		Preconditions.checkNotNull(logSnapshot);
+		Preconditions.checkNotNull(groupByKey);
 		organisedByKey.clear();
 
 		String key = null;
-		for (E entry : entries) {
+		for (E entry : logSnapshot.getFilteredEntries()) {
 			try {
 				/**
 				 * hmm, not pretty I know. But it's a choice of either
@@ -38,7 +32,7 @@ public class LogOrganiser<E> {
 				 * 
 				 * <pre>
 				 * Class aClass = entry.getClass();
-				 * Method m = aClass.getMethod("getUrl");
+				 * Method m = aClass.getMethod(&quot;getUrl&quot;);
 				 * key = (String) m.invoke(entry);
 				 * </pre>
 				 */
@@ -51,7 +45,7 @@ public class LogOrganiser<E> {
 
 			// new request? create a new stats wrapper for it
 			if (!organisedByKey.containsKey(key)) {
-				IStatsView<E> stats = statsViewFactory.newInstance();
+				IStatsView<E> stats = new StatsSnapshot<E>();
 				stats.add(entry);
 				organisedByKey.put(key, stats);
 			} else {
@@ -61,11 +55,5 @@ public class LogOrganiser<E> {
 		}
 
 		return organisedByKey;
-	}
-
-	public Map<String, IStatsView<E>> groupBy(final String groupByKey) {
-		Preconditions.checkNotNull(groupByKey);
-		final List<E> accessEntries = logParser.getParsedEntries();
-		return groupBy(accessEntries, groupByKey);
 	}
 }
