@@ -1,16 +1,16 @@
 package org.logparser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Skeletal implementation of {@link ILogParser} with basic parser infrastructure.
+ * Skeletal implementation of {@link ILogFilter} with basic, common
+ * functionality.
  * 
  * @author jorge.decastro
  * 
  * @param <E> the type of log entries held.
  */
-public abstract class AbstractLogParser<E> implements ILogParser<E> {
+public abstract class AbstractLogFilter<E> implements ILogFilter<E> {
 
 	// TODO address this quadratic time complexity
 	protected E applyFilters(final String toParse, final List<IMessageFilter<E>> filters) {
@@ -24,19 +24,5 @@ public abstract class AbstractLogParser<E> implements ILogParser<E> {
 		return entry;
 	}
 
-	public List<E> getParsedEntries() {
-		return new ArrayList<E>();
-	}
-
-	public int getTotalEntries() {
-		return 0;
-	}
-
-	public E getEarliestEntry() {
-		return null;
-	}
-
-	public E getLatestEntry() {
-		return null;
-	}
+	public abstract LogSnapshot<E> filter(String filepath);
 }
