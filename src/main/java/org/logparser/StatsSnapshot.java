@@ -23,9 +23,9 @@ public class StatsSnapshot<E extends IStatsCapable> implements IStatsView<E> {
 	private DescriptiveStats ds = new DescriptiveStats();
 
 	public StatsSnapshot() {
-		entries = new ArrayList<E>();
+		this.entries = new ArrayList<E>();
 	}
-
+	
 	public void add(final E newEntry) {
 		entries.add(newEntry);
 		if (max == null || (newEntry.getElapsedTime() > max.getElapsedTime())) {

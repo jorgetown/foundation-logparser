@@ -14,7 +14,7 @@ import org.logparser.time.TimeComparator;
  * {@link TimeComparator}.
  * 
  * Note: if reflection's performance is an issue make your log entry implement
- * {@link ITimeComparable}.
+ * {@link ITimeComparable} and use {@link SamplingByTime} instead.
  * 
  * @author jorge.decastro
  * 
