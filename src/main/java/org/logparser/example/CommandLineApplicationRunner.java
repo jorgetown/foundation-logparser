@@ -1,5 +1,6 @@
 package org.logparser.example;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -24,10 +25,9 @@ import org.logparser.time.SimpleTimeInterval;
 /**
  * Responsible for running the log parser via the command line.
  * 
- * <code>
- *  java -Xmx128m -jar log-parser-1.0.jar /access_log .*\\.do
- * </code>
- * 
+ * <pre>
+ *  java -Xmx128m -jar log-parser-XX.jar /logs/ EXAMPLE_log_(.*)-15.log .*.do
+ * </pre>
  * 
  * @author jorge.decastro
  */
@@ -40,9 +40,11 @@ public class CommandLineApplicationRunner {
 	public static void main(String[] args) {
 		AnalyzeArguments analyzeArguments = new AnalyzeArguments(args);
 
-		final String pathfile = analyzeArguments.getPathFile();
-		final String path = analyzeArguments.getPath();
-		final String filename = analyzeArguments.getFile();
+		final String[] paths = analyzeArguments.getPaths();
+		final String path = paths[0];
+		final File[] files = analyzeArguments.getFiles();
+		final String filename = files[0].getName();
+		final String filepath = path + filename;
 		final Pattern pattern = analyzeArguments.getPattern();
 		final Instant before = analyzeArguments.getBefore();
 		final Instant after = analyzeArguments.getAfter();
@@ -72,31 +74,40 @@ public class CommandLineApplicationRunner {
 		BackgroundLogFilter<Message> blp = new BackgroundLogFilter<Message>(filters);
 		long start = System.nanoTime();
 		// API allows looking for the same type of messages across many files
-		LogSnapshot<Message> ls = blp.filter(pathfile);
+		LogSnapshot<Message> ls = blp.filter(filepath);
 		long end = (System.nanoTime() - start) / 1000000;
 		System.out.println(String.format("BackgroundLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, ls.getTotalEntries() / end, ls.getTotalEntries(), ls.getFilteredEntries().size()));
+								end, 
+								ls.getTotalEntries() / end, 
+								ls.getTotalEntries(), 
+								ls.getFilteredEntries().size()));
 		blp.cleanup();
 		blp = null;
-		
+
 		InMemoryLogFilter<Message> imlp = new InMemoryLogFilter<Message>(filters);
 		start = System.nanoTime();
-		ls = imlp.filter(pathfile);
+		ls = imlp.filter(filepath);
 		end = (System.nanoTime() - start) / 1000000;
 		System.out.println(String.format("InMemoryLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, ls.getTotalEntries() / end, ls.getTotalEntries(), ls.getFilteredEntries().size()));
+								end, 
+								ls.getTotalEntries() / end, 
+								ls.getTotalEntries(), 
+								ls.getFilteredEntries().size()));
 		imlp.cleanup();
 		imlp = null;
 
 		LineByLineLogFilter<Message> rlp = new LineByLineLogFilter<Message>(filters);
 		start = System.nanoTime();
-		ls = rlp.filter(pathfile);
+		ls = rlp.filter(filepath);
 		end = (System.nanoTime() - start) / 1000000;
 		System.out.println(String.format("LineByLineLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, ls.getTotalEntries() / end, ls.getTotalEntries(), ls.getFilteredEntries().size()));
+								end, 
+								ls.getTotalEntries() / end, 
+								ls.getTotalEntries(), 
+								ls.getFilteredEntries().size()));
 		// rlp.dispose();
 		// rlp = null;
-		
+
 		// inject the parser onto the 'organiser'
 		LogOrganiser<Message> logOrganiser = new LogOrganiser<Message>();
 
@@ -106,10 +117,10 @@ public class CommandLineApplicationRunner {
 		for (Entry<String, IStatsView<Message>> entry : organisedEntries.entrySet()) {
 			System.out.println(String.format("key=%s, stats=%s", entry.getKey(), entry.getValue()));
 		}
-		
+
 		MessageChartView mcv = new MessageChartView(ls, organisedEntries);
 		mcv.write(path, filename);
-		
+
 		CsvView<Message> csv = new CsvView<Message>(ls, organisedEntries);
 		csv.write(path, filename);
 	}

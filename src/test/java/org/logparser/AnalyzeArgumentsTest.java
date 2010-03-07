@@ -1,9 +1,10 @@
-package org.logparser.example;
+package org.logparser;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.regex.PatternSyntaxException;
 
 import org.junit.Before;
@@ -34,13 +35,19 @@ public class AnalyzeArgumentsTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void validateTooManyArguments() {
-		analyzeArguments.validate(new String[] { "firstArgument",
-				"secondArgument", "thirdArgument", "fourthArgument", "fifthArgument" });
+		analyzeArguments.validate(new String[] { 
+				"firstArgument",
+				"secondArgument", 
+				"thirdArgument", 
+				"fourthArgument",
+				"fifthArgument",
+				"sixthArgument" });
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void validateTooFewArguments() {
-		analyzeArguments.validate(new String[] { "firstArgument", "secondArgument", "thirdArgument" });
+		analyzeArguments.validate(new String[] { 
+				"firstArgument" });
 	}
 
 	@Test
@@ -50,48 +57,33 @@ public class AnalyzeArgumentsTest {
 
 	@Test
 	public void validateOptionalArguments() {
-		analyzeArguments.validate(new String[] { "firstArgument",
-				"secondArgument", "thirdArgument", "fourthArgument" });
+		analyzeArguments.validate(new String[] { 
+				"firstArgument",
+				"secondArgument", 
+				"thirdArgument", 
+				"fourthArgument",
+				"fifthArgument" });
 	}
 
 	@Test
-	public void parseNoDirectoryJustFilename() {
-		final String ARG_NO_DIR_JUST_FILENAME = "test.log";
+	public void extractPaths() {
+		analyzeArguments.parse(new String[] { ".", "test.log" });
 
-		analyzeArguments.parse(new String[] { ARG_NO_DIR_JUST_FILENAME });
-
-		assertEquals(ARG_NO_DIR_JUST_FILENAME, analyzeArguments.getPathFile());
-		assertEquals("", analyzeArguments.getPath());
-	}
-
-	@Test
-	public void parseDirectoryAndFilename() {
-		String DIR = makeOSIndependentPath();
-		String ARG_DIR_AND_FILENAME = String.format("%s%s", DIR, "test.log");
-
-		analyzeArguments.parse(new String[] { ARG_DIR_AND_FILENAME });
-
-		assertEquals(ARG_DIR_AND_FILENAME, analyzeArguments.getPathFile());
-		assertEquals(DIR, analyzeArguments.getPath());
+		assertEquals(Arrays.toString(new String[] {"."}), Arrays.toString(analyzeArguments.getPaths()));
 	}
 
 	@Test(expected = PatternSyntaxException.class)
-	public void parseInvalidOptionalSecondArgument() {
+	public void parseInvalidMandatorySecondArgument() {
 		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
 		String ARG_PATTERN = "*";
 		analyzeArguments.parse(new String[] { ARG_FILENAME, ARG_PATTERN });
 	}
-
-	@Test
-	public void parseMissingOptionalSecondArgument() {
+	
+	@Test(expected = PatternSyntaxException.class)
+	public void parseInvalidOptionalThirdArgument() {
 		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
-
-		analyzeArguments.parse(new String[] { ARG_FILENAME });
-
-		assertTrue(analyzeArguments.getPattern().matcher("save.do").matches());
-		assertTrue(analyzeArguments.getPattern().matcher("2836ebbe-cd26-11de-a748-00144feabdc0.html").matches());
-		assertTrue(analyzeArguments.getPattern().matcher("notification.comet").matches());
-		assertTrue(analyzeArguments.getPattern().matcher("f94e9da6-55ed-11de-ab7e-00144feabdc0.img").matches());
+		String ARG_PATTERN = "*";
+		analyzeArguments.parse(new String[] { ".", ARG_FILENAME, ARG_PATTERN });
 	}
 
 	@Test
@@ -99,7 +91,7 @@ public class AnalyzeArgumentsTest {
 		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
 		String ARG_PATTERN = "save.do|reload.do";
 
-		analyzeArguments.parse(new String[] { ARG_FILENAME, ARG_PATTERN });
+		analyzeArguments.parse(new String[] { ".", ARG_FILENAME, ARG_PATTERN });
 
 		assertTrue(analyzeArguments.getPattern().matcher("save.do").matches());
 		assertTrue(analyzeArguments.getPattern().matcher("reload.do").matches());
@@ -111,7 +103,7 @@ public class AnalyzeArgumentsTest {
 		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
 		String ARG_PATTERN = "save.do|reload.do";
 
-		analyzeArguments.parse(new String[] { ARG_FILENAME, ARG_PATTERN });
+		analyzeArguments.parse(new String[] { ".", ARG_FILENAME, ARG_PATTERN });
 	}
 
 	@Test
@@ -121,7 +113,12 @@ public class AnalyzeArgumentsTest {
 		String ARG_TIME_AFTER = "17:35";
 		String ARG_TIME_BEFORE = "19:11";
 
-		analyzeArguments.parse(new String[] { ARG_FILENAME, ARG_PATTERN, ARG_TIME_AFTER, ARG_TIME_BEFORE });
+		analyzeArguments.parse(new String[] { 
+				".", 
+				ARG_FILENAME, 
+				ARG_PATTERN,
+				ARG_TIME_AFTER, 
+				ARG_TIME_BEFORE });
 
 		assertEquals(17, analyzeArguments.getAfter().getHour());
 		assertEquals(35, analyzeArguments.getAfter().getMinute());
@@ -136,7 +133,12 @@ public class AnalyzeArgumentsTest {
 		String ARG_TIME_AFTER = "1a:35";
 		String ARG_TIME_BEFORE = "19:b1";
 
-		analyzeArguments.parse(new String[] { ARG_FILENAME, ARG_PATTERN, ARG_TIME_AFTER, ARG_TIME_BEFORE });
+		analyzeArguments.parse(new String[] { 
+				".", 
+				ARG_FILENAME, 
+				ARG_PATTERN,
+				ARG_TIME_AFTER, 
+				ARG_TIME_BEFORE });
 	}
 
 	private static String makeOSIndependentPath() {

@@ -1,5 +1,9 @@
-package org.logparser.example;
+package org.logparser;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,7 +12,7 @@ import net.jcip.annotations.NotThreadSafe;
 import org.logparser.time.Instant;
 
 /**
- * Represents the arguments needed to run the log parser.
+ * Extracts the command line arguments needed to run the log parser.
  * 
  * @author jorge.decastro
  */
@@ -16,31 +20,26 @@ import org.logparser.time.Instant;
 public final class AnalyzeArguments {
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
-	private static final String HELP_TEXT = "<path_filename> [optional regex pattern] [optional after HH:mm] [optional before HH:mm] \nExample: \n\tEXAMPLE_log_2008-12-15.log save.do|edit.do\n 17:25 18:10"
-			+ "Processed log files are created in this directory.";
+	private static final String HELP_TEXT = "<comma-separated path to logfiles> <log file regex pattern> <optional filter regex pattern> <optional after HH:mm> <optional before HH:mm> \nExample: \n\t/home/logs/ EXAMPLE_log(.*).log save.do|edit.do\n 17:25 18:10"
+			+ "Processed log files are created in these directories.";
 	/**
 	 * The time format that the before/after {@link Instant} arguments should use.
 	 */
 	public static final Pattern TIME_FORMAT = Pattern.compile("(\\d{1,2})\\:((\\d{1,2}))");
 
-	private String pathFile;
-	private String path;
-	private String file;
+	private String[] paths;
+	private File[] files;
 	// match everything by default
 	private Pattern pattern = Pattern.compile(".*");
 	private Instant after;
 	private Instant before;
 
-	public String getPathFile() {
-		return pathFile;
+	public String[] getPaths() {
+		return paths;
 	}
 
-	public String getPath() {
-		return path;
-	}
-
-	public String getFile() {
-		return file;
+	public File[] getFiles() {
+		return files;
 	}
 
 	public Pattern getPattern() {
@@ -75,12 +74,12 @@ public final class AnalyzeArguments {
 	 * @param args the given {@link String} array of arguments.
 	 */
 	public void validate(final String[] args) {
-		// expect 1 mandatory (filepath) and 3 optional arguments
-		if (args == null || args.length < 1 || args.length > 4) {
+		// expect 2 mandatory -paths & files, and 3 optional arguments
+		if (args == null || args.length < 2 || args.length > 5) {
 			throw new IllegalArgumentException(String.format("Error in # of arguments, should be\n%s", HELP_TEXT));
 		}
 		// force both time arguments to be present, if one of them is
-		if (args.length > 2 && args.length < 4) {
+		if (args.length > 3 && args.length < 5) {
 			throw new IllegalArgumentException(String.format("Error in # of arguments, should be\n%s", HELP_TEXT));
 		}
 	}
@@ -91,38 +90,32 @@ public final class AnalyzeArguments {
 	 * @param args the given {@link String} array of arguments.
 	 */
 	public void parse(final String[] args) {
-		pathFile = args[0];
-		path = resolvePath(pathFile);
-		file = resolveFile(pathFile);
-
-		if (args.length > 1) {
-			pattern = Pattern.compile(args[1]);
+		paths = args[0].split(",");
+		Pattern filePattern = Pattern.compile(args[1]);
+		List<File> listOfFiles = new ArrayList<File>();
+		for (String path : paths){
+			File f = new File(path);
+			if (!f.exists()){
+				throw new IllegalArgumentException(String.format("Unable to find given path %s", path));
+			}
+			File[] contents = f.listFiles();
+			for (File file : contents){
+				if (filePattern.matcher(file.getName()).matches()){
+					listOfFiles.add(file);
+				}
+			}
 		}
+		
+		files = listOfFiles.toArray(new File[0]);
 
 		if (args.length > 2) {
-			after = extractTime(args[2]);
-			before = extractTime(args[3]);
+			pattern = Pattern.compile(args[2]);
 		}
-	}
 
-	/**
-	 * The processed logs are written to the same directory as the source log
-	 * file, this extracts that path. If the source log file was provided as
-	 * "C:\temp\access.log", then just "C:\temp\" will be returned. If just a
-	 * filename was provided e.g. "access.log", then an empty string will be
-	 * returned.
-	 * 
-	 * @param pathFilename the provided path and filename of the log to analyze.
-	 * @return just the path element, empty String if no directory specified.
-	 */
-	private String resolvePath(final String pathFilename) {
-		int lastPathSeparatorIndex = pathFilename.lastIndexOf(FILE_SEPARATOR);
-		return pathFilename.substring(0, lastPathSeparatorIndex + 1);
-	}
-
-	private String resolveFile(final String pathFilename) {
-		int lastPathSeparatorIndex = pathFilename.lastIndexOf(FILE_SEPARATOR);
-		return pathFilename.substring(lastPathSeparatorIndex + 1);
+		if (args.length > 3) {
+			after = extractTime(args[3]);
+			before = extractTime(args[4]);
+		}
 	}
 
 	private Instant extractTime(final String timeString) {
