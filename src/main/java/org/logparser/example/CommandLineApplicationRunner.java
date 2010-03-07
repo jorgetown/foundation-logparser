@@ -6,16 +6,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import org.logparser.AnalyzeArguments;
 import org.logparser.IMessageFilter;
 import org.logparser.IStatsView;
-import org.logparser.IStatsViewFactory;
 import org.logparser.LogOrganiser;
+import org.logparser.LogSnapshot;
 import org.logparser.SamplingByTime;
-import org.logparser.StatsViewFactory;
-import org.logparser.io.BackgroundLogParser;
-import org.logparser.io.ChartWriter;
-import org.logparser.io.InMemoryLogParser;
-import org.logparser.io.LineByLineLogParser;
+import org.logparser.io.BackgroundLogFilter;
+import org.logparser.io.CsvView;
+import org.logparser.io.InMemoryLogFilter;
+import org.logparser.io.LineByLineLogFilter;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
 import org.logparser.time.Instant;
@@ -42,12 +42,11 @@ public class CommandLineApplicationRunner {
 
 		final String pathfile = analyzeArguments.getPathFile();
 		final String path = analyzeArguments.getPath();
-		final String file = analyzeArguments.getFile();
+		final String filename = analyzeArguments.getFile();
 		final Pattern pattern = analyzeArguments.getPattern();
 		final Instant before = analyzeArguments.getBefore();
 		final Instant after = analyzeArguments.getAfter();
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
-		IStatsViewFactory<Message> factory = new StatsViewFactory<Message>();
 
 		if (after != null && before != null) {
 			timeInterval = new SimpleTimeInterval(after, before);
@@ -70,45 +69,48 @@ public class CommandLineApplicationRunner {
 		IMessageFilter<Message> sampler = new SamplingByTime<Message>(entryFilter, 5000); // every 5secs
 
 		// inject the filter onto a log parser
-		BackgroundLogParser<Message> blp = new BackgroundLogParser<Message>(filters);
+		BackgroundLogFilter<Message> blp = new BackgroundLogFilter<Message>(filters);
 		long start = System.nanoTime();
 		// API allows looking for the same type of messages across many files
-		blp.parse(pathfile);
+		LogSnapshot<Message> ls = blp.filter(pathfile);
 		long end = (System.nanoTime() - start) / 1000000;
-		System.out.println(String.format("BackgroundLogParser - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, blp.getTotalEntries() / end, blp.getTotalEntries(), blp.getParsedEntries().size()));
-		blp.dispose();
+		System.out.println(String.format("BackgroundLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
+								end, ls.getTotalEntries() / end, ls.getTotalEntries(), ls.getFilteredEntries().size()));
+		blp.cleanup();
 		blp = null;
 		
-		InMemoryLogParser<Message> imlp = new InMemoryLogParser<Message>(filters);
+		InMemoryLogFilter<Message> imlp = new InMemoryLogFilter<Message>(filters);
 		start = System.nanoTime();
-		imlp.parse(pathfile);
+		ls = imlp.filter(pathfile);
 		end = (System.nanoTime() - start) / 1000000;
-		System.out.println(String.format("InMemoryLogParser - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, imlp.getTotalEntries() / end, imlp.getTotalEntries(), imlp.getParsedEntries().size()));
-		imlp.dispose();
+		System.out.println(String.format("InMemoryLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
+								end, ls.getTotalEntries() / end, ls.getTotalEntries(), ls.getFilteredEntries().size()));
+		imlp.cleanup();
 		imlp = null;
 
-		LineByLineLogParser<Message> rlp = new LineByLineLogParser<Message>(filters);
+		LineByLineLogFilter<Message> rlp = new LineByLineLogFilter<Message>(filters);
 		start = System.nanoTime();
-		rlp.parse(pathfile);
+		ls = rlp.filter(pathfile);
 		end = (System.nanoTime() - start) / 1000000;
-		System.out.println(String.format("LineByLineLogParser - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, rlp.getTotalEntries() / end, rlp.getTotalEntries(), rlp.getParsedEntries().size()));
+		System.out.println(String.format("LineByLineLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
+								end, ls.getTotalEntries() / end, ls.getTotalEntries(), ls.getFilteredEntries().size()));
 		// rlp.dispose();
 		// rlp = null;
 		
 		// inject the parser onto the 'organiser'
-		LogOrganiser<Message> logOrganiser = new LogOrganiser<Message>(rlp, factory);
+		LogOrganiser<Message> logOrganiser = new LogOrganiser<Message>();
 
 		// pass the class field used to group by
-		Map<String, IStatsView<Message>> organisedEntries = logOrganiser.groupBy("url");
+		Map<String, IStatsView<Message>> organisedEntries = logOrganiser.groupBy(ls, "url");
 
 		for (Entry<String, IStatsView<Message>> entry : organisedEntries.entrySet()) {
 			System.out.println(String.format("key=%s, stats=%s", entry.getKey(), entry.getValue()));
 		}
-
-		ChartWriter chartWriter = new ChartWriter(rlp, organisedEntries);
-		chartWriter.write(path, file);
+		
+		MessageChartView mcv = new MessageChartView(ls, organisedEntries);
+		mcv.write(path, filename);
+		
+		CsvView<Message> csv = new CsvView<Message>(ls, organisedEntries);
+		csv.write(path, filename);
 	}
 }
