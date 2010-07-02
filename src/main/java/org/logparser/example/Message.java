@@ -5,22 +5,22 @@ import java.util.Date;
 
 import net.jcip.annotations.Immutable;
 
-import org.logparser.IStatsCapable;
-import org.logparser.time.ITimeComparable;
+import org.logparser.ITimestampedEntry;
 
 /**
- * Represents a parsed entry from the example log.
+ * Represents a filtered entry from the example log.
  * 
  * @author jorge.decastro
  */
 @Immutable
-public final class Message implements Serializable, ITimeComparable, IStatsCapable {
+public class Message implements Serializable, ITimestampedEntry {
 	private static final long serialVersionUID = -1019020702743392905L;
 	// TODO refactor to simplify by using date as a long
 	private final Date date;
 	private final String url;
 	private final String milliseconds;
 	private final String message;
+	private final long timestamp;
 	private volatile int hashCode;
 
 	public Message(final String message, final Date date, final String url, final String milliseconds) {
@@ -29,6 +29,7 @@ public final class Message implements Serializable, ITimeComparable, IStatsCapab
 		this.message = message;
 		this.url = url;
 		this.milliseconds = milliseconds;
+		this.timestamp = date.getTime();
 	}
 
 	public String getMessage() {
@@ -85,10 +86,22 @@ public final class Message implements Serializable, ITimeComparable, IStatsCapab
 
 	@Override
 	public String toString() {
-		return String.format("{%s; %s; %s; %sms}", message != null ? message.replaceAll("\"", "") : message, date, url, milliseconds);
+		return String.format("{%s; %s; %s; %sms}", message.replaceAll("\"", ""), date, url, milliseconds);
 	}
 
 	public String toCsvString() {
-		return String.format("\"%s\", \"%s\", \"%s\"", date, url, milliseconds);
+		return String.format("\"%s\", \"%s\", %s", date, url, Double.valueOf(milliseconds));
+	}
+
+	public String getAction() {
+		return url;
+	}
+
+	public double getDuration() {
+		return Double.valueOf(milliseconds);
+	}
+
+	public long getTimestamp() {
+		return timestamp;
 	}
 }

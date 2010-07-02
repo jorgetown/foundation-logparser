@@ -9,14 +9,22 @@ import org.junit.Ignore;
  * 
  */
 @Ignore
-public class TestMessage implements IStatsCapable {
-	private final long milliseconds;
+public class TestMessage implements ITimestampedEntry {
+	private final long time;
 
 	public TestMessage(final long milliseconds) {
-		this.milliseconds = milliseconds;
+		this.time = milliseconds;
 	}
 
-	public long getElapsedTime() {
-		return milliseconds;
+	public String getAction() {
+		return null;
+	}
+
+	public double getDuration() {
+		return time;
+	}
+
+	public long getTimestamp() {
+		return time;
 	}
 }

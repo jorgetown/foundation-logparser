@@ -3,8 +3,7 @@ package org.logparser;
 import java.util.List;
 
 /**
- * Skeletal implementation of {@link ILogFilter} with basic, common
- * functionality.
+ * Skeletal implementation of {@link ILogFilter} with basic, common functionality.
  * 
  * @author jorge.decastro
  * 

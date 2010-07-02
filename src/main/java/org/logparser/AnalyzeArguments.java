@@ -2,7 +2,6 @@ package org.logparser;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,7 +93,7 @@ public final class AnalyzeArguments {
 		Pattern filePattern = Pattern.compile(args[1]);
 		List<File> listOfFiles = new ArrayList<File>();
 		for (String path : paths){
-			File f = new File(path);
+			File f = new File(path.trim());
 			if (!f.exists()){
 				throw new IllegalArgumentException(String.format("Unable to find given path %s", path));
 			}

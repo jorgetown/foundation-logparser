@@ -23,11 +23,13 @@ import java.util.NoSuchElementException;
  * <pre>
  *     if (count <= 0) {
  *       throw new IllegalArgumentException("must be positive: " + count);
- *     }</pre>
+ *     }
+ * </pre>
  *
  * to be replaced with the more compact
  * <pre>
- *     checkArgument(count > 0, "must be positive: %s", count);</pre>
+ *     checkArgument(count > 0, "must be positive: %s", count);
+ * </pre>
  *
  * Note that the sense of the expression is inverted; with {@code Preconditions}
  * you declare what you expect to be <i>true</i>, just as you do with an

@@ -2,7 +2,9 @@ package org.logparser.io;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
@@ -10,7 +12,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.logparser.IStatsView;
+import org.logparser.ITimestampedEntry;
 import org.logparser.LogSnapshot;
 import org.logparser.Preconditions;
 
@@ -23,51 +25,45 @@ import org.logparser.Preconditions;
  * 
  * @author jorge.decastro
  */
-public class ChartView<E> {
+public class ChartView<E extends ITimestampedEntry> {
+	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	public static final int DEFAULT_PIXELS_X = 1024;
 	public static final int DEFAULT_PIXELS_Y = 768;
-	protected final LogSnapshot<E> logSnapshot;
-	protected final Map<String, IStatsView<E>> keyStats;
+	private final LogSnapshot<E> logSnapshot;
+	private final Calendar cal;
 	protected final int x;
 	protected final int y;
 	protected String yAxisLegend;
 	protected String xAxisLegend;
 
-	public ChartView(final LogSnapshot<E> logSnapshot, final Map<String, IStatsView<E>> keyStats) {
-		this(logSnapshot, keyStats, DEFAULT_PIXELS_X, DEFAULT_PIXELS_Y);
+	public ChartView(final LogSnapshot<E> logSnapshot) {
+		this(logSnapshot, DEFAULT_PIXELS_X, DEFAULT_PIXELS_Y);
 	}
-	
-	public ChartView(final LogSnapshot<E> logSnapshot, final Map<String, IStatsView<E>> keyStats, final int x, final int y) {
+
+	public ChartView(final LogSnapshot<E> logSnapshot, final int x, final int y) {
 		Preconditions.checkNotNull(logSnapshot);
-		Preconditions.checkNotNull(keyStats);
 		this.logSnapshot = logSnapshot;
-		this.keyStats = keyStats;
 		this.x = x;
 		this.y = y;
 		this.xAxisLegend = String.format("%s entries", logSnapshot.getTotalEntries());
 		this.yAxisLegend = "";
+		this.cal = Calendar.getInstance();
 	}
 
 	public void write(final String path, final String filename) {
 		Preconditions.checkNotNull(path);
 		Preconditions.checkNotNull(filename);
-		
-		CategoryDataset dataset = populateDataset(keyStats);
 
-		JFreeChart jFreeChart = ChartFactory.createBarChart(
-				filename,
-				getXAxisLegend(), 
-				getYAxisLegend(), 
-				dataset,
-				PlotOrientation.VERTICAL, 
-				true, 
-				false, 
-				false);
+		CategoryDataset dataset = populateDataset(logSnapshot);
+
+		JFreeChart jFreeChart = ChartFactory.createBarChart(filename,
+				getXAxisLegend(), getYAxisLegend(), dataset,
+				PlotOrientation.VERTICAL, true, false, false);
 
 		jFreeChart.getPlot().setForegroundAlpha(0.5f);
 		jFreeChart.getPlot().setBackgroundAlpha(0.0f);
 
-		String filepath = String.format("%s%s.png", path, filename);
+		String filepath = String.format("%s%s%s.png", path, FILE_SEPARATOR, filename);
 
 		try {
 			ChartUtilities.saveChartAsPNG(new File(filepath), jFreeChart, x, y);
@@ -76,12 +72,28 @@ public class ChartView<E> {
 		}
 	}
 
-	public CategoryDataset populateDataset(Map<String, IStatsView<E>> keyStats) {
-		return new DefaultCategoryDataset();
+	public CategoryDataset populateDataset(final LogSnapshot<E> logSnapshot) {
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+		List<E> entries = logSnapshot.getFilteredEntries();
+
+		for (E entry : entries) {
+			cal.setTimeInMillis(entry.getTimestamp());
+			dataset.addValue(Double.valueOf(entry.getDuration()), entry.getAction(), cal.getTime());
+		}
+		return dataset;
 	}
 
 	public String getXAxisLegend() {
-		return this.xAxisLegend;
+		int size = logSnapshot.getFilteredEntries().size();
+		if (size > 0) {
+			cal.setTimeInMillis(logSnapshot.getFilteredEntries().get(0).getTimestamp());
+			Date fromDate = cal.getTime();
+			cal.setTimeInMillis(logSnapshot.getFilteredEntries().get(size - 1).getTimestamp());
+			Date toDate = cal.getTime();
+			return String.format("%s entries, %s to %s", logSnapshot.getTotalEntries(), fromDate, toDate);
+		}
+		return xAxisLegend;
 	}
 
 	public String getYAxisLegend() {

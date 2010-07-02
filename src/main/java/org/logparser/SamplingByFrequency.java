@@ -13,10 +13,12 @@ import net.jcip.annotations.Immutable;
  * 
  */
 @Immutable
-public class SamplingByFrequency<E> implements IMessageFilter<E> {
+public class SamplingByFrequency<E extends ITimestampedEntry> implements IMessageFilter<E> {
 	private final IMessageFilter<E> filter;
 	private final int frequency;
 	private int count;
+	private E max;
+	private E min;
 
 	public SamplingByFrequency(final IMessageFilter<E> filter, final int frequency) {
 		Preconditions.checkNotNull(filter);
@@ -26,9 +28,18 @@ public class SamplingByFrequency<E> implements IMessageFilter<E> {
 	}
 
 	public E parse(final String text) {
+		E entry = filter.parse(text);
+		if (entry != null) {
+			if (max == null || (entry.getDuration() > max.getDuration())) {
+				max = entry;
+			}
+			if (min == null || (entry.getDuration() < min.getDuration())) {
+				min = entry;
+			}
+		}
 		if (count >= frequency) {
 			count = 0;
-			return filter.parse(text);
+			return entry;
 		}
 		count++;
 		return null;

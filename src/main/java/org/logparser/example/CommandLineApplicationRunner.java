@@ -1,21 +1,17 @@
 package org.logparser.example;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
+import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 import org.logparser.AnalyzeArguments;
-import org.logparser.IMessageFilter;
 import org.logparser.IStatsView;
 import org.logparser.LogOrganiser;
 import org.logparser.LogSnapshot;
-import org.logparser.SamplingByTime;
-import org.logparser.io.BackgroundLogFilter;
+import org.logparser.SamplingByFrequency;
+import org.logparser.io.ChartView;
 import org.logparser.io.CsvView;
-import org.logparser.io.InMemoryLogFilter;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
@@ -37,91 +33,63 @@ public class CommandLineApplicationRunner {
 	 * 
 	 * @param args Run with no args to see help information.
 	 */
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {
-		AnalyzeArguments analyzeArguments = new AnalyzeArguments(args);
-
-		final String[] paths = analyzeArguments.getPaths();
-		final String path = paths[0];
-		final File[] files = analyzeArguments.getFiles();
-		final String filename = files[0].getName();
-		final String filepath = path + filename;
-		final Pattern pattern = analyzeArguments.getPattern();
-		final Instant before = analyzeArguments.getBefore();
-		final Instant after = analyzeArguments.getAfter();
+		AnalyzeArguments aa = new AnalyzeArguments(args);
+		String[] dirs = aa.getPaths();
+		File[] files = aa.getFiles();
+		Instant after = aa.getAfter();
+		Instant before = aa.getBefore();
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
 
 		if (after != null && before != null) {
 			timeInterval = new SimpleTimeInterval(after, before);
 		}
+		// filter all controllers
+		MessageFilter filter = new MessageFilter(timeInterval, aa.getPattern().pattern());
+		// for large log files sampling is required 
+		SamplingByFrequency<Message> sampler = new SamplingByFrequency<Message>(filter, 50);
+		LineByLineLogFilter<Message> rlp = new LineByLineLogFilter<Message>(filter);
+		LogOrganiser<Message> logOrganiser;
+		Map<String, IStatsView<Message>> organisedEntries;
+		ChartView<Message> chartView;
+		CsvView<Message> csvView;
+		String filepath;
+		String path;
+		String filename;
+		for (File f : files) {
+			filepath = f.getAbsolutePath();
+			filename = f.getName();
+			path = f.getParent();
 
-		// filter message patterns we're interested in within the given time interval
-		IMessageFilter<Message> entryFilter = new MessageFilter(timeInterval, pattern.pattern());
-
-		IMessageFilter<Message> lockFilter = new MessageFilter(timeInterval, "lock.do");
-		IMessageFilter<Message> statusCheckFilter = new MessageFilter(timeInterval, "statusCheck.do");
-		IMessageFilter<Message> editFilter = new MessageFilter(timeInterval, "edit.do");
-		IMessageFilter<Message> saveFilter = new MessageFilter(timeInterval, "save.do");
-
-		@SuppressWarnings("unchecked")
-		List<IMessageFilter<Message>> filters = Arrays.asList(lockFilter, statusCheckFilter, editFilter, saveFilter);
-
-		// sample message patterns we're interested in within the given time interval
-		// (useful if log files are huge)
-		// samplers and filters are interchangeable
-		IMessageFilter<Message> sampler = new SamplingByTime<Message>(entryFilter, 5000); // every 5secs
-
-		// inject the filter onto a log parser
-		BackgroundLogFilter<Message> blp = new BackgroundLogFilter<Message>(filters);
-		long start = System.nanoTime();
-		// API allows looking for the same type of messages across many files
-		LogSnapshot<Message> ls = blp.filter(filepath);
-		long end = (System.nanoTime() - start) / 1000000;
-		System.out.println(String.format("BackgroundLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, 
-								ls.getTotalEntries() / end, 
-								ls.getTotalEntries(), 
-								ls.getFilteredEntries().size()));
-		blp.cleanup();
-		blp = null;
-
-		InMemoryLogFilter<Message> imlp = new InMemoryLogFilter<Message>(filters);
-		start = System.nanoTime();
-		ls = imlp.filter(filepath);
-		end = (System.nanoTime() - start) / 1000000;
-		System.out.println(String.format("InMemoryLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, 
-								ls.getTotalEntries() / end, 
-								ls.getTotalEntries(), 
-								ls.getFilteredEntries().size()));
-		imlp.cleanup();
-		imlp = null;
-
-		LineByLineLogFilter<Message> rlp = new LineByLineLogFilter<Message>(filters);
-		start = System.nanoTime();
-		ls = rlp.filter(filepath);
-		end = (System.nanoTime() - start) / 1000000;
-		System.out.println(String.format("LineByLineLogFilter - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-								end, 
-								ls.getTotalEntries() / end, 
-								ls.getTotalEntries(), 
-								ls.getFilteredEntries().size()));
-		// rlp.dispose();
-		// rlp = null;
-
-		// inject the parser onto the 'organiser'
-		LogOrganiser<Message> logOrganiser = new LogOrganiser<Message>();
-
-		// pass the class field used to group by
-		Map<String, IStatsView<Message>> organisedEntries = logOrganiser.groupBy(ls, "url");
-
-		for (Entry<String, IStatsView<Message>> entry : organisedEntries.entrySet()) {
-			System.out.println(String.format("key=%s, stats=%s", entry.getKey(), entry.getValue()));
+			long start = System.nanoTime();
+			LogSnapshot<Message> ls = rlp.filter(filepath);
+			long end = (System.nanoTime() - start) / 1000000;
+			DecimalFormat df = new DecimalFormat( "###.#" );
+			System.out.println(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n",
+									filename, end, df.format(ls.getTotalEntries() / (double)end), ls.getTotalEntries(), ls.getFilteredEntries().size()));
+			// inject the parser onto the 'organiser'
+			logOrganiser = new LogOrganiser<Message>();		 
+			// pass the class field used to group by
+			organisedEntries = logOrganiser.groupBy(ls);
+			chartView = new ChartView(ls);
+			chartView.write(path, filename);
+			csvView = new CsvView<Message>(ls, organisedEntries, filter.getSummary());
+			csvView.write(path, filename);
+			df = new DecimalFormat( "###.##%" );
+			double percentOfFiltered = 0.0;
+			double percentOfTotal = 0.0;
+			int value = 0;
+			System.out.println("URL,\t# Count,\t% of Filtered,\t% of Total");
+			for (Entry<String, Integer> entries : filter.getSummary().entrySet()) {
+				value = entries.getValue() > 0 ? entries.getValue() : 0;
+				percentOfFiltered = value > 0 ? value / (double)ls.getFilteredEntries().size() : 0D;
+				percentOfTotal = value > 0 ? value / (double)ls.getTotalEntries() : 0D;
+				System.out.println(String.format("%s, %s, %s, %s", entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
+			}
+			rlp.cleanup();
+			filter.reset();
 		}
-
-		MessageChartView mcv = new MessageChartView(ls, organisedEntries);
-		mcv.write(path, filename);
-
-		CsvView<Message> csv = new CsvView<Message>(ls, organisedEntries);
-		csv.write(path, filename);
+		
 	}
 }

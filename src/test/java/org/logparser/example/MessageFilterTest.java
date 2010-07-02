@@ -54,24 +54,26 @@ public class MessageFilterTest {
 
 	@Test
 	public void testParseSuccess() {
+		// Given
 		entryFilter = new MessageFilter(timeInterval);
-		final String EXPECTED_DATE_TIME = "15/Dec/2008:01:22:33";
+		final String EXPECTED_DATE_TIME = "15/Dec/2009:01:22:33";
 		final String ACCESS_DATE_TIME = String.format("[%s]", EXPECTED_DATE_TIME);
 
-		final String EXPECTED_URL = "servlet";
-		final String ACCESS_URL = String.format("/context/path/%s?a=1&b=2", EXPECTED_URL);
+		final String EXPECTED_URL = "/context/path/servlet";
+		final String ACCESS_URL = String.format("%s?a=1&b=2", EXPECTED_URL);
 
-		final String EXPECTED_TIME_TAKEN = "99";
+		final double EXPECTED_TIME_TAKEN = 99D;
 
 		final String ACCESS_ENTRY = String.format(
 				"1.1.1.1 - - %s \"POST %s HTTP/1.1\" 200 1779 %s",
 				ACCESS_DATE_TIME, ACCESS_URL, EXPECTED_TIME_TAKEN);
 
-		Message Message = entryFilter.parse(ACCESS_ENTRY);
+		Message message = entryFilter.parse(ACCESS_ENTRY);
 
-		assertEquals(ACCESS_ENTRY, Message.getMessage());
-		assertEquals(EXPECTED_DATE_TIME, MESSAGE_DATE_FORMATTER.format(Message.getDate()));
-		assertEquals(EXPECTED_URL, Message.getUrl());
-		assertEquals(EXPECTED_TIME_TAKEN, Message.getMilliseconds());
+		// Then
+		assertEquals(ACCESS_ENTRY, message.getMessage());
+		assertEquals(EXPECTED_DATE_TIME, MESSAGE_DATE_FORMATTER.format(message.getDate()));
+		assertEquals(EXPECTED_URL, message.getAction());
+		assertEquals(EXPECTED_TIME_TAKEN, message.getDuration(), 1e-15);
 	}
 }

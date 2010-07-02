@@ -1,9 +1,9 @@
 package org.logparser;
 
 /**
- * Specifies the protocol required of log entry parsers.
+ * Specifies the protocol required of log entry filters.
  * 
- * Typically, an {@link IMessageFilter} implementation will parse a log message
+ * Typically, an {@link IMessageFilter} implementation will parse a log entry
  * and return a corresponding message E if successful.
  * 
  * @author jorge.decastro

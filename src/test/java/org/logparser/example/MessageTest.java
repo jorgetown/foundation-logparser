@@ -46,7 +46,8 @@ public class MessageTest {
 	@Test
 	@SuppressWarnings("deprecation")
 	public void testMessageImmutability() {
-		// only need to test mutability w/ {@link Dates} since the other arguments are immutable
+		// only need to test mutability w/ {@link Dates} since the other
+		// arguments are immutable
 		Date d = message.getDate();
 		d.setMinutes(30);
 		assertFalse("External date change mutated object", d.equals(message.getDate()));
@@ -115,6 +116,6 @@ public class MessageTest {
 
 	@Test
 	public void testToCsvString() {
-		assertEquals(String.format("\"%s\", \"%s\", \"%s\"", message.getDate(), message.getUrl(), message.getMilliseconds()), message.toCsvString());
+		assertEquals(String.format("\"%s\", \"%s\", %s", message.getDate(), message.getAction(), message.getDuration()), message.toCsvString());
 	}
 }
