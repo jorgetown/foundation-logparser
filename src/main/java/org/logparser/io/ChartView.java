@@ -56,12 +56,15 @@ public class ChartView<E extends ITimestampedEntry> {
 
 		CategoryDataset dataset = populateDataset(logSnapshot);
 
-		JFreeChart jFreeChart = ChartFactory.createBarChart(filename,
-				getXAxisLegend(), getYAxisLegend(), dataset,
-				PlotOrientation.VERTICAL, true, false, false);
-
-		jFreeChart.getPlot().setForegroundAlpha(0.5f);
-		jFreeChart.getPlot().setBackgroundAlpha(0.0f);
+		JFreeChart jFreeChart = ChartFactory.createBarChart(
+				filename,
+				getXAxisLegend(), 
+				getYAxisLegend(), 
+				dataset,
+				PlotOrientation.VERTICAL, 
+				true, 
+				false, 
+				false);
 
 		String filepath = String.format("%s%s%s.png", path, FILE_SEPARATOR, filename);
 

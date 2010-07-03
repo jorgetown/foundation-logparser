@@ -15,7 +15,7 @@ import org.logparser.TestMessage;
  * 
  */
 public class TimeComparatorTest {
-	private TimeComparator<TestMessage> tc;
+	private TimeComparator<TestMessage> underTest;
 
 	@Test(expected = NullPointerException.class)
 	public void testNullTimeUnitArgument() {
@@ -24,19 +24,19 @@ public class TimeComparatorTest {
 
 	@Test
 	public void testEntriesAreNotEnoughApart() {
-		tc = new TimeComparator<TestMessage>(3000, TimeUnit.MILLISECONDS);
+		underTest = new TimeComparator<TestMessage>(3000, TimeUnit.MILLISECONDS);
 		TestMessage entry1 = new TestMessage(1000);
 		TestMessage entry2 = new TestMessage(2000);
-		boolean isApart = tc.isIntervalApart(entry1, entry2);
+		boolean isApart = underTest.isIntervalApart(entry1, entry2);
 		assertThat(isApart, is(false));
 	}
 
 	@Test
 	public void testEntriesAreEnoughApart() {
-		tc = new TimeComparator<TestMessage>(3000, TimeUnit.MILLISECONDS);
+		underTest = new TimeComparator<TestMessage>(3000, TimeUnit.MILLISECONDS);
 		TestMessage entry1 = new TestMessage(1000);
 		TestMessage entry2 = new TestMessage(4001);
-		boolean isApart = tc.isIntervalApart(entry1, entry2);
+		boolean isApart = underTest.isIntervalApart(entry1, entry2);
 		assertThat(isApart, is(true));
 	}
 }

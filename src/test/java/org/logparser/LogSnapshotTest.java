@@ -18,7 +18,7 @@ import org.junit.Test;
  * 
  */
 public class LogSnapshotTest {
-	private LogSnapshot<TestMessage> logSnapshot;
+	private LogSnapshot<TestMessage> underTest;
 
 	@Test(expected = NullPointerException.class)
 	public void testNullFilteredEntriesArgument() {
@@ -28,22 +28,22 @@ public class LogSnapshotTest {
 	@Test
 	public void testNotNullFilteredEntriesArguments() {
 		List<TestMessage> filteredEntries = new ArrayList<TestMessage>();
-		logSnapshot = new LogSnapshot<TestMessage>(filteredEntries, 0);
-		assertThat(logSnapshot, is(notNullValue()));
+		underTest = new LogSnapshot<TestMessage>(filteredEntries, 0);
+		assertThat(underTest, is(notNullValue()));
 	}
 
 	@Test
 	public void testTotalEntriesArgument() {
 		List<TestMessage> filteredEntries = new ArrayList<TestMessage>();
-		logSnapshot = new LogSnapshot<TestMessage>(filteredEntries, 1000);
-		assertThat(logSnapshot.getTotalEntries(), is(equalTo(1000)));
+		underTest = new LogSnapshot<TestMessage>(filteredEntries, 1000);
+		assertThat(underTest.getTotalEntries(), is(equalTo(1000)));
 	}
 
 	@Test
 	public void testEmptyFilteredEntries() {
 		List<TestMessage> filteredEntries = new ArrayList<TestMessage>();
-		logSnapshot = new LogSnapshot<TestMessage>(filteredEntries, 0);
-		assertThat(logSnapshot.getFilteredEntries().size(), is(equalTo(0)));
+		underTest = new LogSnapshot<TestMessage>(filteredEntries, 0);
+		assertThat(underTest.getFilteredEntries().size(), is(equalTo(0)));
 	}
 
 	@Test
@@ -51,8 +51,8 @@ public class LogSnapshotTest {
 		List<TestMessage> filteredEntries = new ArrayList<TestMessage>();
 		TestMessage tm = new TestMessage(1000);
 		filteredEntries.add(tm);
-		logSnapshot = new LogSnapshot<TestMessage>(filteredEntries, 0);
-		assertThat(logSnapshot.getFilteredEntries().size(), is(equalTo(1)));
-		assertThat(logSnapshot.getFilteredEntries(), hasItem(tm));
+		underTest = new LogSnapshot<TestMessage>(filteredEntries, 0);
+		assertThat(underTest.getFilteredEntries().size(), is(equalTo(1)));
+		assertThat(underTest.getFilteredEntries(), hasItem(tm));
 	}
 }

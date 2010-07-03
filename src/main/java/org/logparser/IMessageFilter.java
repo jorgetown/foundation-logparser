@@ -4,7 +4,7 @@ package org.logparser;
  * Specifies the protocol required of log entry filters.
  * 
  * Typically, an {@link IMessageFilter} implementation will parse a log entry
- * and return a corresponding message E if successful.
+ * and return a corresponding log entry E if successful.
  * 
  * @author jorge.decastro
  * 
@@ -12,10 +12,10 @@ package org.logparser;
  */
 public interface IMessageFilter<E> {
 	/**
-	 * Parse the given {@code text} and return a populated message E.
+	 * Parse the given {@code text} and return a populated entry E.
 	 * 
 	 * @param text the {@code text} to parse.
-	 * @return a parsed message of type E, or null if the filter is unable to parse
+	 * @return a parsed entry of type E, or null if the filter is unable to parse
 	 *         {@code text}.
 	 */
 	public E parse(String text);

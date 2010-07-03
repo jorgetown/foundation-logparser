@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Responsible for grouping log {@code E}ntries together.
+ * Responsible for grouping log {@link ITimestampedEntry}s together.
  * 
  * @author jorge.decastro
  */

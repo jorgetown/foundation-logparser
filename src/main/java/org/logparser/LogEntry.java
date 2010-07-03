@@ -1,19 +1,17 @@
-package org.logparser.example;
+package org.logparser;
 
 import java.io.Serializable;
 import java.util.Date;
 
 import net.jcip.annotations.Immutable;
 
-import org.logparser.ITimestampedEntry;
-
 /**
- * Represents a filtered entry from the example log.
+ * Represents a single log entry.
  * 
  * @author jorge.decastro
  */
 @Immutable
-public class Message implements Serializable, ITimestampedEntry {
+public class LogEntry implements Serializable, ITimestampedEntry {
 	private static final long serialVersionUID = -1019020702743392905L;
 	// TODO refactor to simplify by using date as a long
 	private final Date date;
@@ -23,7 +21,7 @@ public class Message implements Serializable, ITimestampedEntry {
 	private final long timestamp;
 	private volatile int hashCode;
 
-	public Message(final String message, final Date date, final String url, final String milliseconds) {
+	public LogEntry(final String message, final Date date, final String url, final String milliseconds) {
 		// defensive copy since {@link Date}s are not immutable
 		this.date = new Date(date.getTime());
 		this.message = message;
@@ -53,21 +51,17 @@ public class Message implements Serializable, ITimestampedEntry {
 		return date.getTime();
 	}
 
-	public long getElapsedTime() {
-		return Long.valueOf(milliseconds);
-	}
-
 	@Override
 	public boolean equals(Object other) {
 		if (other == this)
 			return true;
-		if (!(other instanceof Message))
+		if (!(other instanceof LogEntry))
 			return false;
-		final Message m = (Message) other;
-		return (date == null ? m.date == null : date.equals(m.date))
-				&& (milliseconds == null ? m.milliseconds == null : milliseconds.equals(m.milliseconds))
-				&& (url == null ? m.url == null : url.equals(m.url))
-				&& (message == null ? m.message == null : message.equals(m.message));
+		final LogEntry entry = (LogEntry) other;
+		return (date == null ? entry.date == null : date.equals(entry.date))
+				&& (milliseconds == null ? entry.milliseconds == null : milliseconds.equals(entry.milliseconds))
+				&& (url == null ? entry.url == null : url.equals(entry.url))
+				&& (message == null ? entry.message == null : message.equals(entry.message));
 	}
 
 	@Override

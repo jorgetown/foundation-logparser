@@ -1,11 +1,8 @@
 package org.logparser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.regex.PatternSyntaxException;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,138 +13,40 @@ import org.junit.Test;
  * @author jorge.decastro
  */
 public class AnalyzeArgumentsTest {
-	private AnalyzeArguments analyzeArguments;
+	private AnalyzeArguments underTest;
 
 	@Before
 	public void setUp() {
-		analyzeArguments = new AnalyzeArguments();
+		underTest = new AnalyzeArguments();
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testValidateNullArguments() {
+		underTest.validate(null);
+	}
+
+	@Test
+	public void testValidateEmptyArguments() {
+		underTest.validate(new String[] {});
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void validateNullArguments() {
-		analyzeArguments.validate(null);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void validateEmptyArguments() {
-		analyzeArguments.validate(new String[] {});
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void validateTooManyArguments() {
-		analyzeArguments.validate(new String[] { 
-				"firstArgument",
-				"secondArgument", 
-				"thirdArgument", 
-				"fourthArgument",
-				"fifthArgument",
-				"sixthArgument" });
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void validateTooFewArguments() {
-		analyzeArguments.validate(new String[] { 
-				"firstArgument" });
+	public void testValidateTooManyArguments() {
+		underTest.validate(new String[] { "firstArgument", "secondArgument" });
 	}
 
 	@Test
-	public void validateMandatoryArguments() {
-		analyzeArguments.validate(new String[] { "firstArgument", "secondArgument" });
+	public void testValidateTooFewArguments() {
+		underTest.validate(new String[] {});
 	}
 
 	@Test
-	public void validateOptionalArguments() {
-		analyzeArguments.validate(new String[] { 
-				"firstArgument",
-				"secondArgument", 
-				"thirdArgument", 
-				"fourthArgument",
-				"fifthArgument" });
+	public void testValidateSingleArgument() {
+		underTest.validate(new String[] { "singleArgument" });
 	}
 
 	@Test
-	public void extractPaths() {
-		analyzeArguments.parse(new String[] { ".", "test.log" });
-
-		assertEquals(Arrays.toString(new String[] {"."}), Arrays.toString(analyzeArguments.getPaths()));
-	}
-
-	@Test(expected = PatternSyntaxException.class)
-	public void parseInvalidMandatorySecondArgument() {
-		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
-		String ARG_PATTERN = "*";
-		analyzeArguments.parse(new String[] { ARG_FILENAME, ARG_PATTERN });
-	}
-	
-	@Test(expected = PatternSyntaxException.class)
-	public void parseInvalidOptionalThirdArgument() {
-		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
-		String ARG_PATTERN = "*";
-		analyzeArguments.parse(new String[] { ".", ARG_FILENAME, ARG_PATTERN });
-	}
-
-	@Test
-	public void parseValidOptionalSecondArgument() {
-		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
-		String ARG_PATTERN = "save.do|reload.do";
-
-		analyzeArguments.parse(new String[] { ".", ARG_FILENAME, ARG_PATTERN });
-
-		assertTrue(analyzeArguments.getPattern().matcher("save.do").matches());
-		assertTrue(analyzeArguments.getPattern().matcher("reload.do").matches());
-		assertFalse(analyzeArguments.getPattern().matcher("edit.do").matches());
-	}
-
-	@Test
-	public void parseMissingOptionalThirdArgument() {
-		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
-		String ARG_PATTERN = "save.do|reload.do";
-
-		analyzeArguments.parse(new String[] { ".", ARG_FILENAME, ARG_PATTERN });
-	}
-
-	@Test
-	public void parseValidOptionalTimeArgument() {
-		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
-		String ARG_PATTERN = "save.do|reload.do";
-		String ARG_TIME_AFTER = "17:35";
-		String ARG_TIME_BEFORE = "19:11";
-
-		analyzeArguments.parse(new String[] { 
-				".", 
-				ARG_FILENAME, 
-				ARG_PATTERN,
-				ARG_TIME_AFTER, 
-				ARG_TIME_BEFORE });
-
-		assertEquals(17, analyzeArguments.getAfter().getHour());
-		assertEquals(35, analyzeArguments.getAfter().getMinute());
-		assertEquals(19, analyzeArguments.getBefore().getHour());
-		assertEquals(11, analyzeArguments.getBefore().getMinute());
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void parseInvalidOptionalTimeArgument() {
-		String ARG_FILENAME = makeOSIndependentFilepath("test.log");
-		String ARG_PATTERN = "save.do|reload.do";
-		String ARG_TIME_AFTER = "1a:35";
-		String ARG_TIME_BEFORE = "19:b1";
-
-		analyzeArguments.parse(new String[] { 
-				".", 
-				ARG_FILENAME, 
-				ARG_PATTERN,
-				ARG_TIME_AFTER, 
-				ARG_TIME_BEFORE });
-	}
-
-	private static String makeOSIndependentPath() {
-		return makeOSIndependentFilepath("");
-	}
-
-	private static String makeOSIndependentFilepath(final String filename) {
-		String ARG_FILENAME = System.getProperty("user.home");
-		ARG_FILENAME += System.getProperty("file.separator");
-		return ARG_FILENAME += filename;
+	public void testDefaultPathToconfigFile() {
+		assertThat(underTest.getPathToConfig(), is(equalTo(AnalyzeArguments.DEFAULT_CONFIG_FILE)));
 	}
 }

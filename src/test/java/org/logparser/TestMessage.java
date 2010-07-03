@@ -3,7 +3,7 @@ package org.logparser;
 import org.junit.Ignore;
 
 /**
- * Represents a simple log message used for testing.
+ * Represents a simple log entry used for testing.
  * 
  * @author jorge.decastro
  * 
