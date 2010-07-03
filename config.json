@@ -1,0 +1,14 @@
+{
+  "friendlyName" : "Example Log",
+  "sampleMessage" : "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14",
+  "timestampPattern" : "\\[((.*?))\\]",
+  "timestampFormat" : "dd/MMM/yyyy:HH:mm:ss",
+  "actionPattern" : "\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
+  "durationPattern" : "HTTP.*\\s((\\d)(.*))$",
+  "filterPattern" : ".*.do",
+  "filenamePattern" : "EXAMPLE_log_(.+)-15.log",
+  "before" : "",
+  "after" : "",
+  "groupBy" : "MINUTE",
+  "baseDirs" : ["."]    
+}
