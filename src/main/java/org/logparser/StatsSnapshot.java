@@ -16,8 +16,8 @@ import java.util.List;
 public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E> {
 	private static String NEWLINE = System.getProperty("line.separator");
 	private final List<E> entries;
-	private E max;
-	private E min;
+	private E maxima;
+	private E minima;
 	private double mean;
 	private double std;
 	private DescriptiveStats ds = new DescriptiveStats();
@@ -28,11 +28,11 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
  
 	public void add(final E newEntry) {
 		entries.add(newEntry);
-		if (max == null || (newEntry.getDuration() > max.getDuration())) {
-			max = newEntry;
+		if (maxima == null || (newEntry.getDuration() > maxima.getDuration())) {
+			maxima = newEntry;
 		}
-		if (min == null || (newEntry.getDuration() < min.getDuration())) {
-			min = newEntry;
+		if (minima == null || (newEntry.getDuration() < minima.getDuration())) {
+			minima = newEntry;
 		}
 		ds.calculate(Double.valueOf(newEntry.getDuration()), ds.getMean(), ds.getVariance(), ds.getObservations());
 		this.mean = ds.getMean();
@@ -57,12 +57,12 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 		return null;
 	}
  
-	public E getMax() {
-		return max;
+	public E getMaxima() {
+		return maxima;
 	}
  
-	public E getMin() {
-		return min;
+	public E getMinima() {
+		return minima;
 	}
  
 	public double getDeviation() {
@@ -77,13 +77,13 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 		// TODO CSV header?
 		// TODO loop through list of entries too?
 		// TODO require toCsvString() interface for log message implementations?
-		return String.format("%s, \"%s\", \"%s\", %s, %s%s", entries.size(), max, min, mean, std, NEWLINE);
+		return String.format("%s, \"%s\", \"%s\", %s, %s%s", entries.size(), maxima, minima, mean, std, NEWLINE);
 	}
  
 	@Override
 	public String toString() {
 		return String.format("\nMAX: %s\nMIN: %s\nMEAN: %s\nSTD: %s\nEARLIEST: %s\nLATEST: %s\n",
-						max, min, mean, std, getEarliestEntry(), getLatestEntry());
+						maxima, minima, mean, std, getEarliestEntry(), getLatestEntry());
 	}
  
 	// TODO refactor; move out & inject here

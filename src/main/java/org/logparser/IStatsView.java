@@ -21,10 +21,10 @@ public interface IStatsView<E> {
 	public E getLatestEntry();
 
 	// TODO simply return the value? multiple entries might share same max value.
-	public E getMax();
+	public E getMaxima();
 
 	// TODO simply return the value? multiple entries might share same min value.
-	public E getMin();
+	public E getMinima();
 
 	public double getMean();
 
