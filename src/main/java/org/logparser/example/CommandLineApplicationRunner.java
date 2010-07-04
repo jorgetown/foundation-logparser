@@ -92,7 +92,7 @@ public class CommandLineApplicationRunner {
 					System.out.println(String.format("%s,\t %s,\t %s,\t %s", entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
 				}
 				
-				System.out.println("\nHour,\t# Count,\t% of Filtered,\t% of Total\n");
+				System.out.println("\n" + filterConfig.getGroupBy() + ",\t# Count,\t% of Filtered,\t% of Total\n");
 				for (Entry<String, Integer> entries : ls.getTimeBreakdown().entrySet()) {
 					value = entries.getValue() > 0 ? entries.getValue() : 0;
 					percentOfFiltered = value > 0 ? value / (double) ls.getFilteredEntries().size() : 0D;

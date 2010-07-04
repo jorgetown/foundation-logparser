@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -50,7 +51,13 @@ public class LineByLineLogFilter<E extends ITimestampedEntry> extends AbstractLo
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.filteredEntries = new ArrayList<E>();
 		this.summary = new TreeMap<String, Integer>();
-		this.timeBreakdown = new TreeMap<String, Integer>();
+		final Comparator<String> STRING_TO_INT_CMP = new Comparator<String>() {
+
+	        public int compare(String s1, String s2) {
+	            return Integer.valueOf(s1).compareTo(Integer.valueOf(s2));
+	        }
+	    };
+		this.timeBreakdown = new TreeMap<String, Integer>(STRING_TO_INT_CMP);
 		this.groupBy = filterConfig.groupByToCalendar();
 	}
 
