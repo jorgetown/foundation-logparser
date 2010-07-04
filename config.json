@@ -6,9 +6,9 @@
   "actionPattern" : "\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
   "durationPattern" : "HTTP.*\\s((\\d)(.*))$",
   "filterPattern" : ".*.do",
-  "filenamePattern" : "EXAMPLE_log_(.+)-15.log",
   "before" : "",
   "after" : "",
+  "filenamePattern" : "EXAMPLE_log_(.+)-15.log",
   "groupBy" : "MINUTE",
   "baseDirs" : ["."]    
 }
