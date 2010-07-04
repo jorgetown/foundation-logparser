@@ -30,11 +30,11 @@ public class AbstractLogFilterTest {
 	private AbstractLogFilter<TestMessage> underTest;
 	private List<TestMessage> entries;
 	@Mock
-	private IMessageFilter<TestMessage> messageFilter;
+	private IMessageFilter<TestMessage> mockMessageFilter;
 	@Mock
-	private IMessageFilter<TestMessage> messageFilter2;
+	private IMessageFilter<TestMessage> mockMessageFilter2;
 	@Mock
-	private IMessageFilter<TestMessage> messageFilter3;
+	private IMessageFilter<TestMessage> mockMessageFilter3;
 	@Mock
 	private SortedMap<String, Integer> mockSummary;
 	@Mock
@@ -68,60 +68,60 @@ public class AbstractLogFilterTest {
 	@Test
 	public void testFilteringNullEntry() {
 		List<IMessageFilter<TestMessage>> filters = new ArrayList<IMessageFilter<TestMessage>>();
-		filters.add(messageFilter);
-		when(messageFilter.parse(null)).thenReturn(null);
+		filters.add(mockMessageFilter);
+		when(mockMessageFilter.parse(null)).thenReturn(null);
 		TestMessage tm = underTest.applyFilters(null, filters);
-		verify(messageFilter, times(1)).parse(anyString());
+		verify(mockMessageFilter, times(1)).parse(anyString());
 		assertThat(tm, is(nullValue()));
 	}
  
 	@Test
 	public void testFilteringNonMatchingEntry() {
 		List<IMessageFilter<TestMessage>> filters = new ArrayList<IMessageFilter<TestMessage>>();
-		filters.add(messageFilter);
-		when(messageFilter.parse(anyString())).thenReturn(null);
+		filters.add(mockMessageFilter);
+		when(mockMessageFilter.parse(anyString())).thenReturn(null);
 		TestMessage tm = underTest.applyFilters("A Log Entry", filters);
-		verify(messageFilter, times(1)).parse(anyString());
+		verify(mockMessageFilter, times(1)).parse(anyString());
 		assertThat(tm, is(nullValue()));
 	}
  
 	@Test
 	public void testFilteringMatchingEntry() {
 		List<IMessageFilter<TestMessage>> filters = new ArrayList<IMessageFilter<TestMessage>>();
-		filters.add(messageFilter);
+		filters.add(mockMessageFilter);
 		TestMessage tm1 = new TestMessage(1000);
-		when(messageFilter.parse(anyString())).thenReturn(tm1);
+		when(mockMessageFilter.parse(anyString())).thenReturn(tm1);
 		TestMessage tm2 = underTest.applyFilters("A Log Entry", filters);
-		verify(messageFilter, times(1)).parse(anyString());
+		verify(mockMessageFilter, times(1)).parse(anyString());
 		assertThat(tm2, is(equalTo(tm1)));
 	}
  
 	@Test
 	public void testNoMatchingFilters() {
 		List<IMessageFilter<TestMessage>> filters = new ArrayList<IMessageFilter<TestMessage>>();
-		filters.add(messageFilter);
-		filters.add(messageFilter2);
-		when(messageFilter.parse(anyString())).thenReturn(null);
-		when(messageFilter2.parse(anyString())).thenReturn(null);
+		filters.add(mockMessageFilter);
+		filters.add(mockMessageFilter2);
+		when(mockMessageFilter.parse(anyString())).thenReturn(null);
+		when(mockMessageFilter2.parse(anyString())).thenReturn(null);
 		TestMessage tm = underTest.applyFilters("A Log Entry", filters);
-		verify(messageFilter, times(1)).parse(anyString());
-		verify(messageFilter2, times(1)).parse(anyString());
+		verify(mockMessageFilter, times(1)).parse(anyString());
+		verify(mockMessageFilter2, times(1)).parse(anyString());
 		assertThat(tm, is(nullValue()));
 	}
  
 	@Test
 	public void testFilteringReturnsAtFirstMatchingFilter() {
 		List<IMessageFilter<TestMessage>> filters = new ArrayList<IMessageFilter<TestMessage>>();
-		filters.add(messageFilter);
-		filters.add(messageFilter2);
-		filters.add(messageFilter3);
+		filters.add(mockMessageFilter);
+		filters.add(mockMessageFilter2);
+		filters.add(mockMessageFilter3);
 		TestMessage tm1 = new TestMessage(1000);
-		when(messageFilter.parse(anyString())).thenReturn(null);
-		when(messageFilter2.parse(anyString())).thenReturn(tm1);
+		when(mockMessageFilter.parse(anyString())).thenReturn(null);
+		when(mockMessageFilter2.parse(anyString())).thenReturn(tm1);
 		TestMessage tm2 = underTest.applyFilters("A Log Entry", filters);
-		verify(messageFilter, times(1)).parse(anyString());
-		verify(messageFilter2, times(1)).parse(anyString());
-		verify(messageFilter3, times(0)).parse(anyString());
+		verify(mockMessageFilter, times(1)).parse(anyString());
+		verify(mockMessageFilter2, times(1)).parse(anyString());
+		verify(mockMessageFilter3, times(0)).parse(anyString());
 		assertThat(tm2, is(equalTo(tm1)));
 	}
 }

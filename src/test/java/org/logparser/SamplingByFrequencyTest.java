@@ -1,5 +1,6 @@
 package org.logparser;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -8,6 +9,7 @@ import org.junit.Test;
  * @author jorge.decastro
  * 
  */
+@Ignore
 public class SamplingByFrequencyTest {
 	@Test
 	public void testNullMessageFilter() {
