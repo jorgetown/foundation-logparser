@@ -5,16 +5,22 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import net.jcip.annotations.Immutable;
 
 import org.logparser.AbstractLogFilter;
+import org.logparser.FilterConfig;
 import org.logparser.ILogFilter;
 import org.logparser.IMessageFilter;
+import org.logparser.ITimestampedEntry;
 import org.logparser.LogSnapshot;
-import org.logparser.Preconditions;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Implementation of {@link ILogFilter} that processes a log file's entries in
@@ -23,20 +29,24 @@ import org.logparser.Preconditions;
  * 
  * @author jorge.decastro
  * 
- * @param <E> the type of log entries held by this {@link ILogFilter}
+ * @param <E>
+ *            the type of log entries held by this {@link ILogFilter}
  *            implementation.
  */
 @Immutable
-public class InMemoryLogFilter<E> extends AbstractLogFilter<E> {
+public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogFilter<E> {
 	private final List<IMessageFilter<E>> messageFilters;
 	private List<E> filteredEntries;
 	private final List<String> readEntries;
+	private final SortedMap<String, Integer> summary;
+	private final SortedMap<String, Integer> timeBreakdown;
+	private final int groupBy;
 
-	public InMemoryLogFilter(final IMessageFilter<E>... messageFilter) {
-		this(Arrays.asList(messageFilter));
+	public InMemoryLogFilter(final FilterConfig filterConfig, final IMessageFilter<E>... messageFilter) {
+		this(filterConfig, Arrays.asList(messageFilter));
 	}
 
-	public InMemoryLogFilter(final List<IMessageFilter<E>> messageFilters) {
+	public InMemoryLogFilter(final FilterConfig filterConfig, final List<IMessageFilter<E>> messageFilters) {
 		Preconditions.checkNotNull(messageFilters);
 		for (IMessageFilter<E> filter : messageFilters) {
 			Preconditions.checkNotNull(filter);
@@ -44,6 +54,22 @@ public class InMemoryLogFilter<E> extends AbstractLogFilter<E> {
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.filteredEntries = new ArrayList<E>();
 		this.readEntries = new ArrayList<String>();
+		this.summary = new TreeMap<String, Integer>();
+		this.timeBreakdown = new TreeMap<String, Integer>();
+		switch (filterConfig.getGroupBy()) {
+		case DAY_OF_MONTH:
+			this.groupBy = Calendar.DAY_OF_MONTH;
+			break;
+		case DAY_OF_WEEK:
+			this.groupBy = Calendar.DAY_OF_WEEK;
+			break;
+		case MINUTE:
+			this.groupBy = Calendar.MINUTE;
+			break;
+		default:
+			this.groupBy = Calendar.HOUR_OF_DAY;
+			break;
+		}
 	}
 
 	public LogSnapshot<E> filter(final String filepath) {
@@ -73,11 +99,36 @@ public class InMemoryLogFilter<E> extends AbstractLogFilter<E> {
 				filteredEntries.add(filteredEntry);
 			}
 		}
-		return new LogSnapshot<E>(filteredEntries, readEntries.size());
+		return new LogSnapshot<E>(filteredEntries, readEntries.size(), summary, timeBreakdown);
+	}
+
+	protected void updateLogSummary(final E entry) {
+		String key = entry.getAction();
+		if (summary.containsKey(key)) {
+			Integer value = summary.get(key);
+			value++;
+			summary.put(key, value);
+		} else {
+			summary.put(key, 1);
+		}
+	}
+
+	protected void updateLogTimeBreakdown(final E entry) {
+		calendar.setTimeInMillis(entry.getTimestamp());
+		String key = "" + calendar.get(groupBy);
+		if (timeBreakdown.containsKey(key)) {
+			int value = timeBreakdown.get(key);
+			value++;
+			timeBreakdown.put(key, value);
+		} else {
+			timeBreakdown.put(key, 1);
+		}
 	}
 
 	public void cleanup() {
 		this.filteredEntries.clear();
 		this.readEntries.clear();
+		this.summary.clear();
+		this.timeBreakdown.clear();
 	}
 }

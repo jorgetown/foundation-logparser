@@ -4,16 +4,14 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import org.logparser.IStatsView;
 import org.logparser.LogSnapshot;
-import org.logparser.Preconditions;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Creates a CSV file from a collection of log data.
@@ -25,20 +23,12 @@ public class CsvView<E> {
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	private final Map<String, IStatsView<E>> keyStats;
 	private final LogSnapshot<E> logSnapshot;
-	private final Map<String, Integer> logSummary;
-	private final SortedMap<String, Integer> timeBreakdown;
  
 	public CsvView(final LogSnapshot<E> logSnapshot, final Map<String, IStatsView<E>> keyStats) {
-		this(logSnapshot, keyStats, new HashMap<String, Integer>(), new TreeMap<String, Integer>());
-	}
-	
-	public CsvView(final LogSnapshot<E> logSnapshot, final Map<String, IStatsView<E>> keyStats, final Map<String, Integer> logSummary, final SortedMap<String, Integer> timeBreakdown) {
 		Preconditions.checkNotNull(logSnapshot);
 		Preconditions.checkNotNull(keyStats);
 		this.logSnapshot = logSnapshot;
 		this.keyStats = keyStats;
-		this.logSummary = logSummary;
-		this.timeBreakdown = timeBreakdown;
 	}
 
 	public void write(String path, String filename) {
@@ -65,9 +55,9 @@ public class CsvView<E> {
 			double percentOfTotal = 0.0;
 			int value = 0;
 			
-			if (!logSummary.isEmpty()) {
+			if (!logSnapshot.getSummary().isEmpty()) {
 				out.write("\nFILTERED, TOTAL #, AS % OF FILTERED, AS % OF TOTAL\n");
-				for (Entry<String, Integer> entries : logSummary.entrySet()) {
+				for (Entry<String, Integer> entries : logSnapshot.getSummary().entrySet()) {
 					value = entries.getValue() > 0 ? entries.getValue() : 0;
 					percentOfFiltered = value > 0 ? value / (double)logSnapshot.getFilteredEntries().size() : 0D;
 					percentOfTotal = value > 0 ? value / (double)logSnapshot.getTotalEntries() : 0D;
@@ -78,9 +68,9 @@ public class CsvView<E> {
 			percentOfFiltered = 0.0;
 			percentOfTotal = 0.0;
 			value = 0;
-			if (!timeBreakdown.isEmpty()) {
+			if (!logSnapshot.getTimeBreakdown().isEmpty()) {
 				out.write("\nTIME, TOTAL #, AS % OF FILTERED, AS % OF TOTAL\n");
-				for (Entry<String, Integer> entries : timeBreakdown.entrySet()) {
+				for (Entry<String, Integer> entries : logSnapshot.getTimeBreakdown().entrySet()) {
 					value = entries.getValue() > 0 ? entries.getValue() : 0;
 					percentOfFiltered = value > 0 ? value / (double) logSnapshot.getFilteredEntries().size() : 0D;
 					percentOfTotal = value > 0 ? value / (double) logSnapshot.getTotalEntries() : 0D;

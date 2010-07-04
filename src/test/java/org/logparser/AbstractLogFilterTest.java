@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +35,10 @@ public class AbstractLogFilterTest {
 	private IMessageFilter<TestMessage> messageFilter2;
 	@Mock
 	private IMessageFilter<TestMessage> messageFilter3;
+	@Mock
+	private SortedMap<String, Integer> mockSummary;
+	@Mock
+	private SortedMap<String, Integer> mockTimeBreakdown;
  
 	@Before
 	public void setup() {
@@ -42,7 +47,15 @@ public class AbstractLogFilterTest {
  
 			@Override
 			public LogSnapshot<TestMessage> filter(String filepath) {
-				return new LogSnapshot<TestMessage>(entries, 0);
+				return new LogSnapshot<TestMessage>(entries, 0, mockSummary, mockTimeBreakdown);
+			}
+
+			@Override
+			protected void updateLogSummary(TestMessage entry) {
+			}
+
+			@Override
+			protected void updateLogTimeBreakdown(TestMessage entry) {
 			}
 		};
 	}

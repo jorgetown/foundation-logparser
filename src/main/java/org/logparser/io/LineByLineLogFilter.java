@@ -5,16 +5,22 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import net.jcip.annotations.Immutable;
 
 import org.logparser.AbstractLogFilter;
+import org.logparser.FilterConfig;
 import org.logparser.ILogFilter;
 import org.logparser.IMessageFilter;
+import org.logparser.ITimestampedEntry;
 import org.logparser.LogSnapshot;
-import org.logparser.Preconditions;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Implementation of {@link ILogFilter} that processes a log file one line at a
@@ -26,21 +32,40 @@ import org.logparser.Preconditions;
  * @param <E> the type of elements held by this {@link ILogFilter}.
  */
 @Immutable
-public class LineByLineLogFilter<E> extends AbstractLogFilter<E> {
+public class LineByLineLogFilter<E extends ITimestampedEntry> extends AbstractLogFilter<E> {
 	private final List<IMessageFilter<E>> messageFilters;
 	private final List<E> filteredEntries;
+	private final SortedMap<String, Integer> summary;
+	private final SortedMap<String, Integer> timeBreakdown;
+	private int groupBy = Calendar.HOUR_OF_DAY;
 
-	public LineByLineLogFilter(final IMessageFilter<E>... messageFilter) {
-		this(Arrays.asList(messageFilter));
+	public LineByLineLogFilter(final FilterConfig filterConfig, final IMessageFilter<E>... messageFilter) {
+		this(filterConfig, Arrays.asList(messageFilter));
 	}
 
-	public LineByLineLogFilter(final List<IMessageFilter<E>> messageFilters) {
+	public LineByLineLogFilter(final FilterConfig filterConfig, final List<IMessageFilter<E>> messageFilters) {
 		Preconditions.checkNotNull(messageFilters);
 		for (IMessageFilter<E> filter : messageFilters) {
 			Preconditions.checkNotNull(filter);
 		}
 		this.messageFilters = Collections.unmodifiableList(messageFilters);
 		this.filteredEntries = new ArrayList<E>();
+		this.summary = new TreeMap<String, Integer>();
+		this.timeBreakdown = new TreeMap<String, Integer>();
+		switch (filterConfig.getGroupBy()) {
+		case DAY_OF_MONTH:
+			this.groupBy = Calendar.DAY_OF_MONTH;
+			break;
+		case DAY_OF_WEEK:
+			this.groupBy = Calendar.DAY_OF_WEEK;
+			break;
+		case MINUTE:
+			this.groupBy = Calendar.MINUTE;
+			break;
+		default:
+			this.groupBy = Calendar.HOUR_OF_DAY;
+			break;
+		}
 	}
 
 	public LogSnapshot<E> filter(final String filepath) {
@@ -69,10 +94,35 @@ public class LineByLineLogFilter<E> extends AbstractLogFilter<E> {
 				throw new IllegalArgumentException(String.format("Failed to properly close file %s", filepath), ioe);
 			}
 		}
-		return new LogSnapshot<E>(filteredEntries, count);
+		return new LogSnapshot<E>(filteredEntries, count, summary, timeBreakdown);
+	}
+
+	protected void updateLogSummary(final E entry) {
+		String key = entry.getAction();
+		if (summary.containsKey(key)) {
+			Integer value = summary.get(key);
+			value++;
+			summary.put(key, value);
+		} else {
+			summary.put(key, 1);
+		}
+	}
+
+	protected void updateLogTimeBreakdown(final E entry) {
+		calendar.setTimeInMillis(entry.getTimestamp());
+		String key = "" + calendar.get(groupBy);
+		if (timeBreakdown.containsKey(key)) {
+			int value = timeBreakdown.get(key);
+			value++;
+			timeBreakdown.put(key, value);
+		} else {
+			timeBreakdown.put(key, 1);
+		}
 	}
 
 	public void cleanup() {
 		this.filteredEntries.clear();
+		this.summary.clear();
+		this.timeBreakdown.clear();
 	}
 }

@@ -3,7 +3,8 @@ package org.logparser.time;
 import java.util.concurrent.TimeUnit;
 
 import org.logparser.ITimestampedEntry;
-import org.logparser.Preconditions;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Generic comparator of log entries' timestamps.

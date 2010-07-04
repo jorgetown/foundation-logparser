@@ -12,9 +12,17 @@ import java.util.regex.Pattern;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-
-import org.logparser.*;
-import org.logparser.io.*;
+import org.logparser.AnalyzeArguments;
+import org.logparser.FilterConfig;
+import org.logparser.IStatsView;
+import org.logparser.LogEntry;
+import org.logparser.LogEntryFilter;
+import org.logparser.LogOrganiser;
+import org.logparser.LogSnapshot;
+import org.logparser.SamplingByFrequency;
+import org.logparser.io.ChartView;
+import org.logparser.io.CsvView;
+import org.logparser.io.LineByLineLogFilter;
 
 /**
  * Responsible for running the access log analyer via the command line.
@@ -45,7 +53,7 @@ public class CommandLineApplicationRunner {
 			LogEntryFilter filter = new LogEntryFilter(filterConfig);
 			// for large log files sampling is required
 			SamplingByFrequency<LogEntry> sampler = new SamplingByFrequency<LogEntry>(filter, 50);
-			LineByLineLogFilter<LogEntry> rlp = new LineByLineLogFilter<LogEntry>(filter);
+			LineByLineLogFilter<LogEntry> rlp = new LineByLineLogFilter<LogEntry>(filterConfig, filter);
 			LogOrganiser<LogEntry> logOrganiser;
 			Map<String, IStatsView<LogEntry>> organisedEntries;
 			ChartView<LogEntry> chartView;
@@ -70,14 +78,14 @@ public class CommandLineApplicationRunner {
 				organisedEntries = logOrganiser.groupBy(ls);
 				chartView = new ChartView(ls);
 				chartView.write(path, filename);
-				csvView = new CsvView<LogEntry>(ls, organisedEntries, filter.getSummary(), filter.getTimeBreakdown());
+				csvView = new CsvView<LogEntry>(ls, organisedEntries);
 				csvView.write(path, filename);
 				df = new DecimalFormat("####.##%");
 				double percentOfFiltered = 0.0;
 				double percentOfTotal = 0.0;
 				int value = 0;
 				System.out.println("URL,\t# Count,\t% of Filtered,\t% of Total");
-				for (Entry<String, Integer> entries : filter.getSummary().entrySet()) {
+				for (Entry<String, Integer> entries : ls.getSummary().entrySet()) {
 					value = entries.getValue() > 0 ? entries.getValue() : 0;
 					percentOfFiltered = value > 0 ? value / (double) ls.getFilteredEntries().size() : 0D;
 					percentOfTotal = value > 0 ? value / (double) ls.getTotalEntries() : 0D;
@@ -85,14 +93,13 @@ public class CommandLineApplicationRunner {
 				}
 				
 				System.out.println("\nHour,\t# Count,\t% of Filtered,\t% of Total\n");
-				for (Entry<String, Integer> entries : filter.getTimeBreakdown().entrySet()) {
+				for (Entry<String, Integer> entries : ls.getTimeBreakdown().entrySet()) {
 					value = entries.getValue() > 0 ? entries.getValue() : 0;
 					percentOfFiltered = value > 0 ? value / (double) ls.getFilteredEntries().size() : 0D;
 					percentOfTotal = value > 0 ? value / (double) ls.getTotalEntries() : 0D;
 					System.out.println(String.format("%s,\t %s,\t %s,\t %s", entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
 				}
 				rlp.cleanup();
-				filter.reset();
 			}
 		}
 	}

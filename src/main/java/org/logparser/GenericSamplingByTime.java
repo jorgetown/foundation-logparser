@@ -4,6 +4,8 @@ import net.jcip.annotations.Immutable;
 
 import org.logparser.time.TimeComparator;
 
+import com.google.common.base.Preconditions;
+
 /**
  * A {@link IMessageFilter} implementation that maintains state, acting as a
  * sampler.

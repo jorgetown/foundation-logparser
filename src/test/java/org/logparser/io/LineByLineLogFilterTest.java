@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.logparser.FilterConfig;
 import org.logparser.IMessageFilter;
 import org.logparser.TestMessage;
 
@@ -19,19 +20,19 @@ public class LineByLineLogFilterTest {
 	@SuppressWarnings("unchecked")
 	public void testNullFilter() {
 		IMessageFilter<TestMessage> filter = null;
-		new LineByLineLogFilter<TestMessage>(filter);
+		new LineByLineLogFilter<TestMessage>(new FilterConfig(), filter);
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testNullListOfFilters() {
 		List<IMessageFilter<TestMessage>> filters = null;
-		new LineByLineLogFilter<TestMessage>(filters);
+		new LineByLineLogFilter<TestMessage>(new FilterConfig(), filters);
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testListOfNullFilters() {
 		List<IMessageFilter<TestMessage>> filters = new ArrayList<IMessageFilter<TestMessage>>();
 		filters.add(null);
-		new LineByLineLogFilter<TestMessage>(filters);
+		new LineByLineLogFilter<TestMessage>(new FilterConfig(), filters);
 	}
 }

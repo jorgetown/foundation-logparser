@@ -14,7 +14,8 @@ import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.logparser.ITimestampedEntry;
 import org.logparser.LogSnapshot;
-import org.logparser.Preconditions;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Creates a chart image from a collection of log entries.

@@ -1,13 +1,11 @@
 package org.logparser;
 
-import java.util.Calendar;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.logparser.time.Instant;
 
 /**
- * Represents {@link IMessageFilter} configuration.
+ * Represents {@link IMessageFilter} and {@link ILogFilter} configuration.
  * 
  * @author jorge.decastro
  * 
@@ -30,13 +28,13 @@ public class FilterConfig {
 	private String filenamePattern;
 	private Instant before;
 	private Instant after;
-	private int groupBy;
+	private GroupBy groupBy;
 	private String[] baseDirs;
 
 	public FilterConfig() {
 		filterPattern = DEFAULT_FILTER_PATTERN;
 		filenamePattern = DEFAULT_FILENAME_PATTERN;
-		groupBy = Calendar.HOUR_OF_DAY;
+		groupBy = GroupBy.HOUR;
 		before = null;
 		after = null;
 		baseDirs = new String[] { "." };
@@ -126,21 +124,12 @@ public class FilterConfig {
 		}
 	}
 
-	public int getGroupBy() {
+	public GroupBy getGroupBy() {
 		return groupBy;
 	}
 
 	public void setGroupBy(final GroupBy groupBy) {
-		switch (groupBy) {
-		case HOUR:
-			this.groupBy = Calendar.HOUR_OF_DAY;
-		case DAY_OF_MONTH:
-			this.groupBy = Calendar.DAY_OF_MONTH;
-		case DAY_OF_WEEK:
-			this.groupBy = Calendar.DAY_OF_WEEK;
-		case MINUTE:
-			this.groupBy = Calendar.MINUTE;
-		}
+		this.groupBy = groupBy;
 	}
 
 	public String[] getBaseDirs() {

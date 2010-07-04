@@ -5,10 +5,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -21,10 +24,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import net.jcip.annotations.Immutable;
 
 import org.logparser.AbstractLogFilter;
+import org.logparser.FilterConfig;
 import org.logparser.ILogFilter;
 import org.logparser.IMessageFilter;
+import org.logparser.ITimestampedEntry;
 import org.logparser.LogSnapshot;
-import org.logparser.Preconditions;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Implementation of {@link ILogFilter} that reads and processes a log file
@@ -35,17 +41,20 @@ import org.logparser.Preconditions;
  * @param <E> the type of log entries held by this {@link ILogFilter}.
  */
 @Immutable
-public class BackgroundLogFilter<E> extends AbstractLogFilter<E> {
+public class BackgroundLogFilter<E extends ITimestampedEntry> extends AbstractLogFilter<E> {
 	private final List<IMessageFilter<E>> messageFilters;
 	private List<E> filteredEntries;
 	private final ExecutorService background;
 	private final BlockingQueue<String> queue;
+	private final SortedMap<String, Integer> summary;
+	private final SortedMap<String, Integer> timeBreakdown;
+	private int groupBy = Calendar.HOUR_OF_DAY;
 
-	public BackgroundLogFilter(final IMessageFilter<E>... messageFilter) {
-		this(Arrays.asList(messageFilter));
+	public BackgroundLogFilter(final FilterConfig filterConfig, final IMessageFilter<E>... messageFilter) {
+		this(filterConfig, Arrays.asList(messageFilter));
 	}
 
-	public BackgroundLogFilter(final List<IMessageFilter<E>> messageFilters) {
+	public BackgroundLogFilter(final FilterConfig filterConfig, final List<IMessageFilter<E>> messageFilters) {
 		Preconditions.checkNotNull(messageFilters);
 		for (IMessageFilter<E> filter : messageFilters) {
 			Preconditions.checkNotNull(filter);
@@ -54,6 +63,22 @@ public class BackgroundLogFilter<E> extends AbstractLogFilter<E> {
 		this.filteredEntries = new ArrayList<E>();
 		this.background = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
 		this.queue = new LinkedBlockingQueue<String>(5000);
+		this.summary = new TreeMap<String, Integer>();
+		this.timeBreakdown = new TreeMap<String, Integer>();
+		switch (filterConfig.getGroupBy()) {
+		case DAY_OF_MONTH:
+			this.groupBy = Calendar.DAY_OF_MONTH;
+			break;
+		case DAY_OF_WEEK:
+			this.groupBy = Calendar.DAY_OF_WEEK;
+			break;
+		case MINUTE:
+			this.groupBy = Calendar.MINUTE;
+			break;
+		default:
+			this.groupBy = Calendar.HOUR_OF_DAY;
+			break;
+		}
 	}
 
 	public LogSnapshot<E> filter(final String filepath) {
@@ -88,7 +113,7 @@ public class BackgroundLogFilter<E> extends AbstractLogFilter<E> {
 		try {
 			filteredEntries = new ArrayList<E>(future.get());
 			background.shutdown();
-			return new LogSnapshot<E>(filteredEntries, count);
+			return new LogSnapshot<E>(filteredEntries, count, summary, timeBreakdown);
 		} catch (InterruptedException ie) {
 			// TODO handle properly
 		} catch (ExecutionException ee) {
@@ -140,11 +165,36 @@ public class BackgroundLogFilter<E> extends AbstractLogFilter<E> {
 			this.EOF = true;
 		}
 	}
+	
+	protected void updateLogSummary(final E entry) {
+		String key = entry.getAction();
+		if (summary.containsKey(key)) {
+			Integer value = summary.get(key);
+			value++;
+			summary.put(key, value);
+		} else {
+			summary.put(key, 1);
+		}
+	}
+
+	protected void updateLogTimeBreakdown(final E entry) {
+		calendar.setTimeInMillis(entry.getTimestamp());
+		String key = "" + calendar.get(groupBy);
+		if (timeBreakdown.containsKey(key)) {
+			int value = timeBreakdown.get(key);
+			value++;
+			timeBreakdown.put(key, value);
+		} else {
+			timeBreakdown.put(key, 1);
+		}
+	}
 
 	public void cleanup() {
 		this.background.shutdownNow();
 		this.filteredEntries.clear();
 		this.queue.clear();
+		this.summary.clear();
+		this.timeBreakdown.clear();
 		this.filteredEntries = null;
 	}
 }

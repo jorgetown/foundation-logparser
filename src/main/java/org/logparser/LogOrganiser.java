@@ -3,6 +3,8 @@ package org.logparser;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Responsible for grouping log {@link ITimestampedEntry}s together.
  * 

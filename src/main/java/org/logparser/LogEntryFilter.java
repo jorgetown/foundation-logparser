@@ -3,13 +3,7 @@ package org.logparser;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +14,8 @@ import org.logparser.time.InfiniteTimeInterval;
 import org.logparser.time.Instant;
 import org.logparser.time.SimpleTimeInterval;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Message filter implementation to parse log entries.
  * 
@@ -27,20 +23,13 @@ import org.logparser.time.SimpleTimeInterval;
  * 
  */
 @Immutable
-public class LogEntryFilter implements IMessageFilter<LogEntry>, ILogSummaryFilter {
+public class LogEntryFilter implements IMessageFilter<LogEntry> {
 	private final Pattern timestampPattern;
 	private final Pattern actionPattern;
 	private final Pattern durationPattern;
 	private final Pattern filterPattern;
 	private final ITimeInterval timeInterval;
-	private Map<String, Integer> summary;
-	private SortedMap<String, Integer> timeBreakdown;
 	private final FilterConfig filterConfig;
-	private static Calendar calendar;
-	
-	static {
-		calendar = Calendar.getInstance();
-	}
 
 	/**
 	 * The date format to expect from the log entries to be filtered.
@@ -65,8 +54,7 @@ public class LogEntryFilter implements IMessageFilter<LogEntry>, ILogSummaryFilt
 		this.actionPattern = Pattern.compile(filterConfig.getActionPattern());
 		this.durationPattern = Pattern.compile(filterConfig.getDurationPattern());
 		this.filterPattern = Pattern.compile(filterConfig.getFilterPattern());
-		this.summary = new HashMap<String, Integer>();
-		this.timeBreakdown = new TreeMap<String, Integer>();
+
 		Instant after = filterConfig.getAfter();
 		Instant before = filterConfig.getBefore();
 		if (after != null && before != null) {
@@ -89,9 +77,7 @@ public class LogEntryFilter implements IMessageFilter<LogEntry>, ILogSummaryFilt
 				m = durationPattern.matcher(text);
 				if (m.find()) {
 					duration = m.group(1);
-					if (timeInterval.isBetweenInstants(date) && filterPattern.matcher(action).matches()) {
-						updateSummary(action);
-						updateTimeBreakdown(date);
+					if (timeInterval.isBetweenInstants(date) && filterPattern.matcher(action).matches()) {						
 						return new LogEntry(text, date, action, duration);
 					}
 				}
@@ -114,46 +100,11 @@ public class LogEntryFilter implements IMessageFilter<LogEntry>, ILogSummaryFilt
 		return date;
 	}
 
-	private void updateSummary(final String key) {
-		if (summary.containsKey(key)) {
-			Integer value = summary.get(key);
-			value++;
-			summary.put(key, value);
-		} else {
-			summary.put(key, 1);
-		}
-	}
-	
-	private void updateTimeBreakdown(final Date date) {
-		calendar.setTime(date);
-		String key = "" + calendar.get(filterConfig.getGroupBy());
-		if (timeBreakdown.containsKey(key)) {
-			int value = timeBreakdown.get(key);
-			value++;
-			timeBreakdown.put(key, value);
-		} else {
-			timeBreakdown.put(key, 1);
-		}
-	}
-
 	public Pattern getTimestampPattern() {
 		return timestampPattern;
 	}
 	
 	public DateFormat getDateFormatter() {
 		return dateFormatter.get();
-	}
-
-	public Map<String, Integer> getSummary() {
-		return Collections.unmodifiableMap(summary);
-	}
-	
-	public SortedMap<String, Integer> getTimeBreakdown() {
-		return timeBreakdown;
-	}
-
-	public void reset() {
-		summary.clear();
-		timeBreakdown.clear();
 	}
 }
