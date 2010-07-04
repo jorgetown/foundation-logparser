@@ -4,8 +4,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+import java.util.Calendar;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.logparser.FilterConfig.GroupBy;
 
 /**
  * Tests for the {@link FilterConfig}.
@@ -84,5 +87,31 @@ public class FilterConfigTest {
 		underTest = new FilterConfig();
 		underTest.setFilenamePattern("*.extension");
 		assertThat(underTest.getFilenamePattern(), is(equalTo("*.extension")));
+	}
+
+	@Test
+	public void testDefaultGroupByProperty() {
+		underTest = new FilterConfig();
+		assertThat(underTest.getGroupBy(), is(equalTo(GroupBy.HOUR)));
+	}
+
+	@Test
+	public void testGroupByPropertySetter() {
+		underTest = new FilterConfig();
+		underTest.setGroupBy(GroupBy.MINUTE);
+		assertThat(underTest.getGroupBy(), is(equalTo(GroupBy.MINUTE)));
+	}
+
+	@Test
+	public void testDefaultGroupByPropertyConversion() {
+		underTest = new FilterConfig();
+		assertThat(underTest.groupByToCalendar(), is(equalTo(Calendar.HOUR_OF_DAY)));
+	}
+
+	@Test
+	public void testGroupByPropertyConversion() {
+		underTest = new FilterConfig();
+		underTest.setGroupBy(GroupBy.MINUTE);
+		assertThat(underTest.groupByToCalendar(), is(equalTo(Calendar.MINUTE)));
 	}
 }

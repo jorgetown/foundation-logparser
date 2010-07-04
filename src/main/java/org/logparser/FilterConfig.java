@@ -1,5 +1,7 @@
 package org.logparser;
 
+import java.util.Calendar;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.logparser.time.Instant;
@@ -138,6 +140,19 @@ public class FilterConfig {
 
 	public void setBaseDirs(final String[] baseDirs) {
 		this.baseDirs = baseDirs;
+	}
+
+	public int groupByToCalendar() {
+		switch (groupBy) {
+		case DAY_OF_MONTH:
+			return Calendar.DAY_OF_MONTH;
+		case DAY_OF_WEEK:
+			return Calendar.DAY_OF_WEEK;
+		case MINUTE:
+			return Calendar.MINUTE;
+		default:
+			return Calendar.HOUR_OF_DAY;
+		}
 	}
 
 	public void validate() {

@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
@@ -37,7 +36,7 @@ public class LineByLineLogFilter<E extends ITimestampedEntry> extends AbstractLo
 	private final List<E> filteredEntries;
 	private final SortedMap<String, Integer> summary;
 	private final SortedMap<String, Integer> timeBreakdown;
-	private int groupBy = Calendar.HOUR_OF_DAY;
+	private final int groupBy;
 
 	public LineByLineLogFilter(final FilterConfig filterConfig, final IMessageFilter<E>... messageFilter) {
 		this(filterConfig, Arrays.asList(messageFilter));
@@ -52,20 +51,7 @@ public class LineByLineLogFilter<E extends ITimestampedEntry> extends AbstractLo
 		this.filteredEntries = new ArrayList<E>();
 		this.summary = new TreeMap<String, Integer>();
 		this.timeBreakdown = new TreeMap<String, Integer>();
-		switch (filterConfig.getGroupBy()) {
-		case DAY_OF_MONTH:
-			this.groupBy = Calendar.DAY_OF_MONTH;
-			break;
-		case DAY_OF_WEEK:
-			this.groupBy = Calendar.DAY_OF_WEEK;
-			break;
-		case MINUTE:
-			this.groupBy = Calendar.MINUTE;
-			break;
-		default:
-			this.groupBy = Calendar.HOUR_OF_DAY;
-			break;
-		}
+		this.groupBy = filterConfig.groupByToCalendar();
 	}
 
 	public LogSnapshot<E> filter(final String filepath) {

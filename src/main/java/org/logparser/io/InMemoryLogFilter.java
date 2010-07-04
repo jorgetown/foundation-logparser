@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
@@ -56,20 +55,7 @@ public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogF
 		this.readEntries = new ArrayList<String>();
 		this.summary = new TreeMap<String, Integer>();
 		this.timeBreakdown = new TreeMap<String, Integer>();
-		switch (filterConfig.getGroupBy()) {
-		case DAY_OF_MONTH:
-			this.groupBy = Calendar.DAY_OF_MONTH;
-			break;
-		case DAY_OF_WEEK:
-			this.groupBy = Calendar.DAY_OF_WEEK;
-			break;
-		case MINUTE:
-			this.groupBy = Calendar.MINUTE;
-			break;
-		default:
-			this.groupBy = Calendar.HOUR_OF_DAY;
-			break;
-		}
+		this.groupBy = filterConfig.groupByToCalendar();
 	}
 
 	public LogSnapshot<E> filter(final String filepath) {
