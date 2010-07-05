@@ -1,6 +1,5 @@
 package org.logparser;
 
-import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 import net.jcip.annotations.Immutable;
@@ -21,7 +20,7 @@ import com.google.common.base.Preconditions;
 public class SamplingByTime<E extends ITimestampedEntry> implements IMessageFilter<E> {
 	private final IMessageFilter<E> filter;
 	private final long timeInMillis;
-	private Calendar previous;
+	private E previous;
 
 	public SamplingByTime(final IMessageFilter<E> filter, final long time) {
 		this(filter, time, TimeUnit.MILLISECONDS);
@@ -32,7 +31,7 @@ public class SamplingByTime<E extends ITimestampedEntry> implements IMessageFilt
 		Preconditions.checkNotNull(timeUnit);
 		this.filter = filter;
 		this.timeInMillis = timeUnit.toMillis(time);
-		this.previous = Calendar.getInstance();
+		this.previous = null;
 	}
 
 	public E parse(final String text) {
@@ -41,11 +40,11 @@ public class SamplingByTime<E extends ITimestampedEntry> implements IMessageFilt
 			return entry;
 		}
 		E sampled = null;
-		if (previous.getTime() == null
-				|| (entry.getDuration() - previous.getTimeInMillis() > timeInMillis)) {
+		if (previous == null
+				|| (entry.getTimestamp() - previous.getTimestamp() > timeInMillis)) {
 			sampled = entry;
 		}
-		previous.setTimeInMillis((long) entry.getDuration());
+		previous = entry;
 		return sampled;
 	}
 
