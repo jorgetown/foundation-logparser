@@ -8,6 +8,11 @@
   "filterPattern" : ".*.do",
   "before" : "",
   "after" : "",
+  "sampler" : {
+  		"sampleBy" : "TIME", 
+  		"value" : "15",
+  		"timeUnit" : "MINUTES"
+  		},
   "filenamePattern" : "EXAMPLE_log_(.+)-15.log",
   "groupBy" : "MINUTE",
   "baseDirs" : ["."]    

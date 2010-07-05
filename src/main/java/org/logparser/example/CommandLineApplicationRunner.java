@@ -14,26 +14,28 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.logparser.AnalyzeArguments;
 import org.logparser.FilterConfig;
+import org.logparser.IMessageFilter;
 import org.logparser.IStatsView;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
 import org.logparser.LogOrganiser;
 import org.logparser.LogSnapshot;
 import org.logparser.SamplingByFrequency;
+import org.logparser.SamplingByTime;
+import org.logparser.FilterConfig.Sampler;
 import org.logparser.io.ChartView;
 import org.logparser.io.CsvView;
 import org.logparser.io.LineByLineLogFilter;
 
 /**
- * Responsible for running the access log analyer via the command line.
+ * Responsible for running the log parser via the command line.
  * 
  * <code>
- *  java -Xmx128m -jar ft-access-log-analyzer-1.0.jar C:\temp\confi.json
+ *  java -Xmx128m -jar log-parser-1.0.jar config.json
  * </code>
  * 
  * 24hrs worth of log file can take ~5mins to process.
  * 
- * @author christopher.bird
  * @author jorge.decastro
  */
 public class CommandLineApplicationRunner {
@@ -51,9 +53,23 @@ public class CommandLineApplicationRunner {
 			File[] files = getListOfLogFiles(filterConfig);
 
 			LogEntryFilter filter = new LogEntryFilter(filterConfig);
-			// for large log files sampling is required
-			SamplingByFrequency<LogEntry> sampler = new SamplingByFrequency<LogEntry>(filter, 50);
-			LineByLineLogFilter<LogEntry> rlp = new LineByLineLogFilter<LogEntry>(filterConfig, filter);
+			// for large log files sampling is preferred/required
+			IMessageFilter<LogEntry> sampler = null;
+			if (filterConfig.getSampler() != null) {
+				Sampler samplerConfig = filterConfig.getSampler();
+				switch (samplerConfig.sampleBy) {
+				case TIME:
+					sampler = new SamplingByTime<LogEntry>(filter, (Long) samplerConfig.getValue());
+					break;
+				case FREQUENCY:
+					sampler = new SamplingByFrequency<LogEntry>(filter, (Integer) samplerConfig.getValue());
+					break;
+				default:
+					sampler = null;
+				}
+			}
+			
+			LineByLineLogFilter<LogEntry> rlp = new LineByLineLogFilter<LogEntry>(filterConfig, sampler != null? sampler : filter);
 			LogOrganiser<LogEntry> logOrganiser;
 			Map<String, IStatsView<LogEntry>> organisedEntries;
 			ChartView<LogEntry> chartView;
@@ -89,9 +105,10 @@ public class CommandLineApplicationRunner {
 					value = entries.getValue() > 0 ? entries.getValue() : 0;
 					percentOfFiltered = value > 0 ? value / (double) ls.getFilteredEntries().size() : 0D;
 					percentOfTotal = value > 0 ? value / (double) ls.getTotalEntries() : 0D;
-					System.out.println(String.format("%s,\t %s,\t %s,\t %s", entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
+					System.out.println(String.format("%s,\t %s,\t %s,\t %s",
+							entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
 				}
-				
+
 				System.out.println("\n" + filterConfig.getGroupBy() + ",\t# Count,\t% of Filtered,\t% of Total\n");
 				for (Entry<String, Integer> entries : ls.getTimeBreakdown().entrySet()) {
 					value = entries.getValue() > 0 ? entries.getValue() : 0;
@@ -109,7 +126,8 @@ public class CommandLineApplicationRunner {
 		try {
 			FilterConfig filterConfig = mapper.readValue(new File(aa.getPathToConfig()), FilterConfig.class);
 			filterConfig.validate();
-			System.out.print(filterConfig.toString());
+			System.out.print(filterConfig.toString() + "\n");
+			System.out.print(filterConfig.getSampler().toString());
 			return filterConfig;
 		} catch (JsonParseException jpe) {
 			jpe.printStackTrace();

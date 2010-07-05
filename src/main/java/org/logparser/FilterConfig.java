@@ -1,6 +1,7 @@
 package org.logparser;
 
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -32,6 +33,7 @@ public class FilterConfig {
 	private Instant after;
 	private GroupBy groupBy;
 	private String[] baseDirs;
+	private Sampler sampler;
 
 	public FilterConfig() {
 		filterPattern = DEFAULT_FILTER_PATTERN;
@@ -125,6 +127,14 @@ public class FilterConfig {
 			this.after = Instant.valueOf(after);
 		}
 	}
+	
+	public Sampler getSampler() {
+		return sampler;
+	}
+	
+	public void setSampler(final Sampler sampler) {
+		this.sampler = sampler;
+	}
 
 	public GroupBy getGroupBy() {
 		return groupBy;
@@ -173,5 +183,33 @@ public class FilterConfig {
 	@Override
 	public String toString() {
 		return ReflectionToStringBuilder.toString(this);
+	}
+	
+	public static class Sampler {
+		public enum SampleBy {
+			TIME, FREQUENCY
+		};
+		public SampleBy sampleBy;
+		private Number value;
+		public TimeUnit timeUnit;
+		
+		public Number getValue() {
+			return value;
+		}
+		
+		public void setValue(final Number newValue) {
+			switch (sampleBy) {
+			case TIME:
+				this.value = newValue.longValue();
+				break;
+			default:
+				this.value = newValue.intValue();
+			}
+		}
+		
+		@Override
+		public String toString() {
+			return ReflectionToStringBuilder.toString(this);
+		}
 	}
 }
