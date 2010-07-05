@@ -127,7 +127,9 @@ public class CommandLineApplicationRunner {
 			FilterConfig filterConfig = mapper.readValue(new File(aa.getPathToConfig()), FilterConfig.class);
 			filterConfig.validate();
 			System.out.print(filterConfig.toString() + "\n");
-			System.out.print(filterConfig.getSampler().toString());
+			if (filterConfig.getSampler() != null) {
+				System.out.print(filterConfig.getSampler().toString());
+			}
 			return filterConfig;
 		} catch (JsonParseException jpe) {
 			jpe.printStackTrace();
