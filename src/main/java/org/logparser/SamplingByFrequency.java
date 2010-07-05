@@ -23,13 +23,13 @@ public class SamplingByFrequency<E> implements IMessageFilter<E> {
 		Preconditions.checkNotNull(filter);
 		this.filter = filter;
 		this.frequency = frequency;
-		this.count = 0;
+		this.count = 1;
 	}
 
 	public E parse(final String text) {
 		E entry = filter.parse(text);
 		if (count >= frequency) {
-			count = 0;
+			count = 1;
 			return entry;
 		}
 		count++;
