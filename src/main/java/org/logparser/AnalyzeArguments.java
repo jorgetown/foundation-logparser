@@ -1,8 +1,13 @@
 package org.logparser;
 
 import java.io.File;
+import java.io.IOException;
 
 import net.jcip.annotations.NotThreadSafe;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Extracts the command line arguments needed to run the log parser.
@@ -60,5 +65,21 @@ public final class AnalyzeArguments {
 				throw new IllegalArgumentException(String.format("Unable to find config file %s", pathToConfig));
 			}
 		}
+	}
+	
+	public FilterConfig getFilterConfig() {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			FilterConfig filterConfig = mapper.readValue(new File(pathToConfig), FilterConfig.class);
+			filterConfig.validate();
+			return filterConfig;
+		} catch (JsonParseException jpe) {
+			jpe.printStackTrace();
+		} catch (JsonMappingException jme) {
+			jme.printStackTrace();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+		return null;
 	}
 }

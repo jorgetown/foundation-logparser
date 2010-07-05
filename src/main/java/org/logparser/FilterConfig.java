@@ -1,7 +1,11 @@
 package org.logparser;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -127,11 +131,11 @@ public class FilterConfig {
 			this.after = Instant.valueOf(after);
 		}
 	}
-	
+
 	public Sampler getSampler() {
 		return sampler;
 	}
-	
+
 	public void setSampler(final Sampler sampler) {
 		this.sampler = sampler;
 	}
@@ -165,6 +169,24 @@ public class FilterConfig {
 		}
 	}
 
+	public File[] listLogFiles() {
+		List<File> listOfFiles = new ArrayList<File>();
+		Pattern filenamePattern = Pattern.compile(getFilenamePattern());
+		for (String path : getBaseDirs()) {
+			File f = new File(path.trim());
+			if (!f.exists()) {
+				throw new IllegalArgumentException(String.format("Unable to find given path to log file %s", path));
+			}
+			File[] contents = f.listFiles();
+			for (File file : contents) {
+				if (filenamePattern.matcher(file.getName()).matches()) {
+					listOfFiles.add(file);
+				}
+			}
+		}
+		return listOfFiles.toArray(new File[0]);
+	}
+
 	public void validate() {
 		if (StringUtils.isBlank(timestampPattern)) {
 			throw new IllegalArgumentException("'timestampPattern' property is required. Check configuration file.");
@@ -184,19 +206,20 @@ public class FilterConfig {
 	public String toString() {
 		return ReflectionToStringBuilder.toString(this);
 	}
-	
+
 	public static class Sampler {
 		public enum SampleBy {
 			TIME, FREQUENCY
 		};
+
 		public SampleBy sampleBy;
 		private Number value;
 		public TimeUnit timeUnit;
-		
+
 		public Number getValue() {
 			return value;
 		}
-		
+
 		public void setValue(final Number newValue) {
 			switch (sampleBy) {
 			case TIME:
@@ -206,7 +229,7 @@ public class FilterConfig {
 				this.value = newValue.intValue();
 			}
 		}
-		
+
 		@Override
 		public String toString() {
 			return ReflectionToStringBuilder.toString(this);
