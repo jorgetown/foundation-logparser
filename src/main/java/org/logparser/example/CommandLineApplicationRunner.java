@@ -64,7 +64,7 @@ public class CommandLineApplicationRunner {
 				}
 			}
 
-			LineByLineLogFilter<LogEntry> rlp = new LineByLineLogFilter<LogEntry>(filterConfig, sampler != null ? sampler : filter);
+			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(filterConfig, sampler != null ? sampler : filter);
 			LogOrganiser<LogEntry> logOrganiser;
 			Map<String, IStatsView<LogEntry>> organisedEntries;
 			ChartView<LogEntry> chartView;
@@ -78,25 +78,25 @@ public class CommandLineApplicationRunner {
 				path = f.getParent();
 
 				long start = System.nanoTime();
-				LogSnapshot<LogEntry> ls = rlp.filter(filepath);
+				LogSnapshot<LogEntry> logSnapshot = lineByLineParser.filter(filepath);
 				long end = (System.nanoTime() - start) / 1000000;
 				DecimalFormat df = new DecimalFormat("####.##");
-				int totalEntries = ls.getTotalEntries();
-				int filteredEntries = ls.getFilteredEntries().size();
+				int totalEntries = logSnapshot.getTotalEntries();
+				int filteredEntries = logSnapshot.getFilteredEntries().size();
 				System.out.println(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
 				// inject the parser onto the 'organiser'
 				logOrganiser = new LogOrganiser<LogEntry>();
 				// pass the class field used to group by
-				organisedEntries = logOrganiser.groupBy(ls);
-				chartView = new ChartView(ls);
+				organisedEntries = logOrganiser.organize(logSnapshot);
+				chartView = new ChartView(logSnapshot);
 				chartView.write(path, filename);
-				csvView = new CsvView<LogEntry>(ls, organisedEntries);
+				csvView = new CsvView<LogEntry>(logSnapshot, organisedEntries);
 				csvView.write(path, filename);
 				System.out.println("URL,\t# Count,\t% of Filtered,\t% of Total");
-				printConsoleSummary(ls.getSummary(), filteredEntries, totalEntries);
+				printConsoleSummary(logSnapshot.getSummary(), filteredEntries, totalEntries);
 				System.out.println("\n" + filterConfig.getGroupBy() + ",\t# Count,\t% of Filtered,\t% of Total\n");
-				printConsoleSummary(ls.getTimeBreakdown(), filteredEntries, totalEntries);
-				rlp.cleanup();
+				printConsoleSummary(logSnapshot.getTimeBreakdown(), filteredEntries, totalEntries);
+				lineByLineParser.cleanup();
 			}
 		}
 	}
