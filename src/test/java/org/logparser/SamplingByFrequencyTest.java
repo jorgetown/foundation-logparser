@@ -46,7 +46,7 @@ public class SamplingByFrequencyTest {
 	}
 
 	@Test
-	public void testFilteredEntryIsSampledIfWithinFrequencyRate() {
+	public void testFilteredEntryIsSampledIfWithinSamplingInterval() {
 		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 1);
 		TestMessage filtered = new TestMessage(1000);
 		when(mockFilter.parse(anyString())).thenReturn(filtered);
@@ -57,30 +57,26 @@ public class SamplingByFrequencyTest {
 	}
 
 	@Test
-	public void testFilteredEntryIsNotSampledIfNotWithinFrequencyRate() {
-		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 3); // sample 1 in 3
+	public void testFilteredEntryIsNotSampledIfNotWithinSamplingInterval() {
+		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 2); // sample every 2nd entry
 		TestMessage t1 = new TestMessage(1000);
 		TestMessage t2 = new TestMessage(1000);
 		TestMessage t3 = new TestMessage(1000);
-		TestMessage t4 = new TestMessage(1000);
 		when(mockFilter.parse(anyString())).thenReturn(t1);
 		when(mockFilter.parse(anyString())).thenReturn(t2);
 		when(mockFilter.parse(anyString())).thenReturn(t3);
-		when(mockFilter.parse(anyString())).thenReturn(t4);
 		TestMessage sampled1 = underTest.parse(SAMPLE_ENTRY);
 		TestMessage sampled2 = underTest.parse(SAMPLE_ENTRY);
 		TestMessage sampled3 = underTest.parse(SAMPLE_ENTRY);
-		TestMessage sampled4 = underTest.parse(SAMPLE_ENTRY);
-		verify(mockFilter, times(4)).parse(anyString());
+		verify(mockFilter, times(3)).parse(anyString());
 		assertThat(sampled1, is(notNullValue()));
 		assertThat(sampled2, is(nullValue()));
-		assertThat(sampled3, is(nullValue()));
-		assertThat(sampled4, is(notNullValue()));
+		assertThat(sampled3, is(notNullValue()));
 	}
 
 	@Test
-	public void testFilteredEntriesAreSampledIfWithinFrequencyRate() {
-		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 3); // sample 1 in 3
+	public void testFilteredEntriesAreSampledIfWithinSamplingInterval() {
+		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 3); // sample every 3rd entry
 		TestMessage filtered = new TestMessage(1000);
 		when(mockFilter.parse(anyString())).thenReturn(filtered);
 		List<TestMessage> sampledList = new ArrayList<TestMessage>();
@@ -96,8 +92,8 @@ public class SamplingByFrequencyTest {
 	}
 	
 	@Test
-	public void testFilteredEntriesAreProportionallySampled() {
-		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 2); // sample 1 in 2
+	public void testMultipleFilteredEntriesAreSampledIfWithinSamplingInterval() {
+		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 2); // sample every 2nd entry
 		TestMessage a1 = new TestMessage("Action A", 1000);
 		TestMessage a2 = new TestMessage("Action A", 2000);
 		TestMessage a3 = new TestMessage("Action A", 3000);

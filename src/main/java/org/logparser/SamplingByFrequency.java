@@ -10,7 +10,9 @@ import com.google.common.base.Preconditions;
 /**
  * A {@link IMessageFilter} implementation that maintains state, acting as a sampler.
  * 
- * In this particular case, it extracts log entries at the rate given by {@code frequency}.
+ * In this particular case, it extracts log entries at the rate given by the
+ * sampling {@code interval}. 
+ * If every 3rd log {@code E}ntry is desired, for example, the sampling {@code interval} is 3.
  * 
  * @author jorge.decastro
  * 
@@ -18,13 +20,13 @@ import com.google.common.base.Preconditions;
 @Immutable
 public class SamplingByFrequency<E extends ITimestampedEntry> implements IMessageFilter<E> {
 	private final IMessageFilter<E> filter;
-	private final int frequency;
+	private final int samplingInterval;
 	private final Map<String, Integer> sampleTable;
 
-	public SamplingByFrequency(final IMessageFilter<E> filter, final int frequency) {
+	public SamplingByFrequency(final IMessageFilter<E> filter, final int interval) {
 		Preconditions.checkNotNull(filter);
 		this.filter = filter;
-		this.frequency = frequency;
+		this.samplingInterval = interval;
 		this.sampleTable = new HashMap<String, Integer>();
 	}
 
@@ -38,7 +40,7 @@ public class SamplingByFrequency<E extends ITimestampedEntry> implements IMessag
 			}
 			int i = sampleTable.get(action);
 			i++;
-			if (i >= frequency) {
+			if (i >= samplingInterval) {
 				sampleTable.put(action, 0);
 				return entry;
 			}
@@ -51,7 +53,7 @@ public class SamplingByFrequency<E extends ITimestampedEntry> implements IMessag
 		return filter;
 	}
 
-	public int getFrequency() {
-		return frequency;
+	public int getSamplingInterval() {
+		return samplingInterval;
 	}
 }

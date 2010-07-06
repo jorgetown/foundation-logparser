@@ -1,5 +1,6 @@
 package org.logparser;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.junit.Ignore;
 
 /**
@@ -32,5 +33,10 @@ public class TestMessage implements ITimestampedEntry {
 
 	public long getTimestamp() {
 		return time;
+	}
+
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.toString(this);
 	}
 }
