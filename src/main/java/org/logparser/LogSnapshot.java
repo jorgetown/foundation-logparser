@@ -10,7 +10,7 @@ import net.jcip.annotations.Immutable;
 import com.google.common.base.Preconditions;
 
 /**
- * Represents a log file snapshot, containing filtered log {@code E}ntries.
+ * Represents a log file snapshot, containing filtered log {@code E}ntries and log summaries.
  * 
  * @author jorge.decastro
  * 

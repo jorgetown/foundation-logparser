@@ -3,8 +3,7 @@ package org.logparser;
 import java.util.List;
 
 /**
- * Specifies the protocol used to summarize and describe a collection of log
- * entries.
+ * Specifies the protocol used to summarize and describe a collection of log entries.
  * 
  * @author jorge.decastro
  * 

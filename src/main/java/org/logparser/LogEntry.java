@@ -15,40 +15,40 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 	private static final long serialVersionUID = -1019020702743392905L;
 	// TODO refactor to simplify by using date as a long
 	private final Date date;
-	private final String url;
-	private final String milliseconds;
+	private final String action;
+	private final String duration;
 	private final String message;
 	private final long timestamp;
 	private volatile int hashCode;
 
-	public LogEntry(final String message, final Date date, final String url, final String milliseconds) {
+	public LogEntry(final String message, final Date date, final String action, final String duration) {
 		// defensive copy since {@link Date}s are not immutable
 		this.date = new Date(date.getTime());
 		this.message = message;
-		this.url = url;
-		this.milliseconds = milliseconds;
+		this.action = action;
+		this.duration = duration;
 		this.timestamp = date.getTime();
+	}
+
+	public long getTimestamp() {
+		return timestamp;
 	}
 
 	public String getMessage() {
 		return message;
 	}
 
-	public String getUrl() {
-		return url;
+	public String getAction() {
+		return action;
 	}
 
-	public String getMilliseconds() {
-		return milliseconds;
+	public double getDuration() {
+		return Double.valueOf(duration);
 	}
 
 	public Date getDate() {
 		// defensive copy since {@link Date}s are not immutable
 		return new Date(date.getTime());
-	}
-
-	public long getTime() {
-		return date.getTime();
 	}
 
 	@Override
@@ -59,8 +59,8 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 			return false;
 		final LogEntry entry = (LogEntry) other;
 		return (date == null ? entry.date == null : date.equals(entry.date))
-				&& (milliseconds == null ? entry.milliseconds == null : milliseconds.equals(entry.milliseconds))
-				&& (url == null ? entry.url == null : url.equals(entry.url))
+				&& (duration == null ? entry.duration == null : duration.equals(entry.duration))
+				&& (action == null ? entry.action == null : action.equals(entry.action))
 				&& (message == null ? entry.message == null : message.equals(entry.message));
 	}
 
@@ -70,8 +70,8 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 		if (result == 0) {
 			result = 17;
 			result = 31 * result + date.hashCode();
-			result = 31 * result + milliseconds.hashCode();
-			result = 31 * result + url.hashCode();
+			result = 31 * result + duration.hashCode();
+			result = 31 * result + action.hashCode();
 			result = 31 * result + message.hashCode();
 			hashCode = result;
 		}
@@ -80,22 +80,10 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 
 	@Override
 	public String toString() {
-		return String.format("{%s; %s; %s; %sms}", message.replaceAll("\"", ""), date, url, milliseconds);
+		return String.format("{%s; %s; %s; %s}", message.replaceAll("\"", ""), date, action, duration);
 	}
 
 	public String toCsvString() {
-		return String.format("\"%s\", \"%s\", %s", date, url, Double.valueOf(milliseconds));
-	}
-
-	public String getAction() {
-		return url;
-	}
-
-	public double getDuration() {
-		return Double.valueOf(milliseconds);
-	}
-
-	public long getTimestamp() {
-		return timestamp;
+		return String.format("\"%s\", \"%s\", %s", date, action, Double.valueOf(duration));
 	}
 }

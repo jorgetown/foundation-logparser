@@ -6,35 +6,35 @@ import java.util.Map;
 import com.google.common.base.Preconditions;
 
 /**
- * Responsible for grouping log {@link ITimestampedEntry}s together.
+ * Responsible for grouping log {@link ITimestampedEntry}s together, given a {@link LogSnapshot}.
  * 
  * @author jorge.decastro
  */
 public class LogOrganiser<E extends ITimestampedEntry> {
-	private final Map<String, IStatsView<E>> organisedByKey;
+	private final Map<String, IStatsView<E>> organisedByAction;
 
 	public LogOrganiser() {
-		this.organisedByKey = new HashMap<String, IStatsView<E>>();
+		this.organisedByAction = new HashMap<String, IStatsView<E>>();
 	}
 
-	public Map<String, IStatsView<E>> groupBy(final LogSnapshot<E> logSnapshot) {
+	public Map<String, IStatsView<E>> organize(final LogSnapshot<E> logSnapshot) {
 		Preconditions.checkNotNull(logSnapshot);
-		organisedByKey.clear();
+		organisedByAction.clear();
 
 		String key = null;
 		for (E entry : logSnapshot.getFilteredEntries()) {
 			key = entry.getAction();
 			// new request? create a new stats wrapper for it
-			if (!organisedByKey.containsKey(key)) {
+			if (!organisedByAction.containsKey(key)) {
 				IStatsView<E> stats = new StatsSnapshot<E>();
 				stats.add(entry);
-				organisedByKey.put(key, stats);
+				organisedByAction.put(key, stats);
 			} else {
-				IStatsView<E> existingEntriesList = organisedByKey.get(key);
+				IStatsView<E> existingEntriesList = organisedByAction.get(key);
 				existingEntriesList.add(entry);
 			}
 		}
 
-		return organisedByKey;
+		return organisedByAction;
 	}
 }

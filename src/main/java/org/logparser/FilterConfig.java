@@ -19,7 +19,7 @@ import org.logparser.time.Instant;
  */
 public class FilterConfig {
 	public static final String DEFAULT_FILTER_PATTERN = ".*";
-	public static final String DEFAULT_FILENAME_PATTERN = ".*.log";
+	public static final String DEFAULT_FILENAME_PATTERN = ".*.log$";
 
 	public enum GroupBy {
 		DAY_OF_MONTH, DAY_OF_WEEK, HOUR, MINUTE
