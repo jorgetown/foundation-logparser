@@ -59,11 +59,23 @@ public class SamplingByFrequencyTest {
 	@Test
 	public void testFilteredEntryIsNotSampledIfNotWithinFrequencyRate() {
 		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 3); // sample 1 in 3
-		TestMessage filtered = new TestMessage(1000);
-		when(mockFilter.parse(anyString())).thenReturn(filtered);
-		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
-		verify(mockFilter, times(1)).parse(anyString());
-		assertThat(sampled, is(nullValue()));
+		TestMessage t1 = new TestMessage(1000);
+		TestMessage t2 = new TestMessage(1000);
+		TestMessage t3 = new TestMessage(1000);
+		TestMessage t4 = new TestMessage(1000);
+		when(mockFilter.parse(anyString())).thenReturn(t1);
+		when(mockFilter.parse(anyString())).thenReturn(t2);
+		when(mockFilter.parse(anyString())).thenReturn(t3);
+		when(mockFilter.parse(anyString())).thenReturn(t4);
+		TestMessage sampled1 = underTest.parse(SAMPLE_ENTRY);
+		TestMessage sampled2 = underTest.parse(SAMPLE_ENTRY);
+		TestMessage sampled3 = underTest.parse(SAMPLE_ENTRY);
+		TestMessage sampled4 = underTest.parse(SAMPLE_ENTRY);
+		verify(mockFilter, times(4)).parse(anyString());
+		assertThat(sampled1, is(notNullValue()));
+		assertThat(sampled2, is(nullValue()));
+		assertThat(sampled3, is(nullValue()));
+		assertThat(sampled4, is(notNullValue()));
 	}
 
 	@Test
@@ -81,5 +93,35 @@ public class SamplingByFrequencyTest {
 		}
 		verify(mockFilter, times(10)).parse(anyString());
 		assertThat(sampledList.size(), is(equalTo(3)));
+	}
+	
+	@Test
+	public void testFilteredEntriesAreProportionallySampled() {
+		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 2); // sample 1 in 2
+		TestMessage a1 = new TestMessage("Action A", 1000);
+		TestMessage a2 = new TestMessage("Action A", 2000);
+		TestMessage a3 = new TestMessage("Action A", 3000);
+		TestMessage b1 = new TestMessage("Action B", 1000);
+		TestMessage b2 = new TestMessage("Action B", 2000);
+		TestMessage b3 = new TestMessage("Action B", 3000);
+		when(mockFilter.parse("Action A")).thenReturn(a1);
+		when(mockFilter.parse("Action A")).thenReturn(a2);
+		when(mockFilter.parse("Action A")).thenReturn(a3);
+		when(mockFilter.parse("Action B")).thenReturn(b1);
+		when(mockFilter.parse("Action B")).thenReturn(b2);
+		when(mockFilter.parse("Action B")).thenReturn(b3);
+		TestMessage sampled1 = underTest.parse("Action A");
+		TestMessage sampled2 = underTest.parse("Action A");
+		TestMessage sampled3 = underTest.parse("Action A");
+		TestMessage sampled4 = underTest.parse("Action B");
+		TestMessage sampled5 = underTest.parse("Action B");
+		TestMessage sampled6 = underTest.parse("Action B");
+		verify(mockFilter, times(6)).parse(anyString());
+		assertThat(sampled1, is(notNullValue()));
+		assertThat(sampled2, is(nullValue()));
+		assertThat(sampled3, is(notNullValue()));
+		assertThat(sampled4, is(notNullValue()));
+		assertThat(sampled5, is(nullValue()));
+		assertThat(sampled6, is(notNullValue()));
 	}
 }

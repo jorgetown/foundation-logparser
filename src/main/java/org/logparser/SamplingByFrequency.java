@@ -1,12 +1,14 @@
 package org.logparser;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.jcip.annotations.Immutable;
 
 import com.google.common.base.Preconditions;
 
 /**
- * A {@link IMessageFilter} implementation that maintains state, acting as a
- * sampler.
+ * A {@link IMessageFilter} implementation that maintains state, acting as a sampler.
  * 
  * In this particular case, it extracts log entries at the rate given by {@code frequency}.
  * 
@@ -14,25 +16,34 @@ import com.google.common.base.Preconditions;
  * 
  */
 @Immutable
-public class SamplingByFrequency<E> implements IMessageFilter<E> {
+public class SamplingByFrequency<E extends ITimestampedEntry> implements IMessageFilter<E> {
 	private final IMessageFilter<E> filter;
 	private final int frequency;
-	private int count;
+	private final Map<String, Integer> sampleTable;
 
 	public SamplingByFrequency(final IMessageFilter<E> filter, final int frequency) {
 		Preconditions.checkNotNull(filter);
 		this.filter = filter;
 		this.frequency = frequency;
-		this.count = 1;
+		this.sampleTable = new HashMap<String, Integer>();
 	}
 
 	public E parse(final String text) {
 		E entry = filter.parse(text);
-		if (count >= frequency) {
-			count = 1;
-			return entry;
+		if (entry != null) {
+			String action = entry.getAction();
+			if (!sampleTable.containsKey(action)) {
+				sampleTable.put(action, 0);
+				return entry;
+			}
+			int i = sampleTable.get(action);
+			i++;
+			if (i >= frequency) {
+				sampleTable.put(action, 0);
+				return entry;
+			}
+			sampleTable.put(action, i);
 		}
-		count++;
 		return null;
 	}
 

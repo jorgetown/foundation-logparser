@@ -11,13 +11,19 @@ import org.junit.Ignore;
 @Ignore
 public class TestMessage implements ITimestampedEntry {
 	private final long time;
+	private final String action;
 
 	public TestMessage(final long milliseconds) {
+		this(null, milliseconds);
+	}
+
+	public TestMessage(final String action, final long milliseconds) {
+		this.action = action;
 		this.time = milliseconds;
 	}
 
 	public String getAction() {
-		return null;
+		return action;
 	}
 
 	public double getDuration() {
