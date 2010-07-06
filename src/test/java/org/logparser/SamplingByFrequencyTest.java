@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ public class SamplingByFrequencyTest {
 		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 1);
 		when(mockFilter.parse(anyString())).thenReturn(null);
 		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
+		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(nullValue()));
 	}
 
@@ -48,6 +51,7 @@ public class SamplingByFrequencyTest {
 		TestMessage filtered = new TestMessage(1000);
 		when(mockFilter.parse(anyString())).thenReturn(filtered);
 		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
+		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(notNullValue()));
 		assertThat(sampled, is(equalTo(filtered)));
 	}
@@ -58,6 +62,7 @@ public class SamplingByFrequencyTest {
 		TestMessage filtered = new TestMessage(1000);
 		when(mockFilter.parse(anyString())).thenReturn(filtered);
 		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
+		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(nullValue()));
 	}
 
@@ -74,6 +79,7 @@ public class SamplingByFrequencyTest {
 			}
 			sampled = underTest.parse(SAMPLE_ENTRY);
 		}
+		verify(mockFilter, times(10)).parse(anyString());
 		assertThat(sampledList.size(), is(equalTo(3)));
 	}
 }

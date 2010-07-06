@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.TimeUnit;
@@ -38,6 +40,7 @@ public class SamplingByTimeTest {
 		underTest = new SamplingByTime<TestMessage>(mockFilter, 1, TimeUnit.SECONDS);
 		when(mockFilter.parse(anyString())).thenReturn(null);
 		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
+		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(nullValue()));
 	}
 
@@ -47,6 +50,7 @@ public class SamplingByTimeTest {
 		TestMessage filtered = new TestMessage(1000);
 		when(mockFilter.parse(anyString())).thenReturn(filtered);
 		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
+		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(notNullValue()));
 		assertThat(sampled, is(equalTo(filtered)));
 	}
@@ -63,6 +67,7 @@ public class SamplingByTimeTest {
 		TestMessage sampled1 = underTest.parse("t1");
 		TestMessage sampled2 = underTest.parse("t2");
 		TestMessage sampled3 = underTest.parse("t3");
+		verify(mockFilter, times(3)).parse(anyString());
 		assertThat(sampled1, is(notNullValue()));
 		assertThat(sampled2, is(nullValue()));
 		assertThat(sampled3, is(nullValue()));
@@ -80,6 +85,7 @@ public class SamplingByTimeTest {
 		TestMessage sampled1 = underTest.parse("t1");
 		TestMessage sampled2 = underTest.parse("t2");
 		TestMessage sampled3 = underTest.parse("t3");
+		verify(mockFilter, times(3)).parse(anyString());
 		assertThat(sampled1, is(notNullValue()));
 		assertThat(sampled1, is(equalTo(t1)));
 		assertThat(sampled2, is(nullValue()));
