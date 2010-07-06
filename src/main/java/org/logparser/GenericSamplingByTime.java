@@ -22,9 +22,7 @@ public class GenericSamplingByTime<E extends ITimestampedEntry> implements IMess
 	private final IMessageFilter<E> filter;
 	private final TimeComparator<E> timeComparator;
 	private E previous;
-	private E max;
-	private E min;
- 
+
 	public GenericSamplingByTime(final IMessageFilter<E> filter, final TimeComparator<E> timeComparator) {
 		Preconditions.checkNotNull(filter);
 		Preconditions.checkNotNull(timeComparator);
@@ -32,7 +30,7 @@ public class GenericSamplingByTime<E extends ITimestampedEntry> implements IMess
 		this.timeComparator = timeComparator;
 		this.previous = null;
 	}
- 
+
 	public E parse(final String text) {
 		E entry = filter.parse(text);
 		E sampled = null;
@@ -42,33 +40,15 @@ public class GenericSamplingByTime<E extends ITimestampedEntry> implements IMess
 				sampled = entry;
 				previous = entry;
 			}
- 
-			// preserve max & min in the sample, regardless of time difference
-			if (max == null || (entry.getDuration() > max.getDuration())) {
-				sampled = entry;
-				max = entry;
-			}
-			if (min == null || (entry.getDuration() < min.getDuration())) {
-				sampled = entry;
-				min = entry;
-			}
 		}
 		return sampled;
 	}
- 
+
 	public IMessageFilter<E> getFilter() {
 		return filter;
 	}
- 
+
 	public TimeComparator<E> getTimeComparator() {
 		return timeComparator;
-	}
- 
-	public E getMax() {
-		return max;
-	}
- 
-	public E getMin() {
-		return min;
 	}
 }
