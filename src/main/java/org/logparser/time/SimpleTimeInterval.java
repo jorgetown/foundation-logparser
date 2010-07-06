@@ -15,16 +15,9 @@ import net.jcip.annotations.Immutable;
 public class SimpleTimeInterval implements ITimeInterval {
 	private final Instant before;
 	private final Instant after;
-	private static final Calendar cal;
-	private static final Calendar from;
-	private static final Calendar to;
-
-	static {
-		// because {@link Calendar}s are expensive to create
-		cal = Calendar.getInstance();
-		from = Calendar.getInstance();
-		to = Calendar.getInstance();
-	}
+	private final Calendar cal;
+	private final Calendar from;
+	private final Calendar to;
 
 	public SimpleTimeInterval(final Instant instant) {
 		this(instant, instant);
@@ -33,6 +26,9 @@ public class SimpleTimeInterval implements ITimeInterval {
 	public SimpleTimeInterval(final Instant after, final Instant before) {
 		this.after = after;
 		this.before = before;
+		this.cal = Calendar.getInstance();
+		this.from = Calendar.getInstance();
+		this.to = Calendar.getInstance();
 	}
 
 	/**

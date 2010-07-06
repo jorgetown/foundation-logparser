@@ -22,18 +22,15 @@ public class LogEntryTest {
 	private static final String URL = "statusCheck.do";
 	private static final String ANOTHER_URL = "edit.do";
 	private static final String MILLISECONDS = "2073";
-	private static Calendar calendar;
+	private Calendar calendar;
 	private LogEntry x;
 	private LogEntry y;
 	private LogEntry z;
 	private LogEntry notx;
 
-	static {
-		calendar = Calendar.getInstance();
-	}
-
 	@Before
 	public void setUp() {
+		calendar = Calendar.getInstance();
 		calendar.set(2008, 11, 15, 17, 15, 00);
 		Date date = calendar.getTime();
 		underTest = new LogEntry(ORIGINAL_ENTRY, date, URL, MILLISECONDS);

@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -48,6 +49,7 @@ public class BackgroundLogFilter<E extends ITimestampedEntry> extends AbstractLo
 	private final SortedMap<String, Integer> summary;
 	private final SortedMap<String, Integer> timeBreakdown;
 	private final int groupBy;
+	private final Calendar calendar;
 
 	public BackgroundLogFilter(final FilterConfig filterConfig, final IMessageFilter<E>... messageFilter) {
 		this(filterConfig, Arrays.asList(messageFilter));
@@ -65,6 +67,7 @@ public class BackgroundLogFilter<E extends ITimestampedEntry> extends AbstractLo
 		this.summary = new TreeMap<String, Integer>();
 		this.timeBreakdown = new TreeMap<String, Integer>();
 		this.groupBy = filterConfig.groupByToCalendar();
+		this.calendar = Calendar.getInstance();
 	}
 
 	public LogSnapshot<E> filter(final String filepath) {

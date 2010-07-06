@@ -1,6 +1,5 @@
 package org.logparser;
 
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -11,11 +10,6 @@ import java.util.List;
  * @param <E> the type of log entries held.
  */
 public abstract class AbstractLogFilter<E> implements ILogFilter<E> {
-	protected static Calendar calendar;
-
-	static {
-		calendar = Calendar.getInstance();
-	}
 
 	// TODO address this quadratic time complexity
 	protected E applyFilters(final String toParse, final List<IMessageFilter<E>> filters) {

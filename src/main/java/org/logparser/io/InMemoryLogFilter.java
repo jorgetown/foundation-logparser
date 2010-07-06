@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
@@ -28,18 +29,18 @@ import com.google.common.base.Preconditions;
  * 
  * @author jorge.decastro
  * 
- * @param <E>
- *            the type of log entries held by this {@link ILogFilter}
+ * @param <E> the type of log entries held by this {@link ILogFilter}
  *            implementation.
  */
 @Immutable
 public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogFilter<E> {
 	private final List<IMessageFilter<E>> messageFilters;
-	private List<E> filteredEntries;
+	private final List<E> filteredEntries;
 	private final List<String> readEntries;
 	private final SortedMap<String, Integer> summary;
 	private final SortedMap<String, Integer> timeBreakdown;
 	private final int groupBy;
+	private final Calendar calendar;
 
 	public InMemoryLogFilter(final FilterConfig filterConfig, final IMessageFilter<E>... messageFilter) {
 		this(filterConfig, Arrays.asList(messageFilter));
@@ -56,6 +57,7 @@ public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogF
 		this.summary = new TreeMap<String, Integer>();
 		this.timeBreakdown = new TreeMap<String, Integer>();
 		this.groupBy = filterConfig.groupByToCalendar();
+		this.calendar = Calendar.getInstance();
 	}
 
 	public LogSnapshot<E> filter(final String filepath) {
