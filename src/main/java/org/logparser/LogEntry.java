@@ -1,9 +1,16 @@
 package org.logparser;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 
 import net.jcip.annotations.Immutable;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Represents a single log entry.
@@ -11,6 +18,7 @@ import net.jcip.annotations.Immutable;
  * @author jorge.decastro
  */
 @Immutable
+@JsonPropertyOrder( { "timestamp", "action", "duration", "message" })
 public class LogEntry implements Serializable, ITimestampedEntry {
 	private static final long serialVersionUID = -1019020702743392905L;
 	// TODO refactor to simplify by using date as a long
@@ -20,6 +28,7 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 	private final String message;
 	private final long timestamp;
 	private volatile int hashCode;
+	private final ObjectMapper mapper;
 
 	public LogEntry(final String message, final Date date, final String action, final String duration) {
 		// defensive copy since {@link Date}s are not immutable
@@ -28,6 +37,7 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 		this.action = action;
 		this.duration = duration;
 		this.timestamp = date.getTime();
+		this.mapper = new ObjectMapper();
 	}
 
 	public long getTimestamp() {
@@ -46,6 +56,7 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 		return Double.valueOf(duration);
 	}
 
+	@JsonIgnore
 	public Date getDate() {
 		// defensive copy since {@link Date}s are not immutable
 		return new Date(date.getTime());
@@ -85,5 +96,9 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 
 	public String toCsvString() {
 		return String.format("\"%s\", \"%s\", %s", date, action, Double.valueOf(duration));
+	}
+
+	public String toJsonString() throws JsonGenerationException, JsonMappingException, IOException {
+		return mapper.writeValueAsString(this);
 	}
 }
