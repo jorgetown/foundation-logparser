@@ -1,9 +1,16 @@
 package org.logparser;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
  
 /**
  * Provides a summary and descriptive statistics for a collection of
@@ -13,9 +20,11 @@ import java.util.List;
  * 
  * @param <E> the type of log entries held.
  */
+@JsonPropertyOrder({ "mean", "deviation", "maxima", "minima", "entries" })
 public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E> {
 	private static String NEWLINE = System.getProperty("line.separator");
 	private final List<E> entries;
+	private final ObjectMapper jsonMapper;
 	private E maxima;
 	private E minima;
 	private double mean;
@@ -24,6 +33,7 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
  
 	public StatsSnapshot() {
 		entries = new ArrayList<E>();
+		jsonMapper = new ObjectMapper();
 	}
  
 	public void add(final E newEntry) {
@@ -43,6 +53,7 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 		return entries;
 	}
  
+	@JsonIgnore
 	public E getEarliestEntry() {
 		if (!entries.isEmpty()) {
 			return entries.get(0);
@@ -50,6 +61,7 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 		return null;
 	}
  
+	@JsonIgnore
 	public E getLatestEntry() {
 		if (!entries.isEmpty()) {
 			return entries.get(entries.size() - 1);
@@ -84,6 +96,10 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 	public String toString() {
 		return String.format("\nMAX: %s\nMIN: %s\nMEAN: %s\nSTD: %s\nEARLIEST: %s\nLATEST: %s\n",
 						maxima, minima, mean, std, getEarliestEntry(), getLatestEntry());
+	}
+	
+	public String toJsonString() throws JsonGenerationException, JsonMappingException, IOException {
+		return jsonMapper.writeValueAsString(this);
 	}
  
 	// TODO refactor; move out & inject here

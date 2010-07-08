@@ -15,10 +15,6 @@ public interface IStatsView<E> {
 
 	public List<E> getEntries();
 
-	public E getEarliestEntry();
-
-	public E getLatestEntry();
-
 	// TODO simply return the value? multiple entries might share same max value.
 	public E getMaxima();
 
