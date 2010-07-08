@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
  
@@ -20,7 +19,6 @@ import org.codehaus.jackson.map.ObjectMapper;
  * 
  * @param <E> the type of log entries held.
  */
-@JsonPropertyOrder({ "mean", "deviation", "maxima", "minima", "entries" })
 public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E> {
 	private static String NEWLINE = System.getProperty("line.separator");
 	private final List<E> entries;

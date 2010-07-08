@@ -8,7 +8,6 @@ import net.jcip.annotations.Immutable;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -18,7 +17,6 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @author jorge.decastro
  */
 @Immutable
-@JsonPropertyOrder( { "timestamp", "action", "duration", "message" })
 public class LogEntry implements Serializable, ITimestampedEntry {
 	private static final long serialVersionUID = -1019020702743392905L;
 	// TODO refactor to simplify by using date as a long

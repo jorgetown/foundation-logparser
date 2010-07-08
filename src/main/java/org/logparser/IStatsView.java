@@ -2,6 +2,8 @@ package org.logparser;
 
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
+
 /**
  * Specifies the protocol used to summarize and describe a collection of log entries.
  * 
@@ -9,6 +11,7 @@ import java.util.List;
  * 
  * @param <E> the type of log entries held.
  */
+@JsonPropertyOrder({ "mean", "deviation", "maxima", "minima", "entries" })
 public interface IStatsView<E> {
 
 	public void add(E newEntry);

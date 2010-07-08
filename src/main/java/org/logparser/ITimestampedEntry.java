@@ -1,11 +1,14 @@
 package org.logparser;
 
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
+
 /**
  * Specifies the protocol required of generic log entries.
  * 
  * @author jorge.decastro
  * 
  */
+@JsonPropertyOrder( { "timestamp", "action", "duration" })
 public interface ITimestampedEntry {
 	/**
 	 * The timestamp of the log entry.
