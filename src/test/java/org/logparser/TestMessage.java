@@ -1,6 +1,7 @@
 package org.logparser;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.junit.Ignore;
 
 /**
@@ -10,6 +11,7 @@ import org.junit.Ignore;
  * 
  */
 @Ignore
+@JsonPropertyOrder({ "timestamp", "action", "duration" })
 public class TestMessage implements ITimestampedEntry {
 	private final long time;
 	private final String action;
