@@ -3,7 +3,6 @@ package org.logparser.example;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.Map.Entry;
 
 import org.logparser.AnalyzeArguments;
@@ -101,12 +100,12 @@ public class CommandLineApplicationRunner {
 		}
 	}
 
-	private static void printConsoleSummary(final SortedMap<String, Integer> summary, final int filteredEntries, final int totalEntries) {
+	private static <K> void printConsoleSummary(final Map<K, Integer> summary, final int filteredEntries, final int totalEntries) {
 		int value = 0;
 		double percentOfFiltered = 0.0;
 		double percentOfTotal = 0.0;
 		DecimalFormat df = new DecimalFormat("####.##%");
-		for (Entry<String, Integer> entries : summary.entrySet()) {
+		for (Entry<K, Integer> entries : summary.entrySet()) {
 			value = entries.getValue() > 0 ? entries.getValue() : 0;
 			percentOfFiltered = value > 0 ? value / (double) filteredEntries : 0D;
 			percentOfTotal = value > 0 ? value / (double) totalEntries : 0D;
