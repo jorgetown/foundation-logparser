@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.Map;
 import java.util.TreeMap;
 
 import net.jcip.annotations.Immutable;
@@ -37,8 +37,8 @@ public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogF
 	private final List<IMessageFilter<E>> messageFilters;
 	private final List<E> filteredEntries;
 	private final List<String> readEntries;
-	private final SortedMap<String, Integer> summary;
-	private final SortedMap<String, Integer> timeBreakdown;
+	private final Map<String, Integer> summary;
+	private final Map<Integer, Integer> timeBreakdown;
 	private final int groupBy;
 	private final Calendar calendar;
 
@@ -55,7 +55,7 @@ public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogF
 		this.filteredEntries = new ArrayList<E>();
 		this.readEntries = new ArrayList<String>();
 		this.summary = new TreeMap<String, Integer>();
-		this.timeBreakdown = new TreeMap<String, Integer>();
+		this.timeBreakdown = new TreeMap<Integer, Integer>();
 		this.groupBy = filterConfig.groupByToCalendar();
 		this.calendar = Calendar.getInstance();
 	}
@@ -103,7 +103,7 @@ public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogF
 
 	protected void updateLogTimeBreakdown(final E entry) {
 		calendar.setTimeInMillis(entry.getTimestamp());
-		String key = "" + calendar.get(groupBy);
+		int key = calendar.get(groupBy);
 		if (timeBreakdown.containsKey(key)) {
 			int value = timeBreakdown.get(key);
 			value++;

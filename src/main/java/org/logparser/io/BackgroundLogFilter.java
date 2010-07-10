@@ -9,8 +9,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -46,8 +46,8 @@ public class BackgroundLogFilter<E extends ITimestampedEntry> extends AbstractLo
 	private List<E> filteredEntries;
 	private final ExecutorService background;
 	private final BlockingQueue<String> queue;
-	private final SortedMap<String, Integer> summary;
-	private final SortedMap<String, Integer> timeBreakdown;
+	private final Map<String, Integer> summary;
+	private final Map<Integer, Integer> timeBreakdown;
 	private final int groupBy;
 	private final Calendar calendar;
 
@@ -65,7 +65,7 @@ public class BackgroundLogFilter<E extends ITimestampedEntry> extends AbstractLo
 		this.background = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
 		this.queue = new LinkedBlockingQueue<String>(5000);
 		this.summary = new TreeMap<String, Integer>();
-		this.timeBreakdown = new TreeMap<String, Integer>();
+		this.timeBreakdown = new TreeMap<Integer, Integer>();
 		this.groupBy = filterConfig.groupByToCalendar();
 		this.calendar = Calendar.getInstance();
 	}
@@ -168,7 +168,7 @@ public class BackgroundLogFilter<E extends ITimestampedEntry> extends AbstractLo
 
 	protected void updateLogTimeBreakdown(final E entry) {
 		calendar.setTimeInMillis(entry.getTimestamp());
-		String key = "" + calendar.get(groupBy);
+		int key = calendar.get(groupBy);
 		if (timeBreakdown.containsKey(key)) {
 			int value = timeBreakdown.get(key);
 			value++;

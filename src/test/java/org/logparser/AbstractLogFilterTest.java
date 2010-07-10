@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,9 +36,9 @@ public class AbstractLogFilterTest {
 	@Mock
 	private IMessageFilter<TestMessage> mockMessageFilter3;
 	@Mock
-	private SortedMap<String, Integer> mockSummary;
+	private Map<String, Integer> mockSummary;
 	@Mock
-	private SortedMap<String, Integer> mockTimeBreakdown;
+	private Map<Integer, Integer> mockTimeBreakdown;
  
 	@Before
 	public void setup() {

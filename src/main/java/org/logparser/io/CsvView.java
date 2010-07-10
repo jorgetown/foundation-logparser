@@ -70,7 +70,7 @@ public class CsvView<E> {
 			value = 0;
 			if (!logSnapshot.getTimeBreakdown().isEmpty()) {
 				out.write("\nTIME, TOTAL #, AS % OF FILTERED, AS % OF TOTAL\n");
-				for (Entry<String, Integer> entries : logSnapshot.getTimeBreakdown().entrySet()) {
+				for (Entry<Integer, Integer> entries : logSnapshot.getTimeBreakdown().entrySet()) {
 					value = entries.getValue() > 0 ? entries.getValue() : 0;
 					percentOfFiltered = value > 0 ? value / (double) logSnapshot.getFilteredEntries().size() : 0D;
 					percentOfTotal = value > 0 ? value / (double) logSnapshot.getTotalEntries() : 0D;
