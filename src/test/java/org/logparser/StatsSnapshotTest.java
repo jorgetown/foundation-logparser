@@ -22,7 +22,7 @@ public class StatsSnapshotTest {
 	@Test
 	public void testJsonString() throws JsonGenerationException, JsonMappingException, IOException {
 		underTest = new StatsSnapshot<TestMessage>();
-		String expected = "{\"mean\":0.0,\"deviation\":0.0,\"maxima\":null,\"minima\":null,\"entries\":[]}";
+		String expected = "{\"mean\":0.0,\"deviation\":0.0,\"maxima\":null,\"minima\":null,\"timeBreakdown\":{},\"entries\":[]}";
 		assertThat(underTest.toJsonString(), is(equalTo(expected)));
 	}
 }

@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.codehaus.jackson.JsonGenerationException;
@@ -30,9 +30,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class LogSnapshotTest {
 	private LogSnapshot<TestMessage> underTest;
 	@Mock
-	private SortedMap<String, Integer> mockSummary;
+	private Map<String, Integer> mockSummary;
 	@Mock
-	private SortedMap<String, Integer> mockTimeBreakdown;
+	private Map<Integer, Integer> mockTimeBreakdown;
 	
 
 	@Test(expected = NullPointerException.class)
@@ -75,11 +75,11 @@ public class LogSnapshotTest {
 	public void testJsonString() throws JsonGenerationException, JsonMappingException, IOException {
 		TestMessage tm = new TestMessage("/test.do", 12345);
 		List<TestMessage> filtered = Arrays.asList(tm);
-		SortedMap<String, Integer> summary = new TreeMap<String, Integer>();
-		SortedMap<String, Integer> timeBreakdown = new TreeMap<String, Integer>();
+		Map<String, Integer> summary = new TreeMap<String, Integer>();
+		Map<Integer, Integer> timeBreakdown = new TreeMap<Integer, Integer>();
 		summary.put("/test.do", 123);
 		summary.put("/metadata.do", 12);
-		timeBreakdown.put("17", 30);
+		timeBreakdown.put(17, 30);
 		underTest = new LogSnapshot<TestMessage>(filtered, 30, summary, timeBreakdown);
 		String expected = "{\"totalEntries\":30,\"summary\":{\"/metadata.do\":12,\"/test.do\":123},\"timeBreakdown\":{\"17\":30},\"filteredEntries\":[{\"timestamp\":12345,\"action\":\"/test.do\",\"duration\":12345.0}]}";
 		assertThat(underTest.toJsonString(), is(equalTo(expected)));

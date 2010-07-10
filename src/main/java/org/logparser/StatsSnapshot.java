@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -27,11 +30,17 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 	private E minima;
 	private double mean;
 	private double std;
+	private final int groupBy;
+	private final Map<Integer, Integer> timeBreakdown;
+	private final Calendar calendar;
 	private DescriptiveStats ds = new DescriptiveStats();
  
 	public StatsSnapshot() {
 		entries = new ArrayList<E>();
 		jsonMapper = new ObjectMapper();
+		timeBreakdown = new TreeMap<Integer, Integer>();
+		calendar = Calendar.getInstance();
+		groupBy = Calendar.HOUR_OF_DAY;
 	}
  
 	public void add(final E newEntry) {
@@ -45,6 +54,15 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 		ds.calculate(Double.valueOf(newEntry.getDuration()), ds.getMean(), ds.getVariance(), ds.getObservations());
 		this.mean = ds.getMean();
 		this.std = ds.getStd();
+		calendar.setTimeInMillis(newEntry.getTimestamp());
+		int key = calendar.get(groupBy);
+		if (timeBreakdown.containsKey(key)) {
+			int value = timeBreakdown.get(key);
+			value++;
+			timeBreakdown.put(key, value);
+		} else {
+			timeBreakdown.put(key, 1);
+		}
 	}
  
 	public List<E> getEntries() {
@@ -81,6 +99,10 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
  
 	public double getMean() {
 		return mean;
+	}
+	
+	public Map<Integer, Integer> getTimeBreakdown() {
+		return timeBreakdown;
 	}
  
 	public String toCsvString() {

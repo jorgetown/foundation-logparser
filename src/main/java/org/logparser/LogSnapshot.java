@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.Map;
 
 import net.jcip.annotations.Immutable;
 
@@ -27,11 +27,11 @@ import com.google.common.base.Preconditions;
 public class LogSnapshot<E> {
 	private final List<E> filteredEntries;
 	private final int totalEntries;
-	private final SortedMap<String, Integer> summary;
-	private final SortedMap<String, Integer> timeBreakdown;
+	private final Map<String, Integer> summary;
+	private final Map<Integer, Integer> timeBreakdown;
 	private ObjectMapper jsonMapper;
 
-	public LogSnapshot(final List<E> filteredEntries, final int totalEntries, final SortedMap<String, Integer> summary, final SortedMap<String, Integer> timeBreakdown) {
+	public LogSnapshot(final List<E> filteredEntries, final int totalEntries, final Map<String, Integer> summary, final Map<Integer, Integer> timeBreakdown) {
 		Preconditions.checkNotNull(filteredEntries);
 		Preconditions.checkNotNull(summary);
 		Preconditions.checkNotNull(timeBreakdown);
@@ -50,12 +50,12 @@ public class LogSnapshot<E> {
 		return totalEntries;
 	}
 
-	public SortedMap<String, Integer> getSummary() {
-		return Collections.unmodifiableSortedMap(summary);
+	public Map<String, Integer> getSummary() {
+		return Collections.unmodifiableMap(summary);
 	}
 
-	public SortedMap<String, Integer> getTimeBreakdown() {
-		return Collections.unmodifiableSortedMap(timeBreakdown);
+	public Map<Integer, Integer> getTimeBreakdown() {
+		return Collections.unmodifiableMap(timeBreakdown);
 	}
 	
 	public String toJsonString() throws JsonGenerationException, JsonMappingException, IOException {
