@@ -3,6 +3,7 @@ package org.logparser.io;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +24,7 @@ public class CsvView<E> {
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	private final Map<String, IStatsView<E>> keyStats;
 	private final LogSnapshot<E> logSnapshot;
- 
+
 	public CsvView(final LogSnapshot<E> logSnapshot, final Map<String, IStatsView<E>> keyStats) {
 		Preconditions.checkNotNull(logSnapshot);
 		Preconditions.checkNotNull(keyStats);
@@ -42,40 +43,21 @@ public class CsvView<E> {
 		try {
 			out = new BufferedWriter(new FileWriter(filepath));
 			out.write("Logfile, Controller, # Entries, # Filtered Entries, Max, Min, Mean, STD\n");
+			int totalEntries = logSnapshot.getTotalEntries();
+			int filteredEntries = logSnapshot.getFilteredEntries().size();
 			for (Entry<String, IStatsView<E>> entries : statsEntries) {
-				out.write(String.format("%s, %s, %s, %s", 
-						filename,
-						entries.getKey(), 
-						logSnapshot.getTotalEntries(), 
-						entries.getValue().toCsvString()));
+				out.write(String.format("%s, %s, %s, %s", filename, entries.getKey(), totalEntries, entries.getValue().toCsvString()));
+				out.write("\n, , TIME, # TOTAL, AS % OF FILTERED, AS % OF TOTAL\n");
+				writeSummary(entries.getValue().getTimeBreakdown(), filteredEntries, totalEntries, out);
 			}
-
-			DecimalFormat df = new DecimalFormat( "###.##%" );
-			double percentOfFiltered = 0.0;
-			double percentOfTotal = 0.0;
-			int value = 0;
-			
 			if (!logSnapshot.getSummary().isEmpty()) {
 				out.write("\nFILTERED, TOTAL #, AS % OF FILTERED, AS % OF TOTAL\n");
-				for (Entry<String, Integer> entries : logSnapshot.getSummary().entrySet()) {
-					value = entries.getValue() > 0 ? entries.getValue() : 0;
-					percentOfFiltered = value > 0 ? value / (double)logSnapshot.getFilteredEntries().size() : 0D;
-					percentOfTotal = value > 0 ? value / (double)logSnapshot.getTotalEntries() : 0D;
-					out.write(String.format("%s, %s, %s, %s\n", entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
-				}
+				writeSummary(logSnapshot.getSummary(), filteredEntries, totalEntries, out);
 			}
-			
-			percentOfFiltered = 0.0;
-			percentOfTotal = 0.0;
-			value = 0;
+
 			if (!logSnapshot.getTimeBreakdown().isEmpty()) {
 				out.write("\nTIME, TOTAL #, AS % OF FILTERED, AS % OF TOTAL\n");
-				for (Entry<Integer, Integer> entries : logSnapshot.getTimeBreakdown().entrySet()) {
-					value = entries.getValue() > 0 ? entries.getValue() : 0;
-					percentOfFiltered = value > 0 ? value / (double) logSnapshot.getFilteredEntries().size() : 0D;
-					percentOfTotal = value > 0 ? value / (double) logSnapshot.getTotalEntries() : 0D;
-					out.write(String.format("%s, %s, %s, %s\n", entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
-				}
+				writeSummary(logSnapshot.getTimeBreakdown(), filteredEntries, totalEntries, out);
 			}
 
 			out.close();
@@ -88,6 +70,19 @@ public class CsvView<E> {
 			} catch (IOException ioe) {
 				throw new RuntimeException(String.format("Failed to properly close %s", filepath), ioe);
 			}
+		}
+	}
+
+	private static <K> void writeSummary(final Map<K, Integer> summary, final int filteredEntries, final int totalEntries, Writer out) throws IOException {
+		int value = 0;
+		double percentOfFiltered = 0.0;
+		double percentOfTotal = 0.0;
+		DecimalFormat df = new DecimalFormat("####.##%");
+		for (Entry<K, Integer> entries : summary.entrySet()) {
+			value = entries.getValue() > 0 ? entries.getValue() : 0;
+			percentOfFiltered = value > 0 ? value / (double) filteredEntries : 0D;
+			percentOfTotal = value > 0 ? value / (double) totalEntries : 0D;
+			out.write(String.format(", , %s, %s, %s, %s\n", entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
 		}
 	}
 }
