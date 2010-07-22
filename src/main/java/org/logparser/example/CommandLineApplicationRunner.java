@@ -1,24 +1,29 @@
 package org.logparser.example;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.logparser.AnalyzeArguments;
-import org.logparser.FilterConfig;
-import org.logparser.IMessageFilter;
-import org.logparser.IStatsView;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+import org.logparser.Config;
+import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
-import org.logparser.LogOrganiser;
 import org.logparser.LogSnapshot;
-import org.logparser.SamplingByFrequency;
-import org.logparser.SamplingByTime;
-import org.logparser.FilterConfig.Sampler;
+import org.logparser.Config.Sampler;
 import org.logparser.io.ChartView;
+import org.logparser.io.CommandLineArguments;
 import org.logparser.io.CsvView;
 import org.logparser.io.LineByLineLogFilter;
+import org.logparser.io.LogFiles;
+import org.logparser.sampling.SamplingByFrequency;
+import org.logparser.sampling.SamplingByTime;
+
+import com.beust.jcommander.JCommander;
 
 /**
  * Responsible for running the log parser via the command line.
@@ -32,25 +37,37 @@ import org.logparser.io.LineByLineLogFilter;
  * @author jorge.decastro
  */
 public class CommandLineApplicationRunner {
-	/**
-	 * Run with no args to see help information.
-	 * 
-	 * @param args
-	 *            Run with no args to see help information.
-	 */
+
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {
-		AnalyzeArguments aa = new AnalyzeArguments(args);
+		CommandLineArguments cla = new CommandLineArguments();
+		JCommander jc = new JCommander(cla, args);
 
-		FilterConfig filterConfig = aa.getFilterConfig();
-		if (filterConfig != null) {
-			File[] files = filterConfig.listLogFiles();
+		ObjectMapper mapper = new ObjectMapper();
+		Config config = null;
+		try {
+			Map<String, Config> configs = mapper.readValue(new File(cla.configFile), new TypeReference<Map<String, Config>>() { });
+			config = configs.get(cla.logName);
+			
+			config.validate();
+			System.out.println(String.format("Loaded '%s' configuration", config.getFriendlyName()));
+		} catch (JsonParseException jpe) {
+			jpe.printStackTrace();
+		} catch (JsonMappingException jme) {
+			jme.printStackTrace();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
 
-			LogEntryFilter filter = new LogEntryFilter(filterConfig);
+		if (config != null) {
+			LogFiles logfiles = config.getLogFiles();
+			File[] files = logfiles.list();
+
+			LogEntryFilter filter = new LogEntryFilter(config);
 			// for large log files sampling is preferred/required
-			IMessageFilter<LogEntry> sampler = null;
-			if (filterConfig.getSampler() != null) {
-				Sampler samplerConfig = filterConfig.getSampler();
+			ILogEntryFilter<LogEntry> sampler = null;
+			if (config.getSampler() != null) {
+				Sampler samplerConfig = config.getSampler();
 				switch (samplerConfig.sampleBy) {
 				case TIME:
 					sampler = new SamplingByTime<LogEntry>(filter, (Long) samplerConfig.getValue());
@@ -63,11 +80,10 @@ public class CommandLineApplicationRunner {
 				}
 			}
 
-			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(filterConfig, sampler != null ? sampler : filter);
-			LogOrganiser<LogEntry> logOrganiser;
-			Map<String, IStatsView<LogEntry>> organisedEntries;
+			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(config, sampler != null ? sampler : filter);
+			CsvView csvView = new CsvView();
+			
 			ChartView<LogEntry> chartView;
-			CsvView<LogEntry> csvView;
 			String filepath;
 			String path;
 			String filename;
@@ -82,34 +98,15 @@ public class CommandLineApplicationRunner {
 				DecimalFormat df = new DecimalFormat("####.##");
 				int totalEntries = logSnapshot.getTotalEntries();
 				int filteredEntries = logSnapshot.getFilteredEntries().size();
-				System.out.println(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
-				// inject the parser onto the 'organiser'
-				logOrganiser = new LogOrganiser<LogEntry>();
-				// pass the class field used to group by
-				organisedEntries = logOrganiser.organize(logSnapshot);
+				System.out.println(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n",
+										filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
+				
 				chartView = new ChartView(logSnapshot);
 				chartView.write(path, filename);
-				csvView = new CsvView<LogEntry>(logSnapshot, organisedEntries);
-				csvView.write(path, filename);
-				System.out.println("URL,\t# Count,\t% of Filtered,\t% of Total");
-				printConsoleSummary(logSnapshot.getSummary(), filteredEntries, totalEntries);
-				System.out.println("\n" + filterConfig.getGroupBy() + ",\t# Count,\t% of Filtered,\t% of Total\n");
-				printConsoleSummary(logSnapshot.getTimeBreakdown(), filteredEntries, totalEntries);
-				lineByLineParser.cleanup();
-			}
-		}
-	}
+				csvView.write(path, filename, logSnapshot);
 
-	private static <K> void printConsoleSummary(final Map<K, Integer> summary, final int filteredEntries, final int totalEntries) {
-		int value = 0;
-		double percentOfFiltered = 0.0;
-		double percentOfTotal = 0.0;
-		DecimalFormat df = new DecimalFormat("####.##%");
-		for (Entry<K, Integer> entries : summary.entrySet()) {
-			value = entries.getValue() > 0 ? entries.getValue() : 0;
-			percentOfFiltered = value > 0 ? value / (double) filteredEntries : 0D;
-			percentOfTotal = value > 0 ? value / (double) totalEntries : 0D;
-			System.out.println(String.format("%s,\t %s,\t %s,\t %s", entries.getKey(), entries.getValue(), df.format(percentOfFiltered), df.format(percentOfTotal)));
+				System.out.println("\n" + logSnapshot.toString());
+			}
 		}
 	}
 }
