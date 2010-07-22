@@ -5,6 +5,9 @@ import java.util.Date;
 
 import net.jcip.annotations.Immutable;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * Represents a finite length of time marked off by two {@link Instant}s in time.
  * 
@@ -12,18 +15,23 @@ import net.jcip.annotations.Immutable;
  * 
  */
 @Immutable
-public class SimpleTimeInterval implements ITimeInterval {
+public class TimeInterval implements ITimeInterval {
 	private final Instant before;
 	private final Instant after;
 	private final Calendar cal;
 	private final Calendar from;
 	private final Calendar to;
-
-	public SimpleTimeInterval(final Instant instant) {
+	
+	public TimeInterval(final Instant instant) {
 		this(instant, instant);
 	}
+	
+	@JsonCreator
+	public TimeInterval(@JsonProperty("after") final String after, @JsonProperty("before") final String before) {
+		this(Instant.valueOf(after), Instant.valueOf(before));
+	}
 
-	public SimpleTimeInterval(final Instant after, final Instant before) {
+	public TimeInterval(final Instant after, final Instant before) {
 		this.after = after;
 		this.before = before;
 		this.cal = Calendar.getInstance();
@@ -63,7 +71,15 @@ public class SimpleTimeInterval implements ITimeInterval {
 
 		return cal.after(from);
 	}
-
+	
+	public Instant getAfter() {
+		return after;
+	}
+	
+	public Instant getBefore() {
+		return before;
+	}
+	
 	@Override
 	public String toString() {
 		return String.format("{after=%s, before=%s}", after, before);

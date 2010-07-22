@@ -5,28 +5,34 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests for {@link SimpleTimeInterval}.
+ * Tests for {@link TimeInterval}.
  * 
  * @author jorge.decastro
  * 
  */
-public class SimpleTimeIntervalTest {
+public class TimeIntervalTest {
 	private Calendar cal;
 	
 	@Before
 	public void setUp() {
 		cal = Calendar.getInstance();
 	}
+	
+	@After
+	public void tearDown() {
+		cal = null;
+	}
 
 	@Test(expected = NullPointerException.class)
 	public void testNullDateIsNotBetweenTimeInterval() {
 		Instant after = new Instant(12, 30);
 		Instant before = new Instant(19, 30);
-		SimpleTimeInterval timeInterval = new SimpleTimeInterval(after, before);
+		TimeInterval timeInterval = new TimeInterval(after, before);
 
 		timeInterval.isBetweenInstants(null);
 	}
@@ -36,7 +42,7 @@ public class SimpleTimeIntervalTest {
 		cal.set(2010, 1, 14, 14, 23, 10);
 		Instant after = new Instant(12, 30);
 		Instant before = new Instant(19, 30);
-		SimpleTimeInterval timeInterval = new SimpleTimeInterval(after, before);
+		TimeInterval timeInterval = new TimeInterval(after, before);
 
 		boolean isBetween = timeInterval.isBetweenInstants(cal.getTime());
 
@@ -48,7 +54,7 @@ public class SimpleTimeIntervalTest {
 		cal.set(2010, 1, 14, 14, 23, 10);
 		Instant after = new Instant(10, 30);
 		Instant before = new Instant(11, 45);
-		SimpleTimeInterval timeInterval = new SimpleTimeInterval(after, before);
+		TimeInterval timeInterval = new TimeInterval(after, before);
 
 		boolean isBetween = timeInterval.isBetweenInstants(cal.getTime());
 
@@ -59,7 +65,7 @@ public class SimpleTimeIntervalTest {
 	public void testDateIsAfterGivenTime() {
 		cal.set(2010, 1, 14, 14, 23, 10);
 		Instant instant = new Instant(13, 30);
-		SimpleTimeInterval timeInterval = new SimpleTimeInterval(instant);
+		TimeInterval timeInterval = new TimeInterval(instant);
 
 		boolean isAfter = timeInterval.isAfter(cal.getTime());
 
@@ -70,7 +76,7 @@ public class SimpleTimeIntervalTest {
 	public void testDateIsNotAfterGivenTime() {
 		cal.set(2010, 1, 14, 14, 23, 10);
 		Instant instant = new Instant(17, 30);
-		SimpleTimeInterval timeInterval = new SimpleTimeInterval(instant);
+		TimeInterval timeInterval = new TimeInterval(instant);
 
 		boolean isAfter = timeInterval.isAfter(cal.getTime());
 
@@ -81,7 +87,7 @@ public class SimpleTimeIntervalTest {
 	public void testDateIsBeforeGivenTime() {
 		cal.set(2010, 1, 14, 14, 23, 10);
 		Instant instant = new Instant(17, 30);
-		SimpleTimeInterval timeInterval = new SimpleTimeInterval(instant);
+		TimeInterval timeInterval = new TimeInterval(instant);
 
 		boolean isBefore = timeInterval.isBefore(cal.getTime());
 
@@ -92,7 +98,7 @@ public class SimpleTimeIntervalTest {
 	public void testDateIsNotBeforeGivenTime() {
 		cal.set(2010, 1, 14, 14, 23, 10);
 		Instant instant = new Instant(11, 30);
-		SimpleTimeInterval timeInterval = new SimpleTimeInterval(instant);
+		TimeInterval timeInterval = new TimeInterval(instant);
 
 		boolean isBefore = timeInterval.isBefore(cal.getTime());
 
