@@ -5,18 +5,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import net.jcip.annotations.Immutable;
 
-import org.logparser.AbstractLogFilter;
-import org.logparser.FilterConfig;
+import org.logparser.Config;
+import org.logparser.ILogEntryFilter;
 import org.logparser.ILogFilter;
-import org.logparser.IMessageFilter;
 import org.logparser.ITimestampedEntry;
 import org.logparser.LogSnapshot;
 
@@ -33,31 +29,23 @@ import com.google.common.base.Preconditions;
  *            implementation.
  */
 @Immutable
-public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogFilter<E> {
-	private final List<IMessageFilter<E>> messageFilters;
-	private final List<E> filteredEntries;
+public class InMemoryLogFilter<E extends ITimestampedEntry> implements ILogFilter<E> {
+	private final List<ILogEntryFilter<E>> logEntryFilters;
 	private final List<String> readEntries;
-	private final Map<String, Integer> summary;
-	private final Map<Integer, Integer> timeBreakdown;
-	private final int groupBy;
-	private final Calendar calendar;
+	private final LogSnapshot<E> logSnapshot;
 
-	public InMemoryLogFilter(final FilterConfig filterConfig, final IMessageFilter<E>... messageFilter) {
-		this(filterConfig, Arrays.asList(messageFilter));
+	public InMemoryLogFilter(final Config config, final ILogEntryFilter<E>... messageFilter) {
+		this(config, Arrays.asList(messageFilter));
 	}
 
-	public InMemoryLogFilter(final FilterConfig filterConfig, final List<IMessageFilter<E>> messageFilters) {
+	public InMemoryLogFilter(final Config config, final List<ILogEntryFilter<E>> messageFilters) {
 		Preconditions.checkNotNull(messageFilters);
-		for (IMessageFilter<E> filter : messageFilters) {
+		for (ILogEntryFilter<E> filter : messageFilters) {
 			Preconditions.checkNotNull(filter);
 		}
-		this.messageFilters = Collections.unmodifiableList(messageFilters);
-		this.filteredEntries = new ArrayList<E>();
+		this.logEntryFilters = Collections.unmodifiableList(messageFilters);
 		this.readEntries = new ArrayList<String>();
-		this.summary = new TreeMap<String, Integer>();
-		this.timeBreakdown = new TreeMap<Integer, Integer>();
-		this.groupBy = filterConfig.groupByToCalendar();
-		this.calendar = Calendar.getInstance();
+		this.logSnapshot = new LogSnapshot<E>(config);
 	}
 
 	public LogSnapshot<E> filter(final String filepath) {
@@ -82,41 +70,25 @@ public class InMemoryLogFilter<E extends ITimestampedEntry> extends AbstractLogF
 		}
 		E filteredEntry;
 		for (String entryString : readEntries) {
-			filteredEntry = applyFilters(entryString, messageFilters);
-			if (filteredEntry != null) {
-				filteredEntries.add(filteredEntry);
+			filteredEntry = applyFilters(entryString, logEntryFilters);
+			logSnapshot.consume(filteredEntry);
+		}
+		return logSnapshot;
+	}
+
+	// TODO address this quadratic time complexity
+	private E applyFilters(final String toParse, final List<ILogEntryFilter<E>> filters) {
+		E entry = null;
+		for (ILogEntryFilter<E> filter : filters) {
+			entry = filter.parse(toParse);
+			if (entry != null) {
+				break;
 			}
 		}
-		return new LogSnapshot<E>(filteredEntries, readEntries.size(), summary, timeBreakdown);
-	}
-
-	protected void updateLogSummary(final E entry) {
-		String key = entry.getAction();
-		if (summary.containsKey(key)) {
-			Integer value = summary.get(key);
-			value++;
-			summary.put(key, value);
-		} else {
-			summary.put(key, 1);
-		}
-	}
-
-	protected void updateLogTimeBreakdown(final E entry) {
-		calendar.setTimeInMillis(entry.getTimestamp());
-		int key = calendar.get(groupBy);
-		if (timeBreakdown.containsKey(key)) {
-			int value = timeBreakdown.get(key);
-			value++;
-			timeBreakdown.put(key, value);
-		} else {
-			timeBreakdown.put(key, 1);
-		}
+		return entry;
 	}
 
 	public void cleanup() {
-		this.filteredEntries.clear();
 		this.readEntries.clear();
-		this.summary.clear();
-		this.timeBreakdown.clear();
 	}
 }

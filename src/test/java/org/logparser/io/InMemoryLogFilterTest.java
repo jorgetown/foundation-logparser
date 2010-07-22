@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.logparser.FilterConfig;
-import org.logparser.IMessageFilter;
+import org.logparser.Config;
+import org.logparser.ILogEntryFilter;
 import org.logparser.TestMessage;
 
 /**
@@ -19,20 +19,20 @@ public class InMemoryLogFilterTest {
 	@Test(expected = NullPointerException.class)
 	@SuppressWarnings("unchecked")
 	public void testNullFilter() {
-		IMessageFilter<TestMessage> messageFilter = null;
-		new InMemoryLogFilter<TestMessage>(new FilterConfig(), messageFilter);
+		ILogEntryFilter<TestMessage> messageFilter = null;
+		new InMemoryLogFilter<TestMessage>(new Config(), messageFilter);
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testNullListOfFilters() {
-		List<IMessageFilter<TestMessage>> messageFilters = null;
-		new InMemoryLogFilter<TestMessage>(new FilterConfig(), messageFilters);
+		List<ILogEntryFilter<TestMessage>> messageFilters = null;
+		new InMemoryLogFilter<TestMessage>(new Config(), messageFilters);
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testListOfNullFilters() {
-		List<IMessageFilter<TestMessage>> messageFilters = new ArrayList<IMessageFilter<TestMessage>>();
+		List<ILogEntryFilter<TestMessage>> messageFilters = new ArrayList<ILogEntryFilter<TestMessage>>();
 		messageFilters.add(null);
-		new InMemoryLogFilter<TestMessage>(new FilterConfig(), messageFilters);
+		new InMemoryLogFilter<TestMessage>(new Config(), messageFilters);
 	}
 }
