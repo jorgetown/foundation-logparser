@@ -1,23 +1,20 @@
 package org.logparser;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.logparser.time.Instant;
+import org.logparser.io.LogFiles;
+import org.logparser.time.TimeInterval;
 
 /**
- * Represents {@link IMessageFilter} and {@link ILogFilter} configuration.
+ * Represents {@link ILogEntryFilter} and {@link ILogFilter} configuration.
  * 
  * @author jorge.decastro
  * 
  */
-public class FilterConfig {
+public class Config {
 	public static final String DEFAULT_FILTER_PATTERN = ".*";
 	public static final String DEFAULT_FILENAME_PATTERN = ".*.log$";
 
@@ -26,26 +23,20 @@ public class FilterConfig {
 	};
 
 	private String friendlyName;
-	private String sampleMessage;
+	private String sampleEntry;
 	private String timestampPattern;
 	private String timestampFormat;
 	private String actionPattern;
 	private String durationPattern;
 	private String filterPattern;
-	private String filenamePattern;
-	private Instant before;
-	private Instant after;
+	private LogFiles logFiles;
+	private TimeInterval timeInterval;
 	private GroupBy groupBy;
-	private String[] baseDirs;
 	private Sampler sampler;
 
-	public FilterConfig() {
+	public Config() {
 		filterPattern = DEFAULT_FILTER_PATTERN;
-		filenamePattern = DEFAULT_FILENAME_PATTERN;
 		groupBy = GroupBy.HOUR;
-		before = null;
-		after = null;
-		baseDirs = new String[] { "." };
 	}
 
 	public String getFriendlyName() {
@@ -56,12 +47,12 @@ public class FilterConfig {
 		this.friendlyName = name;
 	}
 
-	public String getSampleMessage() {
-		return sampleMessage;
+	public String getSampleEntry() {
+		return sampleEntry;
 	}
 
-	public void setSampleMessage(final String message) {
-		this.sampleMessage = message;
+	public void setSampleEntry(final String entry) {
+		this.sampleEntry = entry;
 	}
 
 	public String getTimestampPattern() {
@@ -104,32 +95,12 @@ public class FilterConfig {
 		this.filterPattern = filterPattern;
 	}
 
-	public String getFilenamePattern() {
-		return filenamePattern;
+	public TimeInterval getTimeInterval() {
+		return timeInterval;
 	}
 
-	public void setFilenamePattern(final String filenamePattern) {
-		this.filenamePattern = filenamePattern;
-	}
-
-	public Instant getBefore() {
-		return before;
-	}
-
-	public void setBefore(final String before) {
-		if (StringUtils.isNotBlank(before)) {
-			this.before = Instant.valueOf(before);
-		}
-	}
-
-	public Instant getAfter() {
-		return after;
-	}
-
-	public void setAfter(final String after) {
-		if (StringUtils.isNotBlank(after)) {
-			this.after = Instant.valueOf(after);
-		}
+	public void setTimeInterval(final TimeInterval timeInterval) {
+		this.timeInterval = timeInterval;
 	}
 
 	public Sampler getSampler() {
@@ -148,12 +119,12 @@ public class FilterConfig {
 		this.groupBy = groupBy;
 	}
 
-	public String[] getBaseDirs() {
-		return baseDirs;
+	public LogFiles getLogFiles() {
+		return logFiles;
 	}
 
-	public void setBaseDirs(final String[] baseDirs) {
-		this.baseDirs = baseDirs;
+	public void setLogFiles(final LogFiles logFiles) {
+		this.logFiles = logFiles;
 	}
 
 	public int groupByToCalendar() {
@@ -169,24 +140,6 @@ public class FilterConfig {
 		}
 	}
 
-	public File[] listLogFiles() {
-		List<File> listOfFiles = new ArrayList<File>();
-		Pattern filenamePattern = Pattern.compile(getFilenamePattern());
-		for (String path : getBaseDirs()) {
-			File f = new File(path.trim());
-			if (!f.exists()) {
-				throw new IllegalArgumentException(String.format("Unable to find given path to log file %s", path));
-			}
-			File[] contents = f.listFiles();
-			for (File file : contents) {
-				if (filenamePattern.matcher(file.getName()).matches()) {
-					listOfFiles.add(file);
-				}
-			}
-		}
-		return listOfFiles.toArray(new File[0]);
-	}
-
 	public void validate() {
 		if (StringUtils.isBlank(timestampPattern)) {
 			throw new IllegalArgumentException("'timestampPattern' property is required. Check configuration file.");
@@ -199,6 +152,9 @@ public class FilterConfig {
 		}
 		if (StringUtils.isBlank(durationPattern)) {
 			throw new IllegalArgumentException("'durationPattern' property is required. Check configuration file.");
+		}
+		if (logFiles == null) {
+			throw new IllegalArgumentException("'logFiles' property is required. Check configuration file.");
 		}
 	}
 

@@ -5,37 +5,44 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
+import net.jcip.annotations.Immutable;
 
-import com.google.common.base.Preconditions;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * Represents one or more log files on the file system to be collected for
- * parsing.
+ * Represents one or more log files on the file system, to be collected for
+ * processing.
  * 
  * @author jorge.decastro
  * 
  */
+@Immutable
 public class LogFiles {
-	private final String groupName;
 	private final Pattern filenamePattern;
 	private final String[] baseDir;
 
-	public LogFiles(final String groupName, final String filenamePattern, final String[] baseDirs) {
-		if (StringUtils.isBlank(groupName)) {
-			throw new IllegalArgumentException("'groupName' argument is required.");
-		}
+	@JsonCreator
+	public LogFiles(@JsonProperty("filenamePattern") final String filenamePattern, @JsonProperty("baseDirs") final String[] baseDirs) {
 		if (StringUtils.isBlank(filenamePattern)) {
 			throw new IllegalArgumentException("'filenamePattern' argument is required.");
 		}
-		Preconditions.checkNotNull(baseDirs);
-		this.groupName = groupName;
 		this.filenamePattern = Pattern.compile(filenamePattern);
-		this.baseDir = baseDirs;
+		if (ArrayUtils.isEmpty(baseDirs)) {
+			this.baseDir = new String[] { "." };
+		} else {
+			this.baseDir = baseDirs;
+		}
 	}
 
-	public String getGroupName() {
-		return groupName;
+	public String[] getBaseDirs() {
+		return baseDir;
+	}
+
+	public Pattern getFilenamePattern() {
+		return filenamePattern;
 	}
 
 	public File[] list() {
