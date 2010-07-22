@@ -17,6 +17,8 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Represents a log file snapshot, containing filtered log {@code E}ntries and
  * log summaries.
@@ -36,13 +38,16 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 	private final int groupBy;
 	private final Calendar calendar;
 	private final ObjectMapper jsonMapper;
+	private final Config config;
 	private int totalEntries;
 
 	public LogSnapshot(final Config config) {
+		Preconditions.checkNotNull(config);
 		this.filteredEntries = new ArrayList<E>();
 		this.summary = new TreeMap<String, Integer>();
 		this.timeBreakdown = new TreeMap<Integer, Integer>();
 		this.groupedByAction = new TreeMap<String, IStatsView<E>>();
+		this.config = config;
 		this.groupBy = config.groupByToCalendar();
 		this.calendar = Calendar.getInstance();
 		this.jsonMapper = new ObjectMapper();
@@ -118,7 +123,7 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("Action,\t # Entries,\t # Filtered Entries,\t Mean,\t Deviation,\t Maxima,\t Minima,\t");
+		StringBuilder sb = new StringBuilder("Action,\t # Total Entries,\t # Filtered Entries,\t Mean,\t Deviation,\t Maxima,\t Minima,\t");
 		sb.append(NEWLINE);
 		int filteredSize = getFilteredEntries().size();
 
@@ -136,7 +141,7 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 			sb.append(NEWLINE);
 
 			if (!entries.getValue().getTimeBreakdown().isEmpty()) {
-				sb.append("\t Time,\t # Entries,\t % Of Filtered,\t % Of Total\t");
+				sb.append(String.format("\t %s Breakdown,\t # Entries,\t %% Of Filtered,\t %% Of Total\t", config.getGroupBy()));
 				sb.append(NEWLINE);
 				sb.append(summarizeAsString(entries.getValue().getTimeBreakdown(), filteredSize, totalEntries, "\t %s,\t %s,\t %s,\t %s\t"));
 			}
@@ -152,7 +157,7 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 
 		if (!getTimeBreakdown().isEmpty()) {
 			sb.append(NEWLINE);
-			sb.append("Time,\t # Entries,\t % of Filtered,\t % of Total\t");
+			sb.append(String.format("%s Breakdown,\t # Entries,\t %% Of Filtered,\t %% Of Total\t", config.getGroupBy()));
 			sb.append(NEWLINE);
 			sb.append(summarizeAsString(timeBreakdown, filteredSize, totalEntries, "%s,\t %s,\t %s,\t %s\t"));
 		}
@@ -173,13 +178,13 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 	}
 
 	public String toCsvString() {
-		StringBuilder sb = new StringBuilder("Action, # Entries, # Filtered Entries, Mean, Deviation, Maxima, Minima");
+		StringBuilder sb = new StringBuilder("Action, # Total Entries, # Filtered Entries, Mean, Deviation, Maxima, Minima");
 		sb.append(NEWLINE);
 		int filteredSize = getFilteredEntries().size();
 		IStatsView<E> stats = null;
 		for (Entry<String, IStatsView<E>> entries : groupedByAction.entrySet()) {
 			stats = entries.getValue();
-			sb.append(String.format("\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"", 
+			sb.append(String.format("\"%s\", %s, %s, \"%s\", \"%s\", \"%s\", \"%s\"", 
 					entries.getKey(), 
 					totalEntries, 
 					stats.getEntries().size(), 
@@ -191,9 +196,9 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 
 			if (!entries.getValue().getTimeBreakdown().isEmpty()) {
 				sb.append(NEWLINE);
-				sb.append(", Time, # Entries, % Of Filtered, % Of Total");
+				sb.append(String.format(", %s Breakdown, # Entries, %% Of Filtered, %% Of Total", config.getGroupBy()));
 				sb.append(NEWLINE);
-				sb.append(summarizeAsString(entries.getValue().getTimeBreakdown(), filteredSize, totalEntries, ", \"%s\", \"%s\", \"%s\", \"%s\""));
+				sb.append(summarizeAsString(entries.getValue().getTimeBreakdown(), filteredSize, totalEntries, ", %s, %s, \"%s\", \"%s\""));
 			}
 			sb.append(NEWLINE);
 		}
@@ -202,14 +207,14 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 			sb.append(NEWLINE);
 			sb.append("Action, # Entries, % Of Filtered, % Of Total");
 			sb.append(NEWLINE);
-			sb.append(summarizeAsString(summary, filteredSize, totalEntries, "\"%s\", \"%s\", \"%s\", \"%s\""));
+			sb.append(summarizeAsString(summary, filteredSize, totalEntries, "\"%s\", %s, \"%s\", \"%s\""));
 		}
 
 		if (!getTimeBreakdown().isEmpty()) {
 			sb.append(NEWLINE);
-			sb.append("Time, # Entries, % of Filtered, % of Total");
+			sb.append(String.format("%s Breakdown, # Entries, %% Of Filtered, %% Of Total", config.getGroupBy()));
 			sb.append(NEWLINE);
-			sb.append(summarizeAsString(timeBreakdown, filteredSize, totalEntries, "\"%s\", \"%s\", \"%s\", \"%s\""));
+			sb.append(summarizeAsString(timeBreakdown, filteredSize, totalEntries, "%s, %s, \"%s\", \"%s\""));
 		}
 
 		sb.append(NEWLINE);
