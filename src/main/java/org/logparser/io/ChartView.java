@@ -83,7 +83,7 @@ public class ChartView<E extends ITimestampedEntry> {
 
 		for (E entry : entries) {
 			cal.setTimeInMillis(entry.getTimestamp());
-			dataset.addValue(Double.valueOf(entry.getDuration()), entry.getAction(), cal.getTime());
+			dataset.addValue(entry.getDuration(), entry.getAction(), cal.getTime());
 		}
 		return dataset;
 	}
