@@ -1,4 +1,4 @@
-package org.logparser;
+package org.logparser.sampling;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,10 +6,13 @@ import java.util.concurrent.TimeUnit;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.ILogEntryFilter;
+import org.logparser.ITimestampedEntry;
+
 import com.google.common.base.Preconditions;
 
 /**
- * A {@link IMessageFilter} implementation that maintains state, acting as a sampler.
+ * An {@link ILogEntryFilter} implementation that acts as a sampler.
  * 
  * In this particular case, it extracts log entries each time the time interval
  * between any 2 entries is longer than the value given by {@code timeInMillis}.
@@ -18,16 +21,16 @@ import com.google.common.base.Preconditions;
  * 
  */
 @Immutable
-public class SamplingByTime<E extends ITimestampedEntry> implements IMessageFilter<E> {
-	private final IMessageFilter<E> filter;
+public class SamplingByTime<E extends ITimestampedEntry> implements ILogEntryFilter<E> {
+	private final ILogEntryFilter<E> filter;
 	private final long timeInMillis;
 	private final Map<String, E> sampleTable;
 
-	public SamplingByTime(final IMessageFilter<E> filter, final long time) {
+	public SamplingByTime(final ILogEntryFilter<E> filter, final long time) {
 		this(filter, time, TimeUnit.MILLISECONDS);
 	}
 
-	public SamplingByTime(final IMessageFilter<E> filter, final long time, final TimeUnit timeUnit) {
+	public SamplingByTime(final ILogEntryFilter<E> filter, final long time, final TimeUnit timeUnit) {
 		Preconditions.checkNotNull(filter);
 		Preconditions.checkNotNull(timeUnit);
 		this.filter = filter;
@@ -52,7 +55,7 @@ public class SamplingByTime<E extends ITimestampedEntry> implements IMessageFilt
 		return null;
 	}
 
-	public IMessageFilter<E> getFilter() {
+	public ILogEntryFilter<E> getFilter() {
 		return filter;
 	}
 

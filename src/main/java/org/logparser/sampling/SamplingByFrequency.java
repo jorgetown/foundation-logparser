@@ -1,14 +1,17 @@
-package org.logparser;
+package org.logparser.sampling;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.ILogEntryFilter;
+import org.logparser.ITimestampedEntry;
+
 import com.google.common.base.Preconditions;
 
 /**
- * A {@link IMessageFilter} implementation that maintains state, acting as a sampler.
+ * An {@link ILogEntryFilter} implementation that acts as a sampler.
  * 
  * In this particular case, it extracts log entries at the rate given by the
  * sampling {@code interval}. 
@@ -18,12 +21,12 @@ import com.google.common.base.Preconditions;
  * 
  */
 @Immutable
-public class SamplingByFrequency<E extends ITimestampedEntry> implements IMessageFilter<E> {
-	private final IMessageFilter<E> filter;
+public class SamplingByFrequency<E extends ITimestampedEntry> implements ILogEntryFilter<E> {
+	private final ILogEntryFilter<E> filter;
 	private final int samplingInterval;
 	private final Map<String, Integer> sampleTable;
 
-	public SamplingByFrequency(final IMessageFilter<E> filter, final int interval) {
+	public SamplingByFrequency(final ILogEntryFilter<E> filter, final int interval) {
 		Preconditions.checkNotNull(filter);
 		this.filter = filter;
 		this.samplingInterval = interval;
@@ -49,7 +52,7 @@ public class SamplingByFrequency<E extends ITimestampedEntry> implements IMessag
 		return null;
 	}
 
-	public IMessageFilter<E> getFilter() {
+	public ILogEntryFilter<E> getFilter() {
 		return filter;
 	}
 

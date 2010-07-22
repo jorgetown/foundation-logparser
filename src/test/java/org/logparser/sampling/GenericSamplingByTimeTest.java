@@ -1,4 +1,4 @@
-package org.logparser;
+package org.logparser.sampling;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -13,6 +13,8 @@ import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.logparser.ILogEntryFilter;
+import org.logparser.TestMessage;
 import org.logparser.time.TimeComparator;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -35,7 +37,7 @@ public class GenericSamplingByTimeTest {
 	
 	private GenericSamplingByTime<TestMessage> underTest;
 	@Mock
-	private IMessageFilter<TestMessage> mockFilter;
+	private ILogEntryFilter<TestMessage> mockFilter;
 	@Mock
 	private TimeComparator<TestMessage> mockTimeComparator;
 

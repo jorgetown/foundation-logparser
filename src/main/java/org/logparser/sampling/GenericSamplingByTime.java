@@ -1,31 +1,33 @@
-package org.logparser;
+package org.logparser.sampling;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.ILogEntryFilter;
+import org.logparser.ITimestampedEntry;
 import org.logparser.time.TimeComparator;
 
 import com.google.common.base.Preconditions;
 
 /**
- * A {@link IMessageFilter} implementation that maintains state, acting as a sampler.
+ * An {@link ILogEntryFilter} implementation that acts as a sampler.
  * 
- * In this particular case, it extracts log entries each time the time interval
- * between any 2 entries is longer than the time given by the given
- * {@link TimeComparator}.
+ * In this particular case, it extracts log {@link ITimestampedEntry}s each time
+ * the time interval between any 2 entries is longer than the time given by the
+ * given {@link TimeComparator}.
  * 
  * @author jorge.decastro
  * 
  */
 @Immutable
-public class GenericSamplingByTime<E extends ITimestampedEntry> implements IMessageFilter<E> {
-	private final IMessageFilter<E> filter;
+public class GenericSamplingByTime<E extends ITimestampedEntry> implements ILogEntryFilter<E> {
+	private final ILogEntryFilter<E> filter;
 	private final TimeComparator<E> timeComparator;
 	private final Map<String, E> sampleTable;
 
-	public GenericSamplingByTime(final IMessageFilter<E> filter, final TimeComparator<E> timeComparator) {
+	public GenericSamplingByTime(final ILogEntryFilter<E> filter, final TimeComparator<E> timeComparator) {
 		Preconditions.checkNotNull(filter);
 		Preconditions.checkNotNull(timeComparator);
 		this.filter = filter;
@@ -50,7 +52,7 @@ public class GenericSamplingByTime<E extends ITimestampedEntry> implements IMess
 		return null;
 	}
 
-	public IMessageFilter<E> getFilter() {
+	public ILogEntryFilter<E> getFilter() {
 		return filter;
 	}
 

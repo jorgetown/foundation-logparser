@@ -1,4 +1,4 @@
-package org.logparser;
+package org.logparser.sampling;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -15,6 +15,8 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.logparser.ILogEntryFilter;
+import org.logparser.TestMessage;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -29,7 +31,7 @@ public class SamplingByFrequencyTest {
 	private static final String SAMPLE_ENTRY = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /statusCheck.do HTTP/1.1\" 200 1779 2073";
 	private SamplingByFrequency<TestMessage> underTest;
 	@Mock
-	IMessageFilter<TestMessage> mockFilter;
+	ILogEntryFilter<TestMessage> mockFilter;
 
 	@Test(expected = NullPointerException.class)
 	public void testNullMessageFilter() {

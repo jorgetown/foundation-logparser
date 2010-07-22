@@ -1,4 +1,4 @@
-package org.logparser;
+package org.logparser.sampling;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.logparser.ILogEntryFilter;
+import org.logparser.TestMessage;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -34,7 +36,7 @@ public class SamplingByTimeTest {
 	private static final String SAMPLE_ENTRY_F = "SAMPLE ENTRY E";
 	private SamplingByTime<TestMessage> underTest;
 	@Mock
-	IMessageFilter<TestMessage> mockFilter;
+	ILogEntryFilter<TestMessage> mockFilter;
 
 	@Test(expected = NullPointerException.class)
 	public void testNullMessageFilter() {
