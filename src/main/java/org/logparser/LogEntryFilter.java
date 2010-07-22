@@ -11,54 +11,50 @@ import net.jcip.annotations.Immutable;
 
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
-import org.logparser.time.Instant;
-import org.logparser.time.SimpleTimeInterval;
 
 import com.google.common.base.Preconditions;
 
 /**
- * Message filter implementation to parse log entries.
+ * Log entry filter implementation to parse log entries.
  * 
  * @author jorge.decastro
  * 
  */
 @Immutable
-public class LogEntryFilter implements IMessageFilter<LogEntry> {
+public class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	private final Pattern timestampPattern;
 	private final Pattern actionPattern;
 	private final Pattern durationPattern;
 	private final Pattern filterPattern;
 	private final ITimeInterval timeInterval;
-	private final FilterConfig filterConfig;
+	private final Config config;
 
 	/**
 	 * The date format to expect from the log entries to be filtered.
 	 */
 	private final ThreadLocal<DateFormat> dateFormatter;
 
-	public LogEntryFilter(final FilterConfig filterConfig) {
-		Preconditions.checkNotNull(filterConfig);
-		this.filterConfig = filterConfig;
-		Preconditions.checkNotNull(filterConfig.getTimestampFormat());
-		Preconditions.checkNotNull(filterConfig.getTimestampPattern());
-		Preconditions.checkNotNull(filterConfig.getActionPattern());
-		Preconditions.checkNotNull(filterConfig.getDurationPattern());
-		Preconditions.checkNotNull(filterConfig.getFilterPattern());
+	public LogEntryFilter(final Config config) {
+		Preconditions.checkNotNull(config);
+		this.config = config;
+		Preconditions.checkNotNull(config.getTimestampFormat());
+		Preconditions.checkNotNull(config.getTimestampPattern());
+		Preconditions.checkNotNull(config.getActionPattern());
+		Preconditions.checkNotNull(config.getDurationPattern());
+		Preconditions.checkNotNull(config.getFilterPattern());
 		this.dateFormatter = new ThreadLocal<DateFormat>() {
 			@Override
 			protected DateFormat initialValue() {
-				return new SimpleDateFormat(filterConfig.getTimestampFormat());
+				return new SimpleDateFormat(config.getTimestampFormat());
 			}
 		};
-		this.timestampPattern = Pattern.compile(filterConfig.getTimestampPattern());
-		this.actionPattern = Pattern.compile(filterConfig.getActionPattern());
-		this.durationPattern = Pattern.compile(filterConfig.getDurationPattern());
-		this.filterPattern = Pattern.compile(filterConfig.getFilterPattern());
+		this.timestampPattern = Pattern.compile(config.getTimestampPattern());
+		this.actionPattern = Pattern.compile(config.getActionPattern());
+		this.durationPattern = Pattern.compile(config.getDurationPattern());
+		this.filterPattern = Pattern.compile(config.getFilterPattern());
 
-		Instant after = filterConfig.getAfter();
-		Instant before = filterConfig.getBefore();
-		if (after != null && before != null) {
-			this.timeInterval = new SimpleTimeInterval(after, before);
+		if (config.getTimeInterval() != null) {
+			this.timeInterval = config.getTimeInterval();
 		} else {
 			this.timeInterval = new InfiniteTimeInterval();
 		}
@@ -94,8 +90,7 @@ public class LogEntryFilter implements IMessageFilter<LogEntry> {
 		} catch (ParseException pe) {
 			// If the date format is wrong, fail quickly
 			throw new IllegalArgumentException(
-					String.format("Unable to parse the date for String :%s\n Expected format is: %s",
-									dateTime, filterConfig.getTimestampFormat()), pe);
+					String.format("Unable to parse the date for String :%s\n Expected format is: %s", dateTime, config.getTimestampFormat()), pe);
 		}
 		return date;
 	}
@@ -106,5 +101,25 @@ public class LogEntryFilter implements IMessageFilter<LogEntry> {
 	
 	public DateFormat getDateFormatter() {
 		return dateFormatter.get();
+	}
+	
+	public Pattern getActionPattern() {
+		return actionPattern;
+	}
+	
+	public Pattern getDurationPattern() {
+		return durationPattern;
+	}
+	
+	public Pattern getFilterPattern() {
+		return filterPattern;
+	}
+	
+	public ITimeInterval getTimeInterval() {
+		return timeInterval;
+	}
+	
+	public Config getConfig() {
+		return config;
 	}
 }
