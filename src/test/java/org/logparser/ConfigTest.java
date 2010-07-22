@@ -3,9 +3,11 @@ package org.logparser;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 import java.util.Calendar;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.logparser.Config.GroupBy;
@@ -18,6 +20,7 @@ import org.logparser.io.LogFiles;
  * 
  */
 public class ConfigTest {
+	private static final String[] BASE_DIRS = new String[] { "." };
 	private Config underTest;
 
 	@Before
@@ -29,6 +32,12 @@ public class ConfigTest {
 		underTest.setTimestampFormat("dd/MMM/yyyy:HH:mm:ss");
 		underTest.setActionPattern("\\[.*\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))");
 		underTest.setDurationPattern(".*HTTP.*\\s((\\d)(.*))$");
+		underTest.setLogFiles(new LogFiles(".*.log", BASE_DIRS));
+	}
+
+	@After
+	public void tearDown() {
+		underTest = null;
 	}
 
 	@Test
@@ -38,6 +47,10 @@ public class ConfigTest {
 		assertThat(underTest.getTimestampPattern(), is(equalTo("^\\[((.*))\\]")));
 		assertThat(underTest.getActionPattern(), is(equalTo("\\[.*\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))")));
 		assertThat(underTest.getDurationPattern(), is(equalTo(".*HTTP.*\\s((\\d)(.*))$")));
+		assertThat(underTest.getLogFiles(), is(notNullValue()));
+		assertThat(underTest.getLogFiles().getBaseDirs(), is(equalTo(BASE_DIRS)));
+		assertThat(underTest.getLogFiles().getFilenamePattern().pattern(), is(equalTo(".*.log")));
+
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -71,12 +84,6 @@ public class ConfigTest {
 	}
 
 	@Test
-	public void testDefaultValueOfOptionalFilenamePatternProperty() {
-		underTest = new Config();
-		//assertThat(underTest.getFilenamePattern(), is(equalTo(Config.DEFAULT_FILENAME_PATTERN)));
-	}
-
-	@Test
 	public void testOverrideOptionalFilterPatternProperty() {
 		underTest = new Config();
 		underTest.setFilterPattern("*.action");
@@ -84,11 +91,11 @@ public class ConfigTest {
 	}
 
 	@Test
-	public void testOverrideOptionalFilenamePatternProperty() {
+	public void testOverrideFilenamePatternProperty() {
 		underTest = new Config();
-		LogFiles logFiles = new LogFiles("*.extension", null);
+		LogFiles logFiles = new LogFiles(".*.extension", null);
 		underTest.setLogFiles(logFiles);
-		assertThat(underTest.getLogFiles().getFilenamePattern().pattern(), is(equalTo("*.extension")));
+		assertThat(underTest.getLogFiles().getFilenamePattern().pattern(), is(equalTo(".*.extension")));
 	}
 
 	@Test
