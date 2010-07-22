@@ -130,7 +130,7 @@ public class LogEntryTest {
 	public void testJsonString() {
 		Date date = new Date();
 		underTest = new LogEntry("", date, ACTION, DURATION);
-		String expected = String.format("{\"timestamp\":%s,\"action\":\"%s\",\"duration\":%s,\"message\":\"%s\"}", date.getTime(), ACTION, DURATION, "");
+		String expected = String.format("{\"timestamp\":%s,\"action\":\"%s\",\"duration\":%s,\"text\":\"%s\"}", date.getTime(), ACTION, DURATION, "");
 		assertThat(underTest.toJsonString(), is(equalTo(expected)));
 	}
 }

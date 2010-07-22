@@ -35,8 +35,20 @@ public class TestMessage implements ITimestampedEntry {
 		return time;
 	}
 
+	public String getText() {
+		return "";
+	}
+
 	@Override
 	public String toString() {
 		return ReflectionToStringBuilder.toString(this);
+	}
+
+	public String toJsonString() {
+		return "";
+	}
+
+	public String toCsvString() {
+		return "";
 	}
 }

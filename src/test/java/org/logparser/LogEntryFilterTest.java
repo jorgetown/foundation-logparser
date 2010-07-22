@@ -109,7 +109,7 @@ public class LogEntryFilterTest {
 		underTest = new LogEntryFilter(config);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 		assertThat(entry, is(notNullValue()));
-		assertThat(entry.getMessage(), is(equalTo(SAMPLE_LOG_MESSAGE)));
+		assertThat(entry.getText(), is(equalTo(SAMPLE_LOG_MESSAGE)));
 	}
 	
 	@Test
@@ -124,7 +124,7 @@ public class LogEntryFilterTest {
 		LogEntry entry = underTest.parse(LOG_ENTRY);
 
 		assertThat(entry, is(notNullValue()));
-		assertThat(LOG_ENTRY, is(equalTo(entry.getMessage())));
+		assertThat(LOG_ENTRY, is(equalTo(entry.getText())));
 		assertThat(EXPECTED_TIMESTAMP, is(equalTo(underTest.getDateFormatter().format(entry.getDate()))));
 		assertThat(EXPECTED_ACTION, is(equalTo(entry.getAction())));
 		assertThat(EXPECTED_DURATION, is(equalTo(entry.getDuration())));

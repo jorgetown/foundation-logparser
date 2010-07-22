@@ -42,7 +42,7 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 		return timestamp;
 	}
 
-	public String getMessage() {
+	public String getText() {
 		return message;
 	}
 
