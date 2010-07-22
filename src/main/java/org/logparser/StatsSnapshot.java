@@ -22,8 +22,8 @@ import org.codehaus.jackson.map.ObjectMapper;
  * 
  * @param <E> the type of log entries held.
  */
-public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E> {
-	private static String NEWLINE = System.getProperty("line.separator");
+public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>, Serializable {
+	private static final long serialVersionUID = -3984417761751696213L;
 	private final List<E> entries;
 	private final ObjectMapper jsonMapper;
 	private E maxima;
@@ -106,20 +106,22 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 	}
  
 	public String toCsvString() {
-		// TODO CSV header?
-		// TODO loop through list of entries too?
-		// TODO require toCsvString() interface for log message implementations?
-		return String.format("%s, \"%s\", \"%s\", %s, %s%s", entries.size(), maxima, minima, mean, std, NEWLINE);
+		return String.format("\"%s\", \"%s\", \"%s\", \"%s, \"%s\"", entries.size(), maxima, minima, mean, std);
 	}
  
 	@Override
 	public String toString() {
-		return String.format("\nMAX: %s\nMIN: %s\nMEAN: %s\nSTD: %s\nEARLIEST: %s\nLATEST: %s\n",
-						maxima, minima, mean, std, getEarliestEntry(), getLatestEntry());
+		return String.format("%s, %s, %s, %s", mean, std, maxima, minima);
 	}
 	
-	public String toJsonString() throws JsonGenerationException, JsonMappingException, IOException {
-		return jsonMapper.writeValueAsString(this);
+	public String toJsonString() {
+		try {
+			return jsonMapper.writeValueAsString(this);
+		} catch (JsonGenerationException jge) {
+		} catch (JsonMappingException jme) {
+		} catch (IOException ioe) {
+		}
+		return null;
 	}
  
 	// TODO refactor; move out & inject here

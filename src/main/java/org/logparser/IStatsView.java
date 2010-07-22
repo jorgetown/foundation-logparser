@@ -12,8 +12,8 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
  * 
  * @param <E> the type of log entries held.
  */
-@JsonPropertyOrder({ "mean", "deviation", "maxima", "minima", "timeBreakdown", "entries" })
-public interface IStatsView<E> {
+@JsonPropertyOrder( { "mean", "deviation", "maxima", "minima", "timeBreakdown", "entries" })
+public interface IStatsView<E> extends IJsonSerializable, ICsvSerializable {
 
 	public void add(E newEntry);
 
@@ -28,8 +28,6 @@ public interface IStatsView<E> {
 	public double getMean();
 
 	public double getDeviation();
-	
-	public Map<Integer, Integer> getTimeBreakdown();
 
-	public String toCsvString();
+	public Map<Integer, Integer> getTimeBreakdown();
 }
