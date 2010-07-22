@@ -7,12 +7,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,6 +42,13 @@ public class LogEntryTest {
 		y = new LogEntry(ORIGINAL_ENTRY, date, ACTION, DURATION);
 		z = new LogEntry(ORIGINAL_ENTRY, date, ACTION, DURATION);
 		notx = new LogEntry(ORIGINAL_ENTRY, date, ANOTHER_ACTION, DURATION);
+	}
+	
+	@After
+	public void tearDown() {
+		calendar = null;
+		x = y = z = notx = null;
+		underTest = null;
 	}
 
 	@Test
@@ -118,11 +123,11 @@ public class LogEntryTest {
 
 	@Test
 	public void testToCsvString() {
-		assertEquals(String.format("\"%s\", \"%s\", %s", underTest.getDate(), underTest.getAction(), underTest.getDuration()), underTest.toCsvString());
+		assertEquals(String.format("\"%s\", \"%s\", \"%s\"", underTest.getDate(), underTest.getAction(), underTest.getDuration()), underTest.toCsvString());
 	}
 
 	@Test
-	public void testJsonString() throws JsonGenerationException, JsonMappingException, IOException {
+	public void testJsonString() {
 		Date date = new Date();
 		underTest = new LogEntry("", date, ACTION, DURATION);
 		String expected = String.format("{\"timestamp\":%s,\"action\":\"%s\",\"duration\":%s,\"message\":\"%s\"}", date.getTime(), ACTION, DURATION, "");

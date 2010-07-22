@@ -89,14 +89,21 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 
 	@Override
 	public String toString() {
-		return String.format("{%s; %s; %s; %s}", message.replaceAll("\"", ""), date, action, duration);
+		return String.format("%s, %s, %s, %s", message.replaceAll("\"", ""), date, action, duration);
 	}
 
 	public String toCsvString() {
-		return String.format("\"%s\", \"%s\", %s", date, action, Double.valueOf(duration));
+		return String.format("\"%s\", \"%s\", \"%s\"", date, action, duration);
 	}
 
-	public String toJsonString() throws JsonGenerationException, JsonMappingException, IOException {
-		return mapper.writeValueAsString(this);
+	public String toJsonString() {
+		try {
+			return mapper.writeValueAsString(this);
+			// TODO proper exception handling
+		} catch (JsonGenerationException jge) {
+		} catch (JsonMappingException jme) {
+		} catch (IOException ioe) {
+		}
+		return null;
 	}
 }
