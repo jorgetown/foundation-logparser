@@ -2,6 +2,8 @@ package org.logparser.time;
 
 import java.util.concurrent.TimeUnit;
 
+import net.jcip.annotations.Immutable;
+
 import org.logparser.ITimestampedEntry;
 
 import com.google.common.base.Preconditions;
@@ -13,6 +15,7 @@ import com.google.common.base.Preconditions;
  * 
  * @param <E> the type of log entries held.
  */
+@Immutable
 public class TimeComparator<E extends ITimestampedEntry> {
 	private final long timeInMillis;
 
@@ -26,7 +29,8 @@ public class TimeComparator<E extends ITimestampedEntry> {
 	 * 
 	 * @param firstEntry
 	 * @param secondEntry
-	 * @return
+	 * @return {@code true} if log entries are {@code timeInMillis} apart,
+	 *         {@code false} otherwise.
 	 */
 	public boolean isIntervalApart(final E firstEntry, final E secondEntry) {
 		Preconditions.checkNotNull(firstEntry);
