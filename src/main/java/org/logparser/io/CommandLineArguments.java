@@ -10,6 +10,9 @@ import com.beust.jcommander.Parameter;
  * 
  */
 public class CommandLineArguments {
+	@Parameter(names = { "-usage", "-help", "-h" }, description = "Help -a summary of all the options that log-parser understands", required = false)
+	public boolean help;
+
 	@Parameter(names = { "-file", "-f" }, description = "Optional path to JSON configuration file; defaults to 'config.json' in the current directory", required = false)
 	public String configFile = "config.json";
 

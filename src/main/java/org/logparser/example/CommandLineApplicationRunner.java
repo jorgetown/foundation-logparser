@@ -39,20 +39,24 @@ import com.beust.jcommander.JCommander;
  */
 public class CommandLineApplicationRunner {
 	private static final Logger LOGGER = Logger.getLogger(CommandLineApplicationRunner.class.getName());
-	
-	@SuppressWarnings("unchecked")
-	public static void main(String[] args) {	
+
+	public static void main(String[] args) {
 		CommandLineArguments cla = new CommandLineArguments();
 		JCommander jc = new JCommander(cla, args);
+		if (cla.help) {
+			jc.usage();
+			return;
+		}
 
 		ObjectMapper mapper = new ObjectMapper();
 		Config config = null;
 		try {
 			Map<String, Config> configs = mapper.readValue(new File(cla.configFile), new TypeReference<Map<String, Config>>() { });
 			config = configs.get(cla.logName);
-			
+
 			config.validate();
 			LOGGER.info(String.format("Loaded '%s' configuration", config.getFriendlyName()));
+			// TODO fix exception handling
 		} catch (JsonParseException jpe) {
 			jpe.printStackTrace();
 		} catch (JsonMappingException jme) {
@@ -82,9 +86,10 @@ public class CommandLineApplicationRunner {
 				}
 			}
 
+			@SuppressWarnings("unchecked")
 			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(config, sampler != null ? sampler : filter);
 			CsvView csvView = new CsvView();
-			
+
 			ChartView<LogEntry> chartView;
 			String filepath;
 			String path;
@@ -100,10 +105,9 @@ public class CommandLineApplicationRunner {
 				DecimalFormat df = new DecimalFormat("####.##");
 				int totalEntries = logSnapshot.getTotalEntries();
 				int filteredEntries = logSnapshot.getFilteredEntries().size();
-				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n",
-										filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
-				
-				chartView = new ChartView(logSnapshot);
+				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
+
+				chartView = new ChartView<LogEntry>(logSnapshot);
 				chartView.write(path, filename);
 				csvView.write(path, filename, logSnapshot);
 

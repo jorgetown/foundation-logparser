@@ -163,6 +163,7 @@ public class Config {
 		return ReflectionToStringBuilder.toString(this);
 	}
 
+	// TODO Replace tagged class w/ class hierarchy
 	public static class Sampler {
 		public enum SampleBy {
 			TIME, FREQUENCY
