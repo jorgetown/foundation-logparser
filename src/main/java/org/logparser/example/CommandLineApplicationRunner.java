@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -37,9 +38,10 @@ import com.beust.jcommander.JCommander;
  * @author jorge.decastro
  */
 public class CommandLineApplicationRunner {
-
+	private static final Logger LOGGER = Logger.getLogger(CommandLineApplicationRunner.class.getName());
+	
 	@SuppressWarnings("unchecked")
-	public static void main(String[] args) {
+	public static void main(String[] args) {	
 		CommandLineArguments cla = new CommandLineArguments();
 		JCommander jc = new JCommander(cla, args);
 
@@ -50,7 +52,7 @@ public class CommandLineApplicationRunner {
 			config = configs.get(cla.logName);
 			
 			config.validate();
-			System.out.println(String.format("Loaded '%s' configuration", config.getFriendlyName()));
+			LOGGER.info(String.format("Loaded '%s' configuration", config.getFriendlyName()));
 		} catch (JsonParseException jpe) {
 			jpe.printStackTrace();
 		} catch (JsonMappingException jme) {
@@ -98,14 +100,14 @@ public class CommandLineApplicationRunner {
 				DecimalFormat df = new DecimalFormat("####.##");
 				int totalEntries = logSnapshot.getTotalEntries();
 				int filteredEntries = logSnapshot.getFilteredEntries().size();
-				System.out.println(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n",
+				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n",
 										filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
 				
 				chartView = new ChartView(logSnapshot);
 				chartView.write(path, filename);
 				csvView.write(path, filename, logSnapshot);
 
-				System.out.println("\n" + logSnapshot.toString());
+				LOGGER.info("\n" + logSnapshot.toString());
 			}
 		}
 	}
