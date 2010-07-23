@@ -9,6 +9,7 @@ import java.util.List;
 
 import net.jcip.annotations.Immutable;
 
+import org.apache.log4j.Logger;
 import org.logparser.Config;
 import org.logparser.ILogEntryFilter;
 import org.logparser.ILogFilter;
@@ -16,6 +17,7 @@ import org.logparser.ITimestampedEntry;
 import org.logparser.LogSnapshot;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closeables;
 
 /**
  * Implementation of {@link ILogFilter} that processes a log file one line at a
@@ -28,6 +30,7 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 public class LineByLineLogFilter<E extends ITimestampedEntry> implements ILogFilter<E> {
+	private static final Logger LOGGER = Logger.getLogger(LineByLineLogFilter.class.getName());
 	private final List<ILogEntryFilter<E>> logEntryFilters;
 	private final LogSnapshot<E> logSnapshot;
 
@@ -58,15 +61,10 @@ public class LineByLineLogFilter<E extends ITimestampedEntry> implements ILogFil
 				logSnapshot.consume(entry);
 			}
 			in.close();
-		} catch (Exception e) {
-			throw new IllegalArgumentException(String.format("Failed to read file %s", filepath), e);
+		} catch (IOException ioe) {
+			LOGGER.warn(String.format("IO error reading file '%s'", filepath), ioe);
 		} finally {
-			try {
-				if (in != null)
-					in.close();
-			} catch (IOException ioe) {
-				throw new IllegalArgumentException(String.format("Failed to properly close file %s", filepath), ioe);
-			}
+			Closeables.closeQuietly(in);
 		}
 		return logSnapshot;
 	}

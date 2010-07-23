@@ -4,9 +4,11 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
 import org.logparser.ICsvSerializable;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closeables;
 
 /**
  * Serializes data in CSV format.
@@ -15,6 +17,7 @@ import com.google.common.base.Preconditions;
  * 
  */
 public class CsvView {
+	private static final Logger LOGGER = Logger.getLogger(CsvView.class.getName());
 	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
 	public CsvView() {
@@ -37,14 +40,9 @@ public class CsvView {
 			out.write(csvSerializable);
 			out.close();
 		} catch (IOException ioe) {
-			throw new RuntimeException(String.format("Failed to write path %s", filepath), ioe);
+			LOGGER.warn(String.format("IO error writing to path '%s'", filepath), ioe);
 		} finally {
-			try {
-				if (out != null)
-					out.close();
-			} catch (IOException ioe) {
-				throw new RuntimeException(String.format("Failed to properly close handler for %s", filepath), ioe);
-			}
+			Closeables.closeQuietly(out);
 		}
 	}
 }
