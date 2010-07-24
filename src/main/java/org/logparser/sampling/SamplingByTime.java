@@ -26,11 +26,11 @@ public class SamplingByTime<E extends ITimestampedEntry> implements ILogEntryFil
 	private final long timeInMillis;
 	private final Map<String, E> sampleTable;
 
-	public SamplingByTime(final ILogEntryFilter<E> filter, final long time) {
+	public SamplingByTime(final ILogEntryFilter<E> filter, final int time) {
 		this(filter, time, TimeUnit.MILLISECONDS);
 	}
 
-	public SamplingByTime(final ILogEntryFilter<E> filter, final long time, final TimeUnit timeUnit) {
+	public SamplingByTime(final ILogEntryFilter<E> filter, final int time, final TimeUnit timeUnit) {
 		Preconditions.checkNotNull(filter);
 		Preconditions.checkNotNull(timeUnit);
 		this.filter = filter;

@@ -15,7 +15,7 @@ import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
-import org.logparser.Config.Sampler;
+import org.logparser.Config.SamplerConfig;
 import org.logparser.io.ChartView;
 import org.logparser.io.CommandLineArguments;
 import org.logparser.io.CsvView;
@@ -30,10 +30,8 @@ import com.beust.jcommander.JCommander;
  * Responsible for running the log parser via the command line.
  * 
  * <code>
- *  java -Xmx128m -jar log-parser-1.0.jar config.json
+ *  java -Xmx128m -jar log-parser-1.0.jar -help
  * </code>
- * 
- * 24hrs worth of log file can take ~5mins to process.
  * 
  * @author jorge.decastro
  */
@@ -73,13 +71,13 @@ public class CommandLineApplicationRunner {
 			// for large log files sampling is preferred/required
 			ILogEntryFilter<LogEntry> sampler = null;
 			if (config.getSampler() != null) {
-				Sampler samplerConfig = config.getSampler();
+				SamplerConfig samplerConfig = config.getSampler();
 				switch (samplerConfig.sampleBy) {
 				case TIME:
-					sampler = new SamplingByTime<LogEntry>(filter, (Long) samplerConfig.getValue());
+					sampler = new SamplingByTime<LogEntry>(filter, samplerConfig.value);
 					break;
 				case FREQUENCY:
-					sampler = new SamplingByFrequency<LogEntry>(filter, (Integer) samplerConfig.getValue());
+					sampler = new SamplingByFrequency<LogEntry>(filter, samplerConfig.value);
 					break;
 				default:
 					sampler = null;

@@ -32,7 +32,7 @@ public class Config {
 	private LogFiles logFiles;
 	private TimeInterval timeInterval;
 	private GroupBy groupBy;
-	private Sampler sampler;
+	private SamplerConfig samplerConfig;
 
 	public Config() {
 		filterPattern = DEFAULT_FILTER_PATTERN;
@@ -103,12 +103,12 @@ public class Config {
 		this.timeInterval = timeInterval;
 	}
 
-	public Sampler getSampler() {
-		return sampler;
+	public SamplerConfig getSampler() {
+		return samplerConfig;
 	}
 
-	public void setSampler(final Sampler sampler) {
-		this.sampler = sampler;
+	public void setSampler(final SamplerConfig samplerConfig) {
+		this.samplerConfig = samplerConfig;
 	}
 
 	public GroupBy getGroupBy() {
@@ -164,28 +164,14 @@ public class Config {
 	}
 
 	// TODO Replace tagged class w/ class hierarchy
-	public static class Sampler {
+	public static class SamplerConfig {
 		public enum SampleBy {
 			TIME, FREQUENCY
 		};
 
 		public SampleBy sampleBy;
-		private Number value;
+		public int value;
 		public TimeUnit timeUnit;
-
-		public Number getValue() {
-			return value;
-		}
-
-		public void setValue(final Number newValue) {
-			switch (sampleBy) {
-			case TIME:
-				this.value = newValue.longValue();
-				break;
-			default:
-				this.value = newValue.intValue();
-			}
-		}
 
 		@Override
 		public String toString() {

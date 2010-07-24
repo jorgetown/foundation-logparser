@@ -2,6 +2,7 @@ package org.logparser.io;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -9,6 +10,7 @@ import net.jcip.annotations.Immutable;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -21,6 +23,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  */
 @Immutable
 public class LogFiles {
+	private static final Logger LOGGER = Logger.getLogger(LogFiles.class.getName());
 	private final Pattern filenamePattern;
 	private final String[] baseDir;
 
@@ -63,6 +66,7 @@ public class LogFiles {
 				}
 			}
 		}
+		LOGGER.info(String.format("Extracting log files matching pattern '%s' from base dir(s) '%s'", filenamePattern.pattern(), Arrays.toString(baseDirs)));
 		return listOfFiles.toArray(new File[0]);
 	}
 }
