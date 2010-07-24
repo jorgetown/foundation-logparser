@@ -36,11 +36,15 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 	private DescriptiveStats ds = new DescriptiveStats();
  
 	public StatsSnapshot() {
+		this(Calendar.HOUR_OF_DAY);
+	}
+	
+	public StatsSnapshot(final int groupBy) {
 		entries = new ArrayList<E>();
 		jsonMapper = new ObjectMapper();
 		timeBreakdown = new TreeMap<Integer, Integer>();
 		calendar = Calendar.getInstance();
-		groupBy = Calendar.HOUR_OF_DAY;
+		this.groupBy = groupBy;
 	}
  
 	public void add(final E newEntry) {

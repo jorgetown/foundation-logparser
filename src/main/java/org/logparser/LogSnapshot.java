@@ -69,7 +69,7 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 		String key = entry.getAction();
 		// new request? create a new stats wrapper for it
 		if (!groupedByAction.containsKey(key)) {
-			IStatsView<E> stats = new StatsSnapshot<E>();
+			IStatsView<E> stats = new StatsSnapshot<E>(groupBy);
 			stats.add(entry);
 			groupedByAction.put(key, stats);
 		} else {
