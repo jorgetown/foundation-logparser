@@ -29,9 +29,17 @@ import com.beust.jcommander.JCommander;
 /**
  * Responsible for running the log parser via the command line.
  * 
- * <code>
- *  java -Xmx128m -jar log-parser-1.0.jar -help
- * </code>
+ * Example usage:
+ * 
+ * Run the maven assembly plugin to create a bundle with all the dependencies
+ * <pre>
+ * 		mvn clean package assembly:single
+ * </pre>
+ * 
+ * Execute the generated jar (running the default 'example' below)
+ * <pre>
+ * 		java -jar target/log-parser-1.0-jar-with-dependencies.jar -file config.json -log example
+ * </pre>
  * 
  * @author jorge.decastro
  */
