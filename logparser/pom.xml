@@ -74,7 +74,7 @@
 	</build>
 	<groupId>org.logparser</groupId>
 	<artifactId>log-parser</artifactId>
-	<version>1.1</version>
+	<version>1.2</version>
 	<packaging>jar</packaging>
 	<name>Log Parser</name>
 	<description>Log Parser</description>
