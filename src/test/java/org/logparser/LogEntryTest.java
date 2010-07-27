@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -123,7 +124,11 @@ public class LogEntryTest {
 
 	@Test
 	public void testToCsvString() {
-		assertEquals(String.format("\"%s\", \"%s\", \"%s\"", underTest.getDate(), underTest.getAction(), underTest.getDuration()), underTest.toCsvString());
+		assertEquals(String.format("%s, %s, %s", 
+				StringEscapeUtils.escapeCsv(underTest.getDate().toString()), 
+				StringEscapeUtils.escapeCsv(underTest.getAction()), 
+				StringEscapeUtils.escapeCsv(Double.toString(underTest.getDuration()))), 
+				underTest.toCsvString());
 	}
 
 	@Test

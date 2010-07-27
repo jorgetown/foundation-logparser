@@ -69,7 +69,6 @@ public class LineByLineLogFilter<E extends ITimestampedEntry> implements ILogFil
 		return logSnapshot;
 	}
 
-	// TODO address this quadratic time complexity
 	private E applyFilters(final String toParse, final List<ILogEntryFilter<E>> filters) {
 		E entry = null;
 		for (ILogEntryFilter<E> filter : filters) {

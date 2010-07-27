@@ -11,11 +11,11 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.logparser.Config;
+import org.logparser.Config.SamplerConfig;
 import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
-import org.logparser.Config.SamplerConfig;
 import org.logparser.io.ChartView;
 import org.logparser.io.CommandLineArguments;
 import org.logparser.io.CsvView;
@@ -95,22 +95,25 @@ public class CommandLineApplicationRunner {
 			@SuppressWarnings("unchecked")
 			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(config, sampler != null ? sampler : filter);
 			CsvView csvView = new CsvView();
-
+			DecimalFormat df = new DecimalFormat("####.##");
+			
 			ChartView<LogEntry> chartView;
 			String filepath;
 			String path;
 			String filename;
+			int totalEntries = 0;
+			int filteredEntries = 0;
+			LogSnapshot<LogEntry> logSnapshot;
 			for (File f : files) {
 				filepath = f.getAbsolutePath();
 				filename = f.getName();
 				path = f.getParent();
 
 				long start = System.nanoTime();
-				LogSnapshot<LogEntry> logSnapshot = lineByLineParser.filter(filepath);
+				logSnapshot = lineByLineParser.filter(filepath);
 				long end = (System.nanoTime() - start) / 1000000;
-				DecimalFormat df = new DecimalFormat("####.##");
-				int totalEntries = logSnapshot.getTotalEntries();
-				int filteredEntries = logSnapshot.getFilteredEntries().size();
+				totalEntries = logSnapshot.getTotalEntries();
+				filteredEntries = logSnapshot.getFilteredEntries().size();
 				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
 
 				chartView = new ChartView<LogEntry>(logSnapshot);

@@ -20,5 +20,24 @@
 			"filenamePattern" : "EXAMPLE_log_(.+)-15.log",
 			"baseDirs" : ["."]
 		}
+	},
+	
+	"example2" : {
+		"friendlyName" : "Another Example Log",
+		"sampleEntry" : "2010-07-01 22:59:14,014 [http-8080-exec-8] INFO com.web.filter.PerformanceLoggingFilter - /example/cms-event/editorchoice.do 23ms",
+		"timestampPattern" : "^((\\d{4}-\\d{2}-\\d{2}.*)?)\\s\\[",
+		"timestampFormat" : "yyyy-MM-dd HH:mm:ss,SSS",
+		"actionPattern" : "\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
+		"durationPattern" : "\\s((\\d)*)ms$",
+		"filterPattern" : ".*.do",
+		"groupBy" : "HOUR",		
+		"sampler" : {  		
+			"sampleBy" : "FREQUENCY",   		
+			"value" : "10"
+		},  
+		"logFiles" : {
+			"filenamePattern" : "EXAMPLE_2_cms.log",
+			"baseDirs" : ["."]
+		}
 	}    
 }

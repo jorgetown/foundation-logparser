@@ -7,11 +7,12 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import net.jcip.annotations.Immutable;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -59,13 +60,13 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 		totalEntries++;
 		if (entry != null) {
 			filteredEntries.add(entry);
-			updateStats(entry);
-			updateSummary(entry);
-			updateTimeBreakdown(entry);
+			updateBivariateStats(entry);
+			updateUnivariateSummary(entry);
+			updateUnivariateTimeBreakdown(entry);
 		}
 	}
 
-	private void updateStats(final E entry) {
+	private void updateBivariateStats(final E entry) {
 		String key = entry.getAction();
 		// new request? create a new stats wrapper for it
 		if (!groupedByAction.containsKey(key)) {
@@ -78,7 +79,7 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 		}
 	}
 
-	private void updateSummary(final E entry) {
+	private void updateUnivariateSummary(final E entry) {
 		String key = entry.getAction();
 		if (summary.containsKey(key)) {
 			Integer value = summary.get(key);
@@ -89,7 +90,7 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 		}
 	}
 
-	private void updateTimeBreakdown(final E entry) {
+	private void updateUnivariateTimeBreakdown(final E entry) {
 		calendar.setTimeInMillis(entry.getTimestamp());
 		int key = calendar.get(groupBy);
 		if (timeBreakdown.containsKey(key)) {
@@ -184,14 +185,14 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 		IStatsView<E> stats = null;
 		for (Entry<String, IStatsView<E>> entries : groupedByAction.entrySet()) {
 			stats = entries.getValue();
-			sb.append(String.format("\"%s\", %s, %s, \"%s\", \"%s\", \"%s\", \"%s\"", 
-					entries.getKey(), 
+			sb.append(String.format("%s, %s, %s, %s, %s, %s, %s", 
+					StringEscapeUtils.escapeCsv(entries.getKey()), 
 					totalEntries, 
 					stats.getEntries().size(), 
-					stats.getMean(), 
-					stats.getDeviation(), 
-					stats.getMaxima().getText(), 
-					stats.getMinima().getText()));
+					StringEscapeUtils.escapeCsv(Double.toString(stats.getMean())), 
+					StringEscapeUtils.escapeCsv(Double.toString(stats.getDeviation())), 
+					StringEscapeUtils.escapeCsv(stats.getMaxima().getText()), 
+					StringEscapeUtils.escapeCsv(stats.getMinima().getText())));
 			sb.append(NEWLINE);
 
 			if (!entries.getValue().getTimeBreakdown().isEmpty()) {

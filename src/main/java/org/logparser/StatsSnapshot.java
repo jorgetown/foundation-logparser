@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -38,7 +39,7 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 	public StatsSnapshot() {
 		this(Calendar.HOUR_OF_DAY);
 	}
-	
+
 	public StatsSnapshot(final int groupBy) {
 		entries = new ArrayList<E>();
 		jsonMapper = new ObjectMapper();
@@ -104,20 +105,25 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 	public double getMean() {
 		return mean;
 	}
-	
+
 	public Map<Integer, Integer> getTimeBreakdown() {
 		return timeBreakdown;
 	}
  
 	public String toCsvString() {
-		return String.format("\"%s\", \"%s\", \"%s\", \"%s, \"%s\"", entries.size(), maxima, minima, mean, std);
+		return String.format("%s, %s, %s, %s, %s", 
+				entries.size(), 
+				StringEscapeUtils.escapeCsv(Double.toString(mean)), 
+				StringEscapeUtils.escapeCsv(Double.toString(std)), 
+				StringEscapeUtils.escapeCsv(maxima.toString()), 
+				StringEscapeUtils.escapeCsv(minima.toString()));
 	}
  
 	@Override
 	public String toString() {
 		return String.format("%s, %s, %s, %s", mean, std, maxima, minima);
 	}
-	
+
 	public String toJsonString() {
 		try {
 			return jsonMapper.writeValueAsString(this);

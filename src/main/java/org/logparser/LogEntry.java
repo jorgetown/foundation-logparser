@@ -6,6 +6,7 @@ import java.util.Date;
 
 import net.jcip.annotations.Immutable;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -89,11 +90,14 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s, %s, %s", message.replaceAll("\"", ""), date, action, duration);
+		return String.format("%s %s %s", date, action, duration);
 	}
 
 	public String toCsvString() {
-		return String.format("\"%s\", \"%s\", \"%s\"", date, action, duration);
+		return String.format("%s, %s, %s", 
+				StringEscapeUtils.escapeCsv(date.toString()), 
+				StringEscapeUtils.escapeCsv(action), 
+				StringEscapeUtils.escapeCsv(duration));
 	}
 
 	public String toJsonString() {
