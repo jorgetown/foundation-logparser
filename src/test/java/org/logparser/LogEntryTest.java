@@ -138,4 +138,22 @@ public class LogEntryTest {
 		String expected = String.format("{\"timestamp\":%s,\"action\":\"%s\",\"duration\":%s,\"text\":\"%s\"}", date.getTime(), ACTION, DURATION, "");
 		assertThat(underTest.toJsonString(), is(equalTo(expected)));
 	}
+		
+	@Test
+	public void testNullActionArgumentDoesNotCauseHashcodeException() {
+		underTest = new LogEntry(ORIGINAL_ENTRY, new Date(), null, DURATION);
+		underTest.hashCode();
+	}
+	
+	@Test
+	public void testNullDurationArgumentDoesNotCauseHashcodeException() {
+		underTest = new LogEntry(ORIGINAL_ENTRY, new Date(), ACTION, null);
+		underTest.hashCode();
+	}
+	
+	@Test
+	public void testNullMessageArgumentDoesNotCauseHashcodeException() {
+		underTest = new LogEntry(null, new Date(), ACTION, DURATION);
+		underTest.hashCode();
+	}
 }

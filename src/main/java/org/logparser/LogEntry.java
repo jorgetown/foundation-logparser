@@ -30,7 +30,7 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 	private final ObjectMapper mapper;
 
 	public LogEntry(final String message, final Date date, final String action, final String duration) {
-		// defensive copy since {@link Date}s are not immutable
+		// defensive copy since {@link Date}s are mutable
 		this.date = new Date(date.getTime());
 		this.message = message;
 		this.action = action;
@@ -57,7 +57,7 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 
 	@JsonIgnore
 	public Date getDate() {
-		// defensive copy since {@link Date}s are not immutable
+		// defensive copy since {@link Date}s are mutable
 		return new Date(date.getTime());
 	}
 
@@ -79,10 +79,10 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 		int result = hashCode;
 		if (result == 0) {
 			result = 17;
-			result = 31 * result + date.hashCode();
-			result = 31 * result + duration.hashCode();
-			result = 31 * result + action.hashCode();
-			result = 31 * result + message.hashCode();
+			result = 31 * result + (date == null ? 0 : date.hashCode());
+			result = 31 * result + (duration == null ? 0 : duration.hashCode());
+			result = 31 * result + (action == null ? 0 : action.hashCode());
+			result = 31 * result + (message == null ? 0 : message.hashCode());
 			hashCode = result;
 		}
 		return result;
@@ -90,13 +90,13 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 
 	@Override
 	public String toString() {
-		return String.format("%s %s %s", date, action, duration);
+		return String.format("{%s %s %s}", date, action, duration);
 	}
 
 	public String toCsvString() {
-		return String.format("%s, %s, %s", 
-				StringEscapeUtils.escapeCsv(date.toString()), 
-				StringEscapeUtils.escapeCsv(action), 
+		return String.format("%s, %s, %s",
+				StringEscapeUtils.escapeCsv(date.toString()),
+				StringEscapeUtils.escapeCsv(action),
 				StringEscapeUtils.escapeCsv(duration));
 	}
 
