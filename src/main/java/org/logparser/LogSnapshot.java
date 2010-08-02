@@ -121,6 +121,10 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 	public Map<String, IStatsView<E>> getStats() {
 		return Collections.unmodifiableMap(groupedByAction);
 	}
+	
+	public int getGroupBy() {
+		return groupBy;
+	}
 
 	@Override
 	public String toString() {

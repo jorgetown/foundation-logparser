@@ -14,6 +14,8 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import com.google.common.base.Preconditions;
  
 /**
  * Provides a summary and descriptive statistics for a collection of
@@ -49,6 +51,7 @@ public class StatsSnapshot<E extends ITimestampedEntry> implements IStatsView<E>
 	}
  
 	public void add(final E newEntry) {
+		Preconditions.checkNotNull(newEntry);
 		entries.add(newEntry);
 		if (maxima == null || (newEntry.getDuration() > maxima.getDuration())) {
 			maxima = newEntry;
