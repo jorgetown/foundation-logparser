@@ -38,7 +38,7 @@ import com.beust.jcommander.JCommander;
  * 
  * Execute the generated jar (running the default 'example' below)
  * <pre>
- * 		java -jar target/log-parser-1.0-jar-with-dependencies.jar -file config.json -log example
+ * 		java -Xms256m -Xmx256m -jar target/log-parser-1.0-jar-with-dependencies.jar -configfile config.json -logname example
  * </pre>
  * 
  * @author jorge.decastro
