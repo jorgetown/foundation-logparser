@@ -11,10 +11,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Date;
+
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.logparser.ILogEntryFilter;
-import org.logparser.TestMessage;
+import org.logparser.LogEntry;
 import org.logparser.time.TimeComparator;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -27,259 +31,244 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class GenericSamplingByTimeTest {
-	private static final String SAMPLE_ENTRY = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /statusCheck.do HTTP/1.1\" 200 1779 2073";
-	private static final String SAMPLE_ENTRY_A = "SAMPLE ENTRY A";
-	private static final String SAMPLE_ENTRY_B = "SAMPLE ENTRY B";
-	private static final String SAMPLE_ENTRY_C = "SAMPLE ENTRY C";
-	private static final String SAMPLE_ENTRY_D = "SAMPLE ENTRY D";
-	private static final String SAMPLE_ENTRY_E = "SAMPLE ENTRY E";
-	private static final String SAMPLE_ENTRY_F = "SAMPLE ENTRY E";
+	private static final String SAMPLE_ENTRY_A = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.a HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_B = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.b HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_C = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.c HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_D = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.d HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_E = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.e HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_F = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.f HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ACTION_A = "/action.a";
+	private static final String SAMPLE_ACTION_B = "/action.b";
+	private static final String SAMPLE_DURATION = "2073";
+	private LogEntry entryA;
+	private LogEntry entryB;
+	private LogEntry entryC;
+	private LogEntry entryD;
+	private LogEntry entryE;
+	private LogEntry entryF;
+
+	private GenericSamplingByTime<LogEntry> underTest;
+	@Mock
+	private ILogEntryFilter<LogEntry> mockFilter;
+	@Mock
+	private TimeComparator<LogEntry> mockTimeComparator;
+
+	@Before
+	public void setUp() {
+		entryA = new LogEntry(SAMPLE_ENTRY_A, new Date(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		entryB = new LogEntry(SAMPLE_ENTRY_B, new Date(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		entryC = new LogEntry(SAMPLE_ENTRY_C, new Date(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		entryD = new LogEntry(SAMPLE_ENTRY_D, new Date(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		entryE = new LogEntry(SAMPLE_ENTRY_E, new Date(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		entryF = new LogEntry(SAMPLE_ENTRY_F, new Date(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		underTest = new GenericSamplingByTime<LogEntry>(mockFilter, mockTimeComparator);
+	}
 	
-	private GenericSamplingByTime<TestMessage> underTest;
-	@Mock
-	private ILogEntryFilter<TestMessage> mockFilter;
-	@Mock
-	private TimeComparator<TestMessage> mockTimeComparator;
+	@After
+	public void tearDown() {
+		entryA = null;
+		entryB = null;
+		entryC = null;
+		entryD = null;
+		entryE = null;
+		entryF = null;
+		underTest = null;
+	}
 
 	@Test(expected = NullPointerException.class)
 	public void testNullFilterArgument() {
-		new GenericSamplingByTime<TestMessage>(null, mockTimeComparator);
+		new GenericSamplingByTime<LogEntry>(null, mockTimeComparator);
 	}
 
 	@Test(expected = NullPointerException.class)
 	public void testNullTimeComparatorArgument() {
-		new GenericSamplingByTime<TestMessage>(mockFilter, null);
+		new GenericSamplingByTime<LogEntry>(mockFilter, null);
 	}
 
 	@Test
 	public void testUnfilteredEntryIsNotSampled() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		
 		when(mockFilter.parse(anyString())).thenReturn(null);
-		
-		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
-		
+
+		LogEntry sampled = underTest.parse(SAMPLE_ENTRY_A);
+
 		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(nullValue()));
 	}
 
 	@Test
 	public void testMultipleUnfilteredEntriesAreNotSampled() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		
 		when(mockFilter.parse(anyString())).thenReturn(null);
-		
-		TestMessage tm1 = underTest.parse(SAMPLE_ENTRY_A);
-		TestMessage tm2 = underTest.parse(SAMPLE_ENTRY_B);
-		
+
+		entryA = underTest.parse(SAMPLE_ENTRY_A);
+		entryB = underTest.parse(SAMPLE_ENTRY_B);
+
 		verify(mockFilter, times(2)).parse(anyString());
-		assertThat(tm1, is(nullValue()));
-		assertThat(tm2, is(nullValue()));
+		assertThat(entryA, is(nullValue()));
+		assertThat(entryB, is(nullValue()));
 	}
 
 	@Test
 	public void testFirstFilteredEntryIsSampled() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		TestMessage filtered = new TestMessage(0);
-		
-		when(mockFilter.parse(anyString())).thenReturn(filtered);
-		
-		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
-		
+		when(mockFilter.parse(anyString())).thenReturn(entryA);
+
+		LogEntry sampled = underTest.parse(SAMPLE_ENTRY_A);
+
 		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(notNullValue()));
-		assertThat(sampled, is(equalTo(filtered)));
+		assertThat(sampled, is(equalTo(entryA)));
 	}
 
 	@Test
 	public void testFirstFilteredEntriesAreSampled() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		TestMessage tm1 = new TestMessage("tm1", 0);
-		TestMessage tm2 = new TestMessage("tm2", 0);
-		
-		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(tm1);
-		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(tm2);
-		
-		TestMessage sampled1 = underTest.parse(SAMPLE_ENTRY_A);
-		TestMessage sampled2 = underTest.parse(SAMPLE_ENTRY_B);
-		
+		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
+		when(mockFilter.parse(SAMPLE_ENTRY_D)).thenReturn(entryD);
+
+		LogEntry sampledA = underTest.parse(SAMPLE_ENTRY_A);
+		LogEntry sampledB = underTest.parse(SAMPLE_ENTRY_D);
+
 		verify(mockFilter, times(2)).parse(anyString());
-		assertThat(sampled1, is(notNullValue()));
-		assertThat(sampled1, is(equalTo(tm1)));
-		assertThat(sampled2, is(notNullValue()));
-		assertThat(sampled2, is(equalTo(tm2)));
+		assertThat(sampledA, is(notNullValue()));
+		assertThat(sampledA, is(equalTo(entryA)));
+		assertThat(sampledB, is(notNullValue()));
+		assertThat(sampledB, is(equalTo(entryD)));
 	}
 
 	@Test
 	public void testFilteredEntryIsSampledIfWithinTimeInterval() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		TestMessage tm1 = new TestMessage("tm", 0);
-		TestMessage tm2 = new TestMessage("tm", 2000);
-		
-		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(tm1);
-		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(tm2);
-		when(mockTimeComparator.isIntervalApart(any(TestMessage.class), any(TestMessage.class))).thenReturn(true);
-		
-		TestMessage sampled1 = underTest.parse(SAMPLE_ENTRY_A);
-		TestMessage sampled2 = underTest.parse(SAMPLE_ENTRY_B);
-		
+		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
+		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
+		when(mockTimeComparator.isIntervalApart(any(LogEntry.class), any(LogEntry.class))).thenReturn(true);
+
+		LogEntry sampledA = underTest.parse(SAMPLE_ENTRY_A);
+		LogEntry sampledB = underTest.parse(SAMPLE_ENTRY_B);
+
 		verify(mockFilter, times(2)).parse(anyString());
-		verify(mockTimeComparator, times(1)).isIntervalApart(any(TestMessage.class), any(TestMessage.class));
-		assertThat(sampled1, is(notNullValue()));
-		assertThat(sampled1, is(equalTo(tm1)));
-		assertThat(sampled2, is(notNullValue()));
-		assertThat(sampled2, is(equalTo(tm2)));
+		verify(mockTimeComparator, times(1)).isIntervalApart(any(LogEntry.class), any(LogEntry.class));
+		assertThat(sampledA, is(notNullValue()));
+		assertThat(sampledA, is(equalTo(entryA)));
+		assertThat(sampledB, is(notNullValue()));
+		assertThat(sampledB, is(equalTo(entryB)));
 	}
 
 	@Test
 	public void testFilteredEntryIsNotSampledIfNotWithinTimeInterval() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		TestMessage tm1 = new TestMessage("tm", 1000);
-		TestMessage tm2 = new TestMessage("tm", 2000);
-		TestMessage tm3 = new TestMessage("tm", 3000);
-		
-		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(tm1);
-		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(tm2);
-		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(tm3);
-		when(mockTimeComparator.isIntervalApart(any(TestMessage.class), any(TestMessage.class))).thenReturn(false);
-		
-		TestMessage sampled1 = underTest.parse(SAMPLE_ENTRY_A);
-		TestMessage sampled2 = underTest.parse(SAMPLE_ENTRY_B);
-		TestMessage sampled3 = underTest.parse(SAMPLE_ENTRY_C);
-		
+		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
+		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
+		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(entryC);
+		when(mockTimeComparator.isIntervalApart(any(LogEntry.class), any(LogEntry.class))).thenReturn(false);
+
+		LogEntry sampledA = underTest.parse(SAMPLE_ENTRY_A);
+		LogEntry sampledB = underTest.parse(SAMPLE_ENTRY_B);
+		LogEntry sampledC = underTest.parse(SAMPLE_ENTRY_C);
+
 		verify(mockFilter, times(3)).parse(anyString());
-		verify(mockTimeComparator, times(2)).isIntervalApart(any(TestMessage.class), any(TestMessage.class));
-		assertThat(sampled1, is(notNullValue()));
-		assertThat(sampled1, is(equalTo(tm1)));
-		assertThat(sampled2, is(nullValue()));
-		assertThat(sampled3, is(nullValue()));
+		verify(mockTimeComparator, times(2)).isIntervalApart(any(LogEntry.class), any(LogEntry.class));
+		assertThat(sampledA, is(notNullValue()));
+		assertThat(sampledA, is(equalTo(entryA)));
+		assertThat(sampledB, is(nullValue()));
+		assertThat(sampledC, is(nullValue()));
 	}
 
 	@Test
 	public void testFilteredEntriesAreSampledIfWithinTimeInterval() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		TestMessage tm1 = new TestMessage("tm1", 1000);
-		TestMessage tm2 = new TestMessage("tm1", 5000);
-		TestMessage tm3 = new TestMessage("tm2", 4000);
-		TestMessage tm4 = new TestMessage("tm2", 8000);
-		
-		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(tm1);
-		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(tm2);
-		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(tm3);
-		when(mockFilter.parse(SAMPLE_ENTRY_D)).thenReturn(tm4);
-		when(mockTimeComparator.isIntervalApart(any(TestMessage.class), any(TestMessage.class))).thenReturn(true);
-		
-		TestMessage sample1 = underTest.parse(SAMPLE_ENTRY_A);
-		TestMessage sample2 = underTest.parse(SAMPLE_ENTRY_B);
-		TestMessage sample3 = underTest.parse(SAMPLE_ENTRY_C);
-		TestMessage sample4 = underTest.parse(SAMPLE_ENTRY_D);
-		
+		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
+		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
+		when(mockFilter.parse(SAMPLE_ENTRY_D)).thenReturn(entryD);
+		when(mockFilter.parse(SAMPLE_ENTRY_E)).thenReturn(entryE);
+		when(mockTimeComparator.isIntervalApart(any(LogEntry.class),any(LogEntry.class))).thenReturn(true);
+
+		LogEntry sampleA = underTest.parse(SAMPLE_ENTRY_A);
+		LogEntry sampleB = underTest.parse(SAMPLE_ENTRY_B);
+		LogEntry sampleD = underTest.parse(SAMPLE_ENTRY_D);
+		LogEntry sampleE = underTest.parse(SAMPLE_ENTRY_E);
+
 		verify(mockFilter, times(4)).parse(anyString());
-		verify(mockTimeComparator, times(2)).isIntervalApart(any(TestMessage.class), any(TestMessage.class));
-		assertThat(sample1, is(notNullValue()));
-		assertThat(sample1, is(equalTo(tm1)));
-		assertThat(sample2, is(notNullValue()));
-		assertThat(sample2, is(equalTo(tm2)));
-		assertThat(sample3, is(notNullValue()));
-		assertThat(sample3, is(equalTo(tm3)));
-		assertThat(sample4, is(notNullValue()));
-		assertThat(sample4, is(equalTo(tm4)));
+		verify(mockTimeComparator, times(2)).isIntervalApart(any(LogEntry.class), any(LogEntry.class));
+		assertThat(sampleA, is(notNullValue()));
+		assertThat(sampleA, is(equalTo(entryA)));
+		assertThat(sampleB, is(notNullValue()));
+		assertThat(sampleB, is(equalTo(entryB)));
+		assertThat(sampleD, is(notNullValue()));
+		assertThat(sampleD, is(equalTo(entryD)));
+		assertThat(sampleE, is(notNullValue()));
+		assertThat(sampleE, is(equalTo(entryE)));
 	}
 
 	@Test
 	public void testFilteredEntriesAreNotSampledIfNotWithinTimeInterval() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		TestMessage tm1 = new TestMessage("tm1", 1000);
-		TestMessage tm2 = new TestMessage("tm1", 2000);
-		TestMessage tm3 = new TestMessage("tm2", 4000);
-		TestMessage tm4 = new TestMessage("tm2", 5000);
-		
-		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(tm1);
-		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(tm2);
-		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(tm3);
-		when(mockFilter.parse(SAMPLE_ENTRY_D)).thenReturn(tm4);
-		when(mockTimeComparator.isIntervalApart(any(TestMessage.class), any(TestMessage.class))).thenReturn(false);
-		
-		TestMessage sample1 = underTest.parse(SAMPLE_ENTRY_A);
-		TestMessage sample2 = underTest.parse(SAMPLE_ENTRY_B);
-		TestMessage sample3 = underTest.parse(SAMPLE_ENTRY_C);
-		TestMessage sample4 = underTest.parse(SAMPLE_ENTRY_D);
-		
+		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
+		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
+		when(mockFilter.parse(SAMPLE_ENTRY_D)).thenReturn(entryD);
+		when(mockFilter.parse(SAMPLE_ENTRY_E)).thenReturn(entryE);
+		when(mockTimeComparator.isIntervalApart(any(LogEntry.class), any(LogEntry.class))).thenReturn(false);
+
+		LogEntry sampleA = underTest.parse(SAMPLE_ENTRY_A);
+		LogEntry sampleB = underTest.parse(SAMPLE_ENTRY_B);
+		LogEntry sampleD = underTest.parse(SAMPLE_ENTRY_D);
+		LogEntry sampleE = underTest.parse(SAMPLE_ENTRY_E);
+
 		verify(mockFilter, times(4)).parse(anyString());
-		verify(mockTimeComparator, times(2)).isIntervalApart(any(TestMessage.class), any(TestMessage.class));
-		assertThat(sample1, is(notNullValue()));
-		assertThat(sample1, is(equalTo(tm1)));
-		assertThat(sample2, is(nullValue()));
-		assertThat(sample3, is(notNullValue()));
-		assertThat(sample3, is(equalTo(tm3)));
-		assertThat(sample4, is(nullValue()));
+		verify(mockTimeComparator, times(2)).isIntervalApart(any(LogEntry.class), any(LogEntry.class));
+		assertThat(sampleA, is(notNullValue()));
+		assertThat(sampleA, is(equalTo(entryA)));
+		assertThat(sampleB, is(nullValue()));
+		assertThat(sampleD, is(notNullValue()));
+		assertThat(sampleD, is(equalTo(entryD)));
+		assertThat(sampleE, is(nullValue()));
 	}
-	
+
 	@Test
 	public void testEntriesWithinTimeIntervalAreSampled() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		TestMessage tm1 = new TestMessage("tm1", 1000);
-		TestMessage tm2 = new TestMessage("tm1", 2000);
-		TestMessage tm3 = new TestMessage("tm1", 5000);
-		
-		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(tm1);
-		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(tm2);
-		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(tm3);
-		when(mockTimeComparator.isIntervalApart(tm1, tm2)).thenReturn(false);
-		when(mockTimeComparator.isIntervalApart(tm1, tm3)).thenReturn(true);
-		
-		TestMessage sampled1 = underTest.parse(SAMPLE_ENTRY_A);
-		TestMessage sampled2 = underTest.parse(SAMPLE_ENTRY_B);
-		TestMessage sampled3 = underTest.parse(SAMPLE_ENTRY_C);
-		
+		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
+		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
+		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(entryC);
+		when(mockTimeComparator.isIntervalApart(entryA, entryB)).thenReturn(false);
+		when(mockTimeComparator.isIntervalApart(entryA, entryC)).thenReturn(true);
+
+		LogEntry sampledA = underTest.parse(SAMPLE_ENTRY_A);
+		LogEntry sampledB = underTest.parse(SAMPLE_ENTRY_B);
+		LogEntry sampledC = underTest.parse(SAMPLE_ENTRY_C);
+
 		verify(mockFilter, times(3)).parse(anyString());
-		verify(mockTimeComparator, times(2)).isIntervalApart(any(TestMessage.class), any(TestMessage.class));
-		assertThat(sampled1, is(notNullValue()));
-		assertThat(sampled1, is(equalTo(tm1)));
-		assertThat(sampled2, is(nullValue()));
-		assertThat(sampled3, is(notNullValue()));
-		assertThat(sampled3, is(equalTo(tm3)));
+		verify(mockTimeComparator, times(2)).isIntervalApart(any(LogEntry.class), any(LogEntry.class));
+		assertThat(sampledA, is(notNullValue()));
+		assertThat(sampledA, is(equalTo(entryA)));
+		assertThat(sampledB, is(nullValue()));
+		assertThat(sampledC, is(notNullValue()));
+		assertThat(sampledC, is(equalTo(entryC)));
 	}
 
 	@Test
 	public void testMutipleFilteredEntriesAreSampledIfWithinTimeInterval() {
-		underTest = new GenericSamplingByTime<TestMessage>(mockFilter, mockTimeComparator);
-		TestMessage tm1 = new TestMessage("tm1", 1000);
-		TestMessage tm2 = new TestMessage("tm1", 2000);
-		TestMessage tm3 = new TestMessage("tm1", 5000);
-		TestMessage tm4 = new TestMessage("tm2", 5000);
-		TestMessage tm5 = new TestMessage("tm2", 7000);
-		TestMessage tm6 = new TestMessage("tm2", 8000);
-		
-		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(tm1);
-		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(tm2);
-		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(tm3);
-		when(mockFilter.parse(SAMPLE_ENTRY_D)).thenReturn(tm4);
-		when(mockFilter.parse(SAMPLE_ENTRY_E)).thenReturn(tm5);
-		when(mockFilter.parse(SAMPLE_ENTRY_F)).thenReturn(tm6);
-		when(mockTimeComparator.isIntervalApart(tm1, tm2)).thenReturn(false);
-		when(mockTimeComparator.isIntervalApart(tm1, tm3)).thenReturn(true);
-		when(mockTimeComparator.isIntervalApart(tm4, tm6)).thenReturn(true);
-		when(mockTimeComparator.isIntervalApart(tm6, tm5)).thenReturn(false);
-		
-		TestMessage sampled1 = underTest.parse(SAMPLE_ENTRY_A);
-		TestMessage sampled2 = underTest.parse(SAMPLE_ENTRY_B);
-		TestMessage sampled3 = underTest.parse(SAMPLE_ENTRY_C);
-		TestMessage sampled4 = underTest.parse(SAMPLE_ENTRY_D);
-		TestMessage sampled5 = underTest.parse(SAMPLE_ENTRY_E);
-		TestMessage sampled6 = underTest.parse(SAMPLE_ENTRY_F);
-		
+		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
+		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
+		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(entryC);
+		when(mockFilter.parse(SAMPLE_ENTRY_D)).thenReturn(entryD);
+		when(mockFilter.parse(SAMPLE_ENTRY_E)).thenReturn(entryE);
+		when(mockFilter.parse(SAMPLE_ENTRY_F)).thenReturn(entryF);
+		when(mockTimeComparator.isIntervalApart(entryA, entryB)).thenReturn(false);
+		when(mockTimeComparator.isIntervalApart(entryA, entryC)).thenReturn(true);
+		when(mockTimeComparator.isIntervalApart(entryD, entryE)).thenReturn(true);
+		when(mockTimeComparator.isIntervalApart(entryD, entryF)).thenReturn(false);
+
+		LogEntry sampledA = underTest.parse(SAMPLE_ENTRY_A);
+		LogEntry sampledB = underTest.parse(SAMPLE_ENTRY_B);
+		LogEntry sampledC = underTest.parse(SAMPLE_ENTRY_C);
+		LogEntry sampledD = underTest.parse(SAMPLE_ENTRY_D);
+		LogEntry sampledE = underTest.parse(SAMPLE_ENTRY_E);
+		LogEntry sampledF = underTest.parse(SAMPLE_ENTRY_F);
+
 		verify(mockFilter, times(6)).parse(anyString());
-		verify(mockTimeComparator, times(4)).isIntervalApart(any(TestMessage.class), any(TestMessage.class));
-		assertThat(sampled1, is(notNullValue()));
-		assertThat(sampled1, is(equalTo(tm1)));
-		assertThat(sampled2, is(nullValue()));
-		assertThat(sampled3, is(notNullValue()));
-		assertThat(sampled3, is(equalTo(tm3)));
-		assertThat(sampled4, is(notNullValue()));
-		assertThat(sampled4, is(equalTo(tm4)));
-		assertThat(sampled5, is(notNullValue()));
-		assertThat(sampled5, is(equalTo(tm6)));
-		assertThat(sampled6, is(nullValue()));
+		verify(mockTimeComparator, times(4)).isIntervalApart(any(LogEntry.class), any(LogEntry.class));
+		assertThat(sampledA, is(notNullValue()));
+		assertThat(sampledA, is(equalTo(entryA)));
+		assertThat(sampledB, is(nullValue()));
+		assertThat(sampledC, is(notNullValue()));
+		assertThat(sampledC, is(equalTo(entryC)));
+		assertThat(sampledD, is(notNullValue()));
+		assertThat(sampledD, is(equalTo(entryD)));
+		assertThat(sampledE, is(notNullValue()));
+		assertThat(sampledE, is(equalTo(entryE)));
+		assertThat(sampledF, is(nullValue()));
 	}
 }

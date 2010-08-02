@@ -11,12 +11,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.logparser.ILogEntryFilter;
-import org.logparser.TestMessage;
+import org.logparser.LogEntry;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -28,48 +29,68 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SamplingByFrequencyTest {
-	private static final String SAMPLE_ENTRY = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /statusCheck.do HTTP/1.1\" 200 1779 2073";
-	private SamplingByFrequency<TestMessage> underTest;
+	private static final String SAMPLE_ENTRY_1 = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.1 HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_2 = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.2 HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_3 = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.3 HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_4 = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.4 HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_5 = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.5 HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ENTRY_6 = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.6 HTTP/1.1\" 200 1779 2073";
+	private static final String SAMPLE_ACTION_1 = "/action.1";
+	private static final String SAMPLE_ACTION_2 = "/action.2";
+	private static final String SAMPLE_DURATION = "2073";
+
+	private SamplingByFrequency<LogEntry> underTest;
+
 	@Mock
-	ILogEntryFilter<TestMessage> mockFilter;
+	ILogEntryFilter<LogEntry> mockFilter;
 
 	@Test(expected = NullPointerException.class)
 	public void testNullMessageFilter() {
-		underTest = new SamplingByFrequency<TestMessage>(null, 1);
+		underTest = new SamplingByFrequency<LogEntry>(null, 1);
 	}
 
 	@Test
 	public void testUnfilteredEntryIsNotSampled() {
-		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 1);
+		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 1);
+
 		when(mockFilter.parse(anyString())).thenReturn(null);
-		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
+
+		LogEntry sampled = underTest.parse(SAMPLE_ENTRY_1);
+
 		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(nullValue()));
 	}
 
 	@Test
 	public void testFilteredEntryIsSampledIfWithinSamplingInterval() {
-		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 1);
-		TestMessage filtered = new TestMessage(1000);
-		when(mockFilter.parse(anyString())).thenReturn(filtered);
-		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
+		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 1);
+
+		LogEntry entry = new LogEntry(SAMPLE_ENTRY_1, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+
+		when(mockFilter.parse(anyString())).thenReturn(entry);
+
+		LogEntry sampled = underTest.parse(SAMPLE_ENTRY_1);
+
 		verify(mockFilter, times(1)).parse(anyString());
 		assertThat(sampled, is(notNullValue()));
-		assertThat(sampled, is(equalTo(filtered)));
+		assertThat(sampled, is(equalTo(entry)));
 	}
 
 	@Test
 	public void testFilteredEntryIsNotSampledIfNotWithinSamplingInterval() {
-		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 2); // sample every 2nd entry
-		TestMessage t1 = new TestMessage(1000);
-		TestMessage t2 = new TestMessage(1000);
-		TestMessage t3 = new TestMessage(1000);
-		when(mockFilter.parse(anyString())).thenReturn(t1);
-		when(mockFilter.parse(anyString())).thenReturn(t2);
-		when(mockFilter.parse(anyString())).thenReturn(t3);
-		TestMessage sampled1 = underTest.parse(SAMPLE_ENTRY);
-		TestMessage sampled2 = underTest.parse(SAMPLE_ENTRY);
-		TestMessage sampled3 = underTest.parse(SAMPLE_ENTRY);
+		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 2); // sample every 2nd entry
+		LogEntry entry1 = new LogEntry(SAMPLE_ENTRY_1, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry2 = new LogEntry(SAMPLE_ENTRY_2, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry3 = new LogEntry(SAMPLE_ENTRY_3, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+
+		when(mockFilter.parse(anyString())).thenReturn(entry1);
+		when(mockFilter.parse(anyString())).thenReturn(entry2);
+		when(mockFilter.parse(anyString())).thenReturn(entry3);
+
+		LogEntry sampled1 = underTest.parse(SAMPLE_ENTRY_1);
+		LogEntry sampled2 = underTest.parse(SAMPLE_ENTRY_2);
+		LogEntry sampled3 = underTest.parse(SAMPLE_ENTRY_3);
+
 		verify(mockFilter, times(3)).parse(anyString());
 		assertThat(sampled1, is(notNullValue()));
 		assertThat(sampled2, is(nullValue()));
@@ -78,42 +99,48 @@ public class SamplingByFrequencyTest {
 
 	@Test
 	public void testFilteredEntriesAreSampledIfWithinSamplingInterval() {
-		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 3); // sample every 3rd entry
-		TestMessage filtered = new TestMessage(1000);
-		when(mockFilter.parse(anyString())).thenReturn(filtered);
-		List<TestMessage> sampledList = new ArrayList<TestMessage>();
-		TestMessage sampled = underTest.parse(SAMPLE_ENTRY);
+		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 3); // sample every 3rd entry
+		LogEntry entry = new LogEntry(SAMPLE_ENTRY_1, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+
+		when(mockFilter.parse(anyString())).thenReturn(entry);
+
+		List<LogEntry> sampledList = new ArrayList<LogEntry>();
+		LogEntry sampled = underTest.parse(SAMPLE_ENTRY_1);
 		for (int i = 1; i <= 9; i++) {
 			if (sampled != null) {
 				sampledList.add(sampled);
 			}
-			sampled = underTest.parse(SAMPLE_ENTRY);
+			sampled = underTest.parse(SAMPLE_ENTRY_1);
 		}
+
 		verify(mockFilter, times(10)).parse(anyString());
 		assertThat(sampledList.size(), is(equalTo(3)));
 	}
-	
+
 	@Test
 	public void testMultipleFilteredEntriesAreSampledIfWithinSamplingInterval() {
-		underTest = new SamplingByFrequency<TestMessage>(mockFilter, 2); // sample every 2nd entry
-		TestMessage a1 = new TestMessage("Action A", 1000);
-		TestMessage a2 = new TestMessage("Action A", 2000);
-		TestMessage a3 = new TestMessage("Action A", 3000);
-		TestMessage b1 = new TestMessage("Action B", 1000);
-		TestMessage b2 = new TestMessage("Action B", 2000);
-		TestMessage b3 = new TestMessage("Action B", 3000);
-		when(mockFilter.parse("Action A")).thenReturn(a1);
-		when(mockFilter.parse("Action A")).thenReturn(a2);
-		when(mockFilter.parse("Action A")).thenReturn(a3);
-		when(mockFilter.parse("Action B")).thenReturn(b1);
-		when(mockFilter.parse("Action B")).thenReturn(b2);
-		when(mockFilter.parse("Action B")).thenReturn(b3);
-		TestMessage sampled1 = underTest.parse("Action A");
-		TestMessage sampled2 = underTest.parse("Action A");
-		TestMessage sampled3 = underTest.parse("Action A");
-		TestMessage sampled4 = underTest.parse("Action B");
-		TestMessage sampled5 = underTest.parse("Action B");
-		TestMessage sampled6 = underTest.parse("Action B");
+		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 2); // sample every 2nd entry
+		LogEntry entry1 = new LogEntry(SAMPLE_ENTRY_1, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry2 = new LogEntry(SAMPLE_ENTRY_2, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry3 = new LogEntry(SAMPLE_ENTRY_3, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry4 = new LogEntry(SAMPLE_ENTRY_4, new Date(), SAMPLE_ACTION_2, SAMPLE_DURATION);
+		LogEntry entry5 = new LogEntry(SAMPLE_ENTRY_5, new Date(), SAMPLE_ACTION_2, SAMPLE_DURATION);
+		LogEntry entry6 = new LogEntry(SAMPLE_ENTRY_6, new Date(), SAMPLE_ACTION_2, SAMPLE_DURATION);
+
+		when(mockFilter.parse(SAMPLE_ENTRY_1)).thenReturn(entry1);
+		when(mockFilter.parse(SAMPLE_ENTRY_2)).thenReturn(entry2);
+		when(mockFilter.parse(SAMPLE_ENTRY_3)).thenReturn(entry3);
+		when(mockFilter.parse(SAMPLE_ENTRY_4)).thenReturn(entry4);
+		when(mockFilter.parse(SAMPLE_ENTRY_5)).thenReturn(entry5);
+		when(mockFilter.parse(SAMPLE_ENTRY_6)).thenReturn(entry6);
+
+		LogEntry sampled1 = underTest.parse(SAMPLE_ENTRY_1);
+		LogEntry sampled2 = underTest.parse(SAMPLE_ENTRY_2);
+		LogEntry sampled3 = underTest.parse(SAMPLE_ENTRY_3);
+		LogEntry sampled4 = underTest.parse(SAMPLE_ENTRY_4);
+		LogEntry sampled5 = underTest.parse(SAMPLE_ENTRY_5);
+		LogEntry sampled6 = underTest.parse(SAMPLE_ENTRY_6);
+
 		verify(mockFilter, times(6)).parse(anyString());
 		assertThat(sampled1, is(notNullValue()));
 		assertThat(sampled2, is(nullValue()));
