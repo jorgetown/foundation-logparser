@@ -29,6 +29,7 @@ public class LogEntryFilterTest {
 		config.setTimestampFormat("dd/MMM/yyyy:HH:mm:ss");
 		config.setActionPattern("\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))");
 		config.setDurationPattern("HTTP.*\\s((\\d)(.*))$");
+		underTest = new LogEntryFilter(config);
 	}
 	
 	@After
@@ -38,13 +39,13 @@ public class LogEntryFilterTest {
 	}
 
 	@Test(expected = NullPointerException.class)
-	public void testNullFilterConfigArgument() {
+	public void testFilterFailsCreationIfNullConfigArgument() {
 		underTest = new LogEntryFilter(null);
+		assertThat(underTest, is(nullValue()));
 	}
 
 	@Test
-	public void testNotNullFilterConfigArgument() {
-		underTest = new LogEntryFilter(config);
+	public void testFilterIsCreatedIfNotNullConfigArgument() {
 		assertThat(underTest, is(notNullValue()));
 	}
 
@@ -82,7 +83,6 @@ public class LogEntryFilterTest {
 
 	@Test
 	public void testParsableTimestampPatternReturnsEntry() {
-		underTest = new LogEntryFilter(config);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 		assertThat(entry, is(notNullValue()));
 		assertThat(entry.getTimestamp(), is(equalTo(1260835215000L)));
@@ -90,7 +90,6 @@ public class LogEntryFilterTest {
 
 	@Test
 	public void testParsableActionPatternReturnsEntry() {
-		underTest = new LogEntryFilter(config);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 		assertThat(entry, is(notNullValue()));
 		assertThat(entry.getAction(), is(equalTo("/path/something.html")));
@@ -98,23 +97,20 @@ public class LogEntryFilterTest {
 
 	@Test
 	public void testParsableDurationPatternReturnsEntry() {
-		underTest = new LogEntryFilter(config);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 		assertThat(entry, is(notNullValue()));
 		assertThat(entry.getDuration(), is(equalTo(300D)));
 	}
 
 	@Test
-	public void testOriginalLogEntryIsKept() {
-		underTest = new LogEntryFilter(config);
+	public void testOriginalLogEntryTextIsRetained() {
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 		assertThat(entry, is(notNullValue()));
 		assertThat(entry.getText(), is(equalTo(SAMPLE_LOG_MESSAGE)));
 	}
 	
 	@Test
-	public void testParsableTokensInLogEntry() {
-		underTest = new LogEntryFilter(config);
+	public void testLogEntryTokensAreIndividuallyParsable() {
 		String EXPECTED_TIMESTAMP = "15/Dec/2009:00:00:15";
 		String EXPECTED_ACTION = "/path/something.html";
 		double EXPECTED_DURATION = 300D;

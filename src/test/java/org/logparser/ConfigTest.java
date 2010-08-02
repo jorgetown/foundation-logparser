@@ -41,7 +41,7 @@ public class ConfigTest {
 	}
 
 	@Test
-	public void testValidateRequiredProperties() {
+	public void testValidationGuaranteesPresenceOfRequiredProperties() {
 		underTest.validate();
 		assertThat(underTest.getTimestampFormat(), is(equalTo("dd/MMM/yyyy:HH:mm:ss")));
 		assertThat(underTest.getTimestampPattern(), is(equalTo("^\\[((.*))\\]")));
@@ -54,44 +54,44 @@ public class ConfigTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testValidateRequiredTimestampFormatProperty() {
+	public void testValidationFailsIfRequiredTimestampFormatIsNull() {
 		underTest.setTimestampFormat(null);
 		underTest.validate();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testValidateRequiredTimestampPatternProperty() {
+	public void testValidationFailsIfRequiredTimestampPatternIsNull() {
 		underTest.setTimestampPattern(null);
 		underTest.validate();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testValidateRequiredActionPatternProperty() {
+	public void testValidationFailsIfRequiredActionPatternIsNull() {
 		underTest.setActionPattern(null);
 		underTest.validate();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testValidateRequiredDurationPatternProperty() {
+	public void testValidationFailsIfRequiredDurationPatternIsNull() {
 		underTest.setDurationPattern(null);
 		underTest.validate();
 	}
 
 	@Test
-	public void testDefaultValueOfOptionalFilterPatternProperty() {
+	public void testOptionalFilterPatternHasDefaultValue() {
 		underTest = new Config();
 		assertThat(underTest.getFilterPattern(), is(equalTo(Config.DEFAULT_FILTER_PATTERN)));
 	}
 
 	@Test
-	public void testOverrideOptionalFilterPatternProperty() {
+	public void testOverrideOfOptionalFilterPatternReturnsTheOverride() {
 		underTest = new Config();
 		underTest.setFilterPattern("*.action");
 		assertThat(underTest.getFilterPattern(), is(equalTo("*.action")));
 	}
 
 	@Test
-	public void testOverrideFilenamePatternProperty() {
+	public void testOverrideOfFilenamePatternPropertyReturnsTheOverride() {
 		underTest = new Config();
 		LogFiles logFiles = new LogFiles(".*.extension", null);
 		underTest.setLogFiles(logFiles);
@@ -99,26 +99,26 @@ public class ConfigTest {
 	}
 
 	@Test
-	public void testDefaultGroupByProperty() {
+	public void testOptionalGroupByPropertyHasDefaultValue() {
 		underTest = new Config();
 		assertThat(underTest.getGroupBy(), is(equalTo(GroupBy.HOUR)));
 	}
 
 	@Test
-	public void testGroupByPropertySetter() {
+	public void testOverrideOfOptionalGroupByPropertyReturnsTheOverride() {
 		underTest = new Config();
 		underTest.setGroupBy(GroupBy.MINUTE);
 		assertThat(underTest.getGroupBy(), is(equalTo(GroupBy.MINUTE)));
 	}
 
 	@Test
-	public void testDefaultGroupByPropertyConversion() {
+	public void testGroupByToCalendarConversionHasDefaultValue() {
 		underTest = new Config();
 		assertThat(underTest.groupByToCalendar(), is(equalTo(Calendar.HOUR_OF_DAY)));
 	}
 
 	@Test
-	public void testGroupByPropertyConversion() {
+	public void testOverrideOfGroupByToCalendarConversionReturnsTheOverride() {
 		underTest = new Config();
 		underTest.setGroupBy(GroupBy.MINUTE);
 		assertThat(underTest.groupByToCalendar(), is(equalTo(Calendar.MINUTE)));

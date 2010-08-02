@@ -6,7 +6,7 @@ import java.util.List;
 import org.junit.Test;
 import org.logparser.Config;
 import org.logparser.ILogEntryFilter;
-import org.logparser.TestMessage;
+import org.logparser.LogEntry;
 
 /**
  * Unit tests for {@link LineByLineLogFilter}.
@@ -18,21 +18,21 @@ public class LineByLineLogFilterTest {
 
 	@Test(expected = NullPointerException.class)
 	@SuppressWarnings("unchecked")
-	public void testNullFilter() {
-		ILogEntryFilter<TestMessage> filter = null;
-		new LineByLineLogFilter<TestMessage>(new Config(), filter);
+	public void testLogFilterIsNotCreatedIfNullFilterArgumentGiven() {
+		ILogEntryFilter<LogEntry> filter = null;
+		new LineByLineLogFilter<LogEntry>(new Config(), filter);
 	}
 
 	@Test(expected = NullPointerException.class)
-	public void testNullListOfFilters() {
-		List<ILogEntryFilter<TestMessage>> filters = null;
-		new LineByLineLogFilter<TestMessage>(new Config(), filters);
+	public void testLogFilterIsNotCreatedIfNullListOfFiltersGiven() {
+		List<ILogEntryFilter<LogEntry>> filters = null;
+		new LineByLineLogFilter<LogEntry>(new Config(), filters);
 	}
 
 	@Test(expected = NullPointerException.class)
-	public void testListOfNullFilters() {
-		List<ILogEntryFilter<TestMessage>> filters = new ArrayList<ILogEntryFilter<TestMessage>>();
+	public void testLogFilterIsNotCreatedIfListOfNullFiltersGiven() {
+		List<ILogEntryFilter<LogEntry>> filters = new ArrayList<ILogEntryFilter<LogEntry>>();
 		filters.add(null);
-		new LineByLineLogFilter<TestMessage>(new Config(), filters);
+		new LineByLineLogFilter<LogEntry>(new Config(), filters);
 	}
 }
