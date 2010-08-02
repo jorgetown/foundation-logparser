@@ -1,6 +1,7 @@
 package org.logparser.time;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 import java.util.Date;
 
@@ -15,20 +16,20 @@ import org.junit.Test;
 public class InfiniteTimeIntervalTest {
 
 	@Test
-	public void testNullDateIsAlwaysBetweenAnInfiniteTimeInterval() {
+	public void testNullDateIsAlwaysBetweenInstantsOfAnInfiniteTimeInterval() {
 		InfiniteTimeInterval timeInterval = new InfiniteTimeInterval();
 
 		boolean isBetween = timeInterval.isBetweenInstants(null);
 
-		assertTrue(isBetween);
+		assertThat(isBetween, is(true));
 	}
 
 	@Test
-	public void testAnyDateIsAlwaysBetweenAnInfiniteTimeInterval() {
+	public void testAnyDateIsAlwaysBetweenInstantsOfAnInfiniteTimeInterval() {
 		InfiniteTimeInterval timeInterval = new InfiniteTimeInterval();
 
 		boolean isBetween = timeInterval.isBetweenInstants(new Date());
 
-		assertTrue(isBetween);
+		assertThat(isBetween, is(true));
 	}
 }

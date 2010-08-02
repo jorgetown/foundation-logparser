@@ -1,7 +1,8 @@
 package org.logparser.time;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Calendar;
 
@@ -35,6 +36,7 @@ public class TimeIntervalTest {
 		TimeInterval timeInterval = new TimeInterval(after, before);
 
 		timeInterval.isBetweenInstants(null);
+		assertThat(timeInterval, is(nullValue()));
 	}
 
 	@Test
@@ -46,7 +48,7 @@ public class TimeIntervalTest {
 
 		boolean isBetween = timeInterval.isBetweenInstants(cal.getTime());
 
-		assertTrue(isBetween);
+		assertThat(isBetween, is(true));
 	}
 
 	@Test
@@ -58,7 +60,7 @@ public class TimeIntervalTest {
 
 		boolean isBetween = timeInterval.isBetweenInstants(cal.getTime());
 
-		assertFalse(isBetween);
+		assertThat(isBetween, is(false));
 	}
 
 	@Test
@@ -69,7 +71,7 @@ public class TimeIntervalTest {
 
 		boolean isAfter = timeInterval.isAfter(cal.getTime());
 
-		assertTrue(isAfter);
+		assertThat(isAfter, is(true));
 	}
 
 	@Test
@@ -80,7 +82,7 @@ public class TimeIntervalTest {
 
 		boolean isAfter = timeInterval.isAfter(cal.getTime());
 
-		assertFalse(isAfter);
+		assertThat(isAfter, is(false));
 	}
 
 	@Test
@@ -91,7 +93,7 @@ public class TimeIntervalTest {
 
 		boolean isBefore = timeInterval.isBefore(cal.getTime());
 
-		assertTrue(isBefore);
+		assertThat(isBefore, is(true));
 	}
 
 	@Test
@@ -102,6 +104,6 @@ public class TimeIntervalTest {
 
 		boolean isBefore = timeInterval.isBefore(cal.getTime());
 
-		assertFalse(isBefore);
+		assertThat(isBefore, is(false));
 	}
 }

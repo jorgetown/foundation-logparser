@@ -24,13 +24,13 @@ public class InstantTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testInstantFactoryFromMalformedArgument() {
+	public void testInstantFactoryFailsIfInvalidArgumentGiven() {
 		underTest = Instant.valueOf("153:a");
 		assertThat(underTest, is(nullValue()));
 	}
 
 	@Test
-	public void testInstantFactoryFromValidArgument() {
+	public void testInstantFactorySucceedsIfValidArgumentGiven() {
 		underTest = Instant.valueOf("14:30");
 		assertThat(underTest, is(notNullValue()));
 		assertThat(underTest.getHour(), is(equalTo(14)));
