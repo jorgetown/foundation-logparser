@@ -62,17 +62,14 @@ public class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 
 	public LogEntry parse(final String text) {
 		Matcher m = timestampPattern.matcher(text);
-		Date date = null;
-		String action = null;
-		String duration = null;
 		if (m.find()) {
-			date = getDateFromString(m.group(1));
+			Date date = getDateFromString(m.group(1));
 			m = actionPattern.matcher(text);
 			if (m.find()) {
-				action = m.group(1);
+				String action = m.group(1);
 				m = durationPattern.matcher(text);
 				if (m.find()) {
-					duration = m.group(1);
+					String duration = m.group(1);
 					if (timeInterval.isBetweenInstants(date) && filterPattern.matcher(action).matches()) {						
 						return new LogEntry(text, date, action, duration);
 					}
