@@ -1,0 +1,26 @@
+LogParser
+==========
+
+Log Parser is a customizable library for parsing log files and present a multidimensional summary of the data in different formats.
+
+Customization is done through a JSON configuration file. 
+
+For a quick example, run the maven assembly goal to create a bundle with all the dependencies:
+
+<pre>
+mvn clean package assembly:single
+</pre>
+
+
+Execute the generated jar, replacing 'X.X' with the current version you're using:
+
+<pre>
+java -Xms256m -Xmx256m -jar target/log-parser-X.X-jar-with-dependencies.jar -configfile config.json -logname example
+</pre>
+
+
+This parses the 'EXAMPLE_log_2008-12-15.log' using the configuration found in 'config.json'. Both files can be found in the root directory of the project. 
+The output is a '.png' containing a bar chart view of the log file, and a '.csv' containing a summary and descriptive statistics.
+
+
+The full documentation is available at http://code.google.com/p/programming-misc/wiki/LogParser
