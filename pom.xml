@@ -74,7 +74,7 @@
 	</build>
 	<groupId>org.logparser</groupId>
 	<artifactId>log-parser</artifactId>
-	<version>1.5.1</version>
+	<version>1.5.2</version>
 	<packaging>jar</packaging>
 	<name>Log Parser</name>
 	<description>Log Parser</description>
@@ -84,17 +84,17 @@
 		<dependency>
 			<groupId>com.beust</groupId>
 			<artifactId>jcommander</artifactId>
-			<version>1.4</version>
+			<version>1.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-core-asl</artifactId>
-			<version>1.5.3</version>
+			<version>1.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-mapper-asl</artifactId>
-			<version>1.5.3</version>
+			<version>1.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
