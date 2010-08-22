@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.sameInstance;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -46,6 +47,7 @@ public class LogEntryTest {
 		// only need to test mutability w/ {@link Dates} since the other arguments are immutables
 		Date d = underTest.getDate();
 		d.setMinutes(30);
+		assertThat(underTest.getDate(), is(not(sameInstance(d))));
 		assertThat(underTest.getDate(), is(not(equalTo(d))));
 		assertThat(underTest.getDate().getMinutes(), is(15));
 	}
