@@ -1,7 +1,7 @@
 LogParser
 ==========
 
-Log Parser is a customizable library for parsing log files and present a multidimensional summary of the data in different formats.
+Log Parser is a customizable tool useful to present multidimensional summaries, in different formats, of log file data.
 
 Customization is done through a JSON configuration file. 
 
