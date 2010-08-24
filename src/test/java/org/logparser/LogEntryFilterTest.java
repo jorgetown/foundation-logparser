@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
 import org.junit.After;
 import org.junit.Before;
@@ -29,13 +30,39 @@ public class LogEntryFilterTest {
 		config.setTimestampFormat("dd/MMM/yyyy:HH:mm:ss");
 		config.setActionPattern("\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))");
 		config.setDurationPattern("HTTP.*\\s((\\d)(.*))$");
+		config.setFilterPattern(".*.html");
 		underTest = new LogEntryFilter(config);
 	}
-	
+
 	@After
 	public void tearDown() {
 		config = null;
 		underTest = null;
+	}
+
+	@Test
+	public void testFilterActionPatternGivenConfigActionPattern() {
+		assertThat(underTest.getActionPattern().pattern(), is(equalTo(config.getActionPattern())));
+	}
+
+	@Test
+	public void testFilterDurationPatternGivenConfigDurationPattern() {
+		assertThat(underTest.getDurationPattern().pattern(), is(equalTo(config.getDurationPattern())));
+	}
+
+	@Test
+	public void testFilterPatternGivenConfigFilterPattern() {
+		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(config.getFilterPattern())));
+	}
+
+	@Test
+	public void testFilterTimestampPatternGivenConfigTimestampPattern() {
+		assertThat(underTest.getTimestampPattern().pattern(), is(equalTo(config.getTimestampPattern())));
+	}
+
+	@Test
+	public void testFilterConfigGivenConfigInstance() {
+		assertThat(underTest.getConfig(), is(sameInstance(config)));
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -108,7 +135,7 @@ public class LogEntryFilterTest {
 		assertThat(entry, is(notNullValue()));
 		assertThat(entry.getText(), is(equalTo(SAMPLE_LOG_MESSAGE)));
 	}
-	
+
 	@Test
 	public void testLogEntryTokensAreIndividuallyParsable() {
 		String EXPECTED_TIMESTAMP = "15/Dec/2009:00:00:15";
