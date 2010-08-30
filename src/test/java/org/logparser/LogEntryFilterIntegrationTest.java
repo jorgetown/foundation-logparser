@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.sameInstance;
 
 import java.io.File;
 
-import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +21,6 @@ import org.logparser.io.LogFiles;
  * 
  */
 public class LogEntryFilterIntegrationTest {
-	private static final Logger LOGGER = Logger.getLogger(LogEntryFilterIntegrationTest.class.getName());
 	private Config config;
 	private LogEntryFilter underTest;
 
@@ -36,7 +34,7 @@ public class LogEntryFilterIntegrationTest {
 		config.setFilterPattern(".*save.do$");
 		config.setTimestampFormat("dd/MMM/yyyy:HH:mm:ss");
 		config.setTimestampPattern("\\[((.*?))\\]");
-		config.setGroupBy(GroupBy.HOUR);
+		config.setGroupBy(GroupBy.DAY_OF_MONTH);
 		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { "." });
 		config.setLogFiles(logfiles);
 
@@ -75,7 +73,7 @@ public class LogEntryFilterIntegrationTest {
 			totalEntries = logSnapshot.getTotalEntries();
 			filteredEntries = logSnapshot.getFilteredEntries().size();
 		}
-		LOGGER.info("\n" + logSnapshot.toString());
+		System.out.println("\n" + logSnapshot.getDayStats().toString());
 
 		assertThat(totalEntries, is(10822));
 		assertThat(filteredEntries, is(167));
