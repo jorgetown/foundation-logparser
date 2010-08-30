@@ -1,5 +1,7 @@
 package org.logparser.io;
 
+import static org.logparser.Constants.FILE_SEPARATOR;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,12 +20,11 @@ import com.google.common.io.Closeables;
  */
 public class CsvView {
 	private static final Logger LOGGER = Logger.getLogger(CsvView.class.getName());
-	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
 	public CsvView() {
 	}
 
-	public void write(final String path, final String filename, ICsvSerializable csvSerializable) {
+	public <T> void write(final String path, final String filename, ICsvSerializable<T> csvSerializable) {
 		Preconditions.checkNotNull(path);
 		Preconditions.checkNotNull(filename);
 		Preconditions.checkNotNull(csvSerializable);
