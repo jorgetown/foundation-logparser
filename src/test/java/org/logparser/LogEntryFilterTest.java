@@ -130,13 +130,6 @@ public class LogEntryFilterTest {
 	}
 
 	@Test
-	public void testOriginalLogEntryTextIsRetained() {
-		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
-		assertThat(entry, is(notNullValue()));
-		assertThat(entry.getText(), is(equalTo(SAMPLE_LOG_MESSAGE)));
-	}
-
-	@Test
 	public void testLogEntryTokensAreIndividuallyParsable() {
 		String EXPECTED_TIMESTAMP = "15/Dec/2009:00:00:15";
 		String EXPECTED_ACTION = "/path/something.html";
@@ -147,8 +140,7 @@ public class LogEntryFilterTest {
 		LogEntry entry = underTest.parse(LOG_ENTRY);
 
 		assertThat(entry, is(notNullValue()));
-		assertThat(LOG_ENTRY, is(equalTo(entry.getText())));
-		assertThat(EXPECTED_TIMESTAMP, is(equalTo(underTest.getDateFormatter().format(entry.getDate()))));
+		assertThat(EXPECTED_TIMESTAMP, is(equalTo(underTest.getDateFormatter().format(entry.getTimestamp()))));
 		assertThat(EXPECTED_ACTION, is(equalTo(entry.getAction())));
 		assertThat(EXPECTED_DURATION, is(equalTo(entry.getDuration())));
 	}

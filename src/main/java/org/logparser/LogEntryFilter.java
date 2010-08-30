@@ -71,7 +71,7 @@ public class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 				if (m.find()) {
 					String duration = m.group(1);
 					if (timeInterval.isBetweenInstants(date) && filterPattern.matcher(action).matches()) {						
-						return new LogEntry(text, date, action, duration);
+						return new LogEntry(date.getTime(), action, Double.valueOf(duration));
 					}
 				}
 			}

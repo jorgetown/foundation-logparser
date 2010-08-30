@@ -1,5 +1,7 @@
 package org.logparser;
 
+import static org.logparser.Constants.CSV_VALUE_SEPARATOR;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
@@ -8,9 +10,14 @@ import net.jcip.annotations.Immutable;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Represents a single log entry.
@@ -18,33 +25,23 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @author jorge.decastro
  */
 @Immutable
-public class LogEntry implements Serializable, ITimestampedEntry {
+@JsonPropertyOrder({ "timestamp", "action", "duration" })
+public class LogEntry implements Serializable, ITimestampedEntry, ICsvSerializable<ITimestampedEntry>, IJsonSerializable<ITimestampedEntry> {
 	private static final long serialVersionUID = -1019020702743392905L;
-	// TODO refactor to simplify by using date as a long
-	private final Date date;
-	private final String action;
-	private final String duration;
-	private final String message;
 	private final long timestamp;
+	private final String action;
+	private final double duration;
 	private volatile int hashCode;
-	private final ObjectMapper mapper;
 
-	public LogEntry(final String message, final Date date, final String action, final String duration) {
-		// defensive copy since {@link Date}s are mutable
-		this.date = new Date(date.getTime());
-		this.message = message;
+	@JsonCreator
+	public LogEntry(@JsonProperty("timestamp") final long timestamp, @JsonProperty("action") final String action, @JsonProperty("duration") final double duration) {
+		this.timestamp = timestamp;
 		this.action = action;
 		this.duration = duration;
-		this.timestamp = date.getTime();
-		this.mapper = new ObjectMapper();
 	}
 
 	public long getTimestamp() {
 		return timestamp;
-	}
-
-	public String getText() {
-		return message;
 	}
 
 	public String getAction() {
@@ -52,13 +49,7 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 	}
 
 	public double getDuration() {
-		return Double.valueOf(duration);
-	}
-
-	@JsonIgnore
-	public Date getDate() {
-		// defensive copy since {@link Date}s are mutable
-		return new Date(date.getTime());
+		return duration;
 	}
 
 	@Override
@@ -68,10 +59,9 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 		if (!(other instanceof LogEntry))
 			return false;
 		final LogEntry entry = (LogEntry) other;
-		return (date == null ? entry.date == null : date.equals(entry.date))
-				&& (duration == null ? entry.duration == null : duration.equals(entry.duration))
+		return (timestamp == entry.timestamp)
 				&& (action == null ? entry.action == null : action.equals(entry.action))
-				&& (message == null ? entry.message == null : message.equals(entry.message));
+				&& (Double.doubleToLongBits(duration) == Double.doubleToLongBits(entry.duration));
 	}
 
 	@Override
@@ -79,10 +69,10 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 		int result = hashCode;
 		if (result == 0) {
 			result = 17;
-			result = 31 * result + (date == null ? 0 : date.hashCode());
-			result = 31 * result + (duration == null ? 0 : duration.hashCode());
+			result = 31 * result + (int) (timestamp ^ (timestamp >>> 32));
 			result = 31 * result + (action == null ? 0 : action.hashCode());
-			result = 31 * result + (message == null ? 0 : message.hashCode());
+			long longDuration = Double.doubleToLongBits(duration);
+			result = 31 * result + (int) (longDuration ^ (longDuration >>> 32));
 			hashCode = result;
 		}
 		return result;
@@ -90,17 +80,24 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 
 	@Override
 	public String toString() {
-		return String.format("{%s %s %s}", date, action, duration);
+		return String.format("{%s, %s, %s}", new Date(timestamp), action, duration);
 	}
 
 	public String toCsvString() {
-		return String.format("%s, %s, %s",
-				StringEscapeUtils.escapeCsv(date.toString()),
-				StringEscapeUtils.escapeCsv(action),
-				StringEscapeUtils.escapeCsv(duration));
+		return String.format("%s, %s, %s", timestamp, StringEscapeUtils.escapeCsv(action), duration);
+	}
+
+	public LogEntry fromCsvString(final String csvString) {
+		Preconditions.checkNotNull(csvString);
+		String[] fields = csvString.split(CSV_VALUE_SEPARATOR);
+		if (fields.length == 3) {
+			return new LogEntry(Long.parseLong(fields[0].trim()), StringEscapeUtils.unescapeCsv(fields[1].trim()), Double.parseDouble(fields[2].trim()));
+		}
+		return null;
 	}
 
 	public String toJsonString() {
+		ObjectMapper mapper = new ObjectMapper();
 		try {
 			return mapper.writeValueAsString(this);
 			// TODO proper exception handling
@@ -109,5 +106,19 @@ public class LogEntry implements Serializable, ITimestampedEntry {
 		} catch (IOException ioe) {
 		}
 		return null;
+	}
+
+	public LogEntry fromJsonString(final String jsonString) {
+		Preconditions.checkNotNull(jsonString);
+		ObjectMapper mapper = new ObjectMapper();
+		LogEntry entry = null;
+		try {
+			entry = mapper.readValue(jsonString, LogEntry.class);
+			// TODO proper exception handling
+		} catch (JsonParseException jpe) {
+		} catch (JsonMappingException jme) {
+		} catch (IOException ioe) {
+		}
+		return entry;
 	}
 }

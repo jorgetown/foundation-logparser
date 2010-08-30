@@ -13,10 +13,10 @@ import org.junit.runner.RunWith;
 /**
  * Theories to test adherence to Object's equals and hashcode contracts.
  * 
- * @author jorge.decastro
  * @see <a href="http://download.oracle.com/javase/6/docs/api/java/lang/Object.html#equals(java.lang.Object)">Object#equals(java.lang.Object)</a>
  * @see <a href="http://download.oracle.com/javase/6/docs/api/java/lang/Object.html#hashCode()">Object#hashCode()</a>
  * @see <a href="https://docs.google.com/viewer?url=http://java.sun.com/developer/Books/effectivejava/Chapter3.pdf">Effective Java, chapter 3: Methods Common to All Objects</a>
+ * @author jorge.decastro
  */
 @RunWith(Theories.class)
 public abstract class ObjectTheories {
