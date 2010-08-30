@@ -99,28 +99,41 @@ public class ConfigTest {
 	}
 
 	@Test
+	public void testOptionalDecimalFormatHasDefaultValue() {
+		underTest = new Config();
+		assertThat(underTest.getDecimalFormat(), is(equalTo(Config.DEFAULT_DECIMAL_FORMAT)));
+	}
+
+	@Test
+	public void testOverrideOfOptionalDecimalFormatReturnsTheOverride() {
+		underTest = new Config();
+		underTest.setDecimalFormat("##.00");
+		assertThat(underTest.getDecimalFormat(), is(equalTo("##.00")));
+	}
+
+	@Test
 	public void testOptionalGroupByPropertyHasDefaultValue() {
 		underTest = new Config();
-		assertThat(underTest.getGroupBy(), is(equalTo(GroupBy.HOUR)));
+		assertThat(underTest.getGroupBy(), is(equalTo(GroupBy.DAY_OF_MONTH)));
 	}
 
 	@Test
 	public void testOverrideOfOptionalGroupByPropertyReturnsTheOverride() {
 		underTest = new Config();
-		underTest.setGroupBy(GroupBy.MINUTE);
-		assertThat(underTest.getGroupBy(), is(equalTo(GroupBy.MINUTE)));
+		underTest.setGroupBy(GroupBy.DAY_OF_WEEK);
+		assertThat(underTest.getGroupBy(), is(equalTo(GroupBy.DAY_OF_WEEK)));
 	}
 
 	@Test
 	public void testGroupByToCalendarConversionHasDefaultValue() {
 		underTest = new Config();
-		assertThat(underTest.groupByToCalendar(), is(equalTo(Calendar.HOUR_OF_DAY)));
+		assertThat(underTest.groupByToCalendar(), is(equalTo(Calendar.DAY_OF_MONTH)));
 	}
 
 	@Test
 	public void testOverrideOfGroupByToCalendarConversionReturnsTheOverride() {
 		underTest = new Config();
-		underTest.setGroupBy(GroupBy.MINUTE);
-		assertThat(underTest.groupByToCalendar(), is(equalTo(Calendar.MINUTE)));
+		underTest.setGroupBy(GroupBy.DAY_OF_WEEK);
+		assertThat(underTest.groupByToCalendar(), is(equalTo(Calendar.DAY_OF_WEEK)));
 	}
 }

@@ -7,7 +7,7 @@
 		"actionPattern" : "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
 		"durationPattern" : "(\\d+)$",
 		"filterPattern" : ".*\\.do$",
-		"groupBy" : "HOUR",		
+		"groupBy" : "DAY_OF_MONTH",		
 		"timeInterval" : {
 			"after" : "06:30",
 			"before" : "23:30"
@@ -30,7 +30,7 @@
 		"actionPattern" : "\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
 		"durationPattern" : "\\s((\\d)*)ms$",
 		"filterPattern" : ".*.do",
-		"groupBy" : "HOUR",		
+		"groupBy" : "DAY_OF_MONTH",		
 		"sampler" : {  		
 			"sampleBy" : "FREQUENCY",   		
 			"value" : "10"

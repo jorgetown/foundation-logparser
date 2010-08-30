@@ -17,9 +17,10 @@ import org.logparser.time.TimeInterval;
 public class Config {
 	public static final String DEFAULT_FILTER_PATTERN = ".*";
 	public static final String DEFAULT_FILENAME_PATTERN = ".*.log$";
+	public static final String DEFAULT_DECIMAL_FORMAT = "#####.#####";
 
 	public enum GroupBy {
-		DAY_OF_MONTH, DAY_OF_WEEK, HOUR, MINUTE
+		DAY_OF_MONTH, DAY_OF_WEEK
 	};
 
 	private String friendlyName;
@@ -29,6 +30,7 @@ public class Config {
 	private String actionPattern;
 	private String durationPattern;
 	private String filterPattern;
+	private String decimalFormat;
 	private LogFiles logFiles;
 	private TimeInterval timeInterval;
 	private GroupBy groupBy;
@@ -36,7 +38,8 @@ public class Config {
 
 	public Config() {
 		filterPattern = DEFAULT_FILTER_PATTERN;
-		groupBy = GroupBy.HOUR;
+		decimalFormat = DEFAULT_DECIMAL_FORMAT;
+		groupBy = GroupBy.DAY_OF_MONTH;
 	}
 
 	public String getFriendlyName() {
@@ -127,16 +130,20 @@ public class Config {
 		this.logFiles = logFiles;
 	}
 
+	public String getDecimalFormat() {
+		return decimalFormat;
+	}
+
+	public void setDecimalFormat(final String decimalFormat) {
+		this.decimalFormat = decimalFormat;
+	}
+
 	public int groupByToCalendar() {
 		switch (groupBy) {
-		case DAY_OF_MONTH:
-			return Calendar.DAY_OF_MONTH;
 		case DAY_OF_WEEK:
 			return Calendar.DAY_OF_WEEK;
-		case MINUTE:
-			return Calendar.MINUTE;
 		default:
-			return Calendar.HOUR_OF_DAY;
+			return Calendar.DAY_OF_MONTH;
 		}
 	}
 
