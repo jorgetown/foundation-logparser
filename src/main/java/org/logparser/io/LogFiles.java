@@ -62,11 +62,12 @@ public class LogFiles {
 			File[] contents = f.listFiles();
 			for (File file : contents) {
 				if (filenamePattern.matcher(file.getName()).matches()) {
+					LOGGER.info(String.format("Log file to parse '%s'", file.getAbsolutePath()));
 					listOfFiles.add(file);
 				}
 			}
 		}
-		LOGGER.info(String.format("Extracting log files matching pattern '%s' from base dir(s) '%s'", filenamePattern.pattern(), Arrays.toString(baseDirs)));
+		LOGGER.info(String.format("Extracted log files matching pattern '%s' from base dir(s) '%s'", filenamePattern.pattern(), Arrays.toString(baseDirs)));
 		return listOfFiles.toArray(new File[0]);
 	}
 }
