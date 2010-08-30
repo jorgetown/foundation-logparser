@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -31,14 +32,16 @@ import com.beust.jcommander.JCommander;
  * 
  * Example usage:
  * 
- * Run the maven assembly plugin to create a bundle with all the dependencies
+ * Run the maven assembly plugin to create a bundle with all the dependencies:
+ * 
  * <pre>
  * 		mvn clean package assembly:single
  * </pre>
  * 
- * Execute the generated jar (running the default 'example' below)
+ * Execute the generated jar (running the default 'example' below):
+ * 
  * <pre>
- * 		java -Xms256m -Xmx256m -jar target/log-parser-1.5.2-jar-with-dependencies.jar -configfile config.json -logname example
+ * 		java -Xms256m -Xmx256m -jar target/log-parser-1.7.X-jar-with-dependencies.jar -configfile config.json -logname example
  * </pre>
  * 
  * @author jorge.decastro
@@ -94,16 +97,17 @@ public class CommandLineApplicationRunner {
 
 			@SuppressWarnings("unchecked")
 			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(config, sampler != null ? sampler : filter);
-			CsvView csvView = new CsvView();
-			DecimalFormat df = new DecimalFormat("####.##");
 			
-			ChartView<LogEntry> chartView;
+			DecimalFormat df = new DecimalFormat("####.##");
+
 			String filepath;
-			String path;
-			String filename;
+			String path = null;
+			String filename = null;
 			int totalEntries = 0;
+			int previousTotal = 0;
 			int filteredEntries = 0;
-			LogSnapshot<LogEntry> logSnapshot;
+			int previousFiltered = 0;
+			LogSnapshot<LogEntry> logSnapshot = null;;
 			for (File f : files) {
 				filepath = f.getAbsolutePath();
 				filename = f.getName();
@@ -112,16 +116,22 @@ public class CommandLineApplicationRunner {
 				long start = System.nanoTime();
 				logSnapshot = lineByLineParser.filter(filepath);
 				long end = (System.nanoTime() - start) / 1000000;
-				totalEntries = logSnapshot.getTotalEntries();
-				filteredEntries = logSnapshot.getFilteredEntries().size();
+				totalEntries = logSnapshot.getTotalEntries() - previousTotal;
+				filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
 				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
-
+				previousTotal = totalEntries;
+				previousFiltered = filteredEntries;
+			}
+			
+			if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(filename)) {
+				CsvView csvView = new CsvView();
+				csvView.write(path, filename, logSnapshot);				
+				ChartView<LogEntry> chartView;
 				chartView = new ChartView<LogEntry>(logSnapshot);
 				chartView.write(path, filename);
-				csvView.write(path, filename, logSnapshot);
-
-				LOGGER.info("\n" + logSnapshot.toString());
 			}
+
+			LOGGER.info("\n" + logSnapshot.getDayStats().toString());
 		}
 	}
 }
