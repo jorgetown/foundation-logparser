@@ -36,7 +36,7 @@ public class SamplingByTimeTest {
 	private static final String SAMPLE_ENTRY_F = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.f HTTP/1.1\" 200 1779 2073";
 	private static final String SAMPLE_ACTION_A = "/action.a";
 	private static final String SAMPLE_ACTION_B = "/action.b";
-	private static final String SAMPLE_DURATION = "2073";
+	private static final double SAMPLE_DURATION = 2073D;
 
 	private SamplingByTime<LogEntry> underTest;
 	@Mock
@@ -62,7 +62,7 @@ public class SamplingByTimeTest {
 	@Test
 	public void testFirstFilteredEntryIsSampled() {
 		underTest = new SamplingByTime<LogEntry>(mockFilter, 1, TimeUnit.SECONDS);
-		LogEntry filtered = new LogEntry(SAMPLE_ENTRY_A, new Date(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry filtered = new LogEntry(new Date().getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
 		
 		when(mockFilter.parse(anyString())).thenReturn(filtered);
 		
@@ -76,8 +76,8 @@ public class SamplingByTimeTest {
 	@Test
 	public void testFirstFilteredEntriesAreSampled() {
 		underTest = new SamplingByTime<LogEntry>(mockFilter, 1, TimeUnit.SECONDS);
-		LogEntry entryA = new LogEntry(SAMPLE_ENTRY_A, new Date(), SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryB = new LogEntry(SAMPLE_ENTRY_B, new Date(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		LogEntry entryA = new LogEntry(new Date().getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryB = new LogEntry(new Date().getTime(), SAMPLE_ACTION_B, SAMPLE_DURATION);
 		
 		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
 		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
@@ -99,8 +99,8 @@ public class SamplingByTimeTest {
 		dateA.setTime(1280589260565L);
 		Date dateB = new Date();
 		dateB.setTime(1280589262565L); // 1280589260565 + 2000 = 2000ms later
-		LogEntry entryA = new LogEntry(SAMPLE_ENTRY_A, dateA, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryB = new LogEntry(SAMPLE_ENTRY_B, dateB, SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryA = new LogEntry(dateA.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryB = new LogEntry(dateB.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
 		
 		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
 		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
@@ -124,9 +124,9 @@ public class SamplingByTimeTest {
 		dateB.setTime(1280589262565L); // 1280589260565 + 2000 = 2000ms later
 		Date dateC = new Date();
 		dateC.setTime(1280589263565L); // 1280589262565 + 1000 = 1000ms later
-		LogEntry entryA = new LogEntry(SAMPLE_ENTRY_A, dateA, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryB = new LogEntry(SAMPLE_ENTRY_B, dateB, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryC = new LogEntry(SAMPLE_ENTRY_C, dateC, SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryA = new LogEntry(dateA.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryB = new LogEntry(dateB.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryC = new LogEntry(dateC.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
 		
 		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
 		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
@@ -154,10 +154,10 @@ public class SamplingByTimeTest {
 		dateC.setTime(1280589268565L); // 1280589264565 + 4000 = 4000ms later
 		Date dateD = new Date();
 		dateD.setTime(1280589272565L); // 1280589268565 + 4000 = 4000ms later
-		LogEntry entryA = new LogEntry(SAMPLE_ENTRY_A, dateA, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryB = new LogEntry(SAMPLE_ENTRY_B, dateB, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryC = new LogEntry(SAMPLE_ENTRY_C, dateC, SAMPLE_ACTION_B, SAMPLE_DURATION);
-		LogEntry entryD = new LogEntry(SAMPLE_ENTRY_D, dateD, SAMPLE_ACTION_B, SAMPLE_DURATION);
+		LogEntry entryA = new LogEntry(dateA.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryB = new LogEntry(dateB.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryC = new LogEntry(dateC.getTime(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		LogEntry entryD = new LogEntry(dateD.getTime(), SAMPLE_ACTION_B, SAMPLE_DURATION);
 		
 		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
 		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
@@ -191,10 +191,10 @@ public class SamplingByTimeTest {
 		dateC.setTime(1280589260565L);
 		Date dateD = new Date();
 		dateD.setTime(1280589261565L); // 1280589261565 + 1000 = 1000ms later
-		LogEntry entryA = new LogEntry(SAMPLE_ENTRY_A, dateA, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryB = new LogEntry(SAMPLE_ENTRY_B, dateB, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryC = new LogEntry(SAMPLE_ENTRY_C, dateC, SAMPLE_ACTION_B, SAMPLE_DURATION);
-		LogEntry entryD = new LogEntry(SAMPLE_ENTRY_D, dateD, SAMPLE_ACTION_B, SAMPLE_DURATION);
+		LogEntry entryA = new LogEntry(dateA.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryB = new LogEntry(dateB.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryC = new LogEntry(dateC.getTime(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		LogEntry entryD = new LogEntry(dateD.getTime(), SAMPLE_ACTION_B, SAMPLE_DURATION);
 		
 		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
 		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
@@ -230,12 +230,12 @@ public class SamplingByTimeTest {
 		dateE.setTime(1280589263565L); // 1280589260565 + 3000 = 3000ms later
 		Date dateF = new Date();
 		dateF.setTime(1280589264565L); // 1280589263565 + 1000 = 1000ms later
-		LogEntry entryA = new LogEntry(SAMPLE_ENTRY_A, dateA, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryB = new LogEntry(SAMPLE_ENTRY_B, dateB, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryC = new LogEntry(SAMPLE_ENTRY_C, dateC, SAMPLE_ACTION_A, SAMPLE_DURATION);
-		LogEntry entryD = new LogEntry(SAMPLE_ENTRY_D, dateD, SAMPLE_ACTION_B, SAMPLE_DURATION);
-		LogEntry entryE = new LogEntry(SAMPLE_ENTRY_E, dateE, SAMPLE_ACTION_B, SAMPLE_DURATION);
-		LogEntry entryF = new LogEntry(SAMPLE_ENTRY_F, dateF, SAMPLE_ACTION_B, SAMPLE_DURATION);
+		LogEntry entryA = new LogEntry(dateA.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryB = new LogEntry(dateB.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryC = new LogEntry(dateC.getTime(), SAMPLE_ACTION_A, SAMPLE_DURATION);
+		LogEntry entryD = new LogEntry(dateD.getTime(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		LogEntry entryE = new LogEntry(dateE.getTime(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		LogEntry entryF = new LogEntry(dateF.getTime(), SAMPLE_ACTION_B, SAMPLE_DURATION);
 
 		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
 		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);

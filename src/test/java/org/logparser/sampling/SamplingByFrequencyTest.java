@@ -37,7 +37,7 @@ public class SamplingByFrequencyTest {
 	private static final String SAMPLE_ENTRY_6 = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.6 HTTP/1.1\" 200 1779 2073";
 	private static final String SAMPLE_ACTION_1 = "/action.1";
 	private static final String SAMPLE_ACTION_2 = "/action.2";
-	private static final String SAMPLE_DURATION = "2073";
+	private static final double SAMPLE_DURATION = 2073D;
 
 	private SamplingByFrequency<LogEntry> underTest;
 
@@ -65,7 +65,7 @@ public class SamplingByFrequencyTest {
 	public void testFilteredEntryIsSampledIfWithinSamplingInterval() {
 		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 1);
 
-		LogEntry entry = new LogEntry(SAMPLE_ENTRY_1, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry = new LogEntry(new Date().getTime(), SAMPLE_ACTION_1, SAMPLE_DURATION);
 
 		when(mockFilter.parse(anyString())).thenReturn(entry);
 
@@ -79,9 +79,9 @@ public class SamplingByFrequencyTest {
 	@Test
 	public void testFilteredEntryIsNotSampledIfNotWithinSamplingInterval() {
 		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 2); // sample every 2nd entry
-		LogEntry entry1 = new LogEntry(SAMPLE_ENTRY_1, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
-		LogEntry entry2 = new LogEntry(SAMPLE_ENTRY_2, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
-		LogEntry entry3 = new LogEntry(SAMPLE_ENTRY_3, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry1 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry2 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry3 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_1, SAMPLE_DURATION);
 
 		when(mockFilter.parse(anyString())).thenReturn(entry1);
 		when(mockFilter.parse(anyString())).thenReturn(entry2);
@@ -100,7 +100,7 @@ public class SamplingByFrequencyTest {
 	@Test
 	public void testFilteredEntriesAreSampledIfWithinSamplingInterval() {
 		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 3); // sample every 3rd entry
-		LogEntry entry = new LogEntry(SAMPLE_ENTRY_1, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry = new LogEntry(new Date().getTime(), SAMPLE_ACTION_1, SAMPLE_DURATION);
 
 		when(mockFilter.parse(anyString())).thenReturn(entry);
 
@@ -120,12 +120,12 @@ public class SamplingByFrequencyTest {
 	@Test
 	public void testMultipleFilteredEntriesAreSampledIfWithinSamplingInterval() {
 		underTest = new SamplingByFrequency<LogEntry>(mockFilter, 2); // sample every 2nd entry
-		LogEntry entry1 = new LogEntry(SAMPLE_ENTRY_1, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
-		LogEntry entry2 = new LogEntry(SAMPLE_ENTRY_2, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
-		LogEntry entry3 = new LogEntry(SAMPLE_ENTRY_3, new Date(), SAMPLE_ACTION_1, SAMPLE_DURATION);
-		LogEntry entry4 = new LogEntry(SAMPLE_ENTRY_4, new Date(), SAMPLE_ACTION_2, SAMPLE_DURATION);
-		LogEntry entry5 = new LogEntry(SAMPLE_ENTRY_5, new Date(), SAMPLE_ACTION_2, SAMPLE_DURATION);
-		LogEntry entry6 = new LogEntry(SAMPLE_ENTRY_6, new Date(), SAMPLE_ACTION_2, SAMPLE_DURATION);
+		LogEntry entry1 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry2 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry3 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_1, SAMPLE_DURATION);
+		LogEntry entry4 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_2, SAMPLE_DURATION);
+		LogEntry entry5 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_2, SAMPLE_DURATION);
+		LogEntry entry6 = new LogEntry(new Date().getTime(), SAMPLE_ACTION_2, SAMPLE_DURATION);
 
 		when(mockFilter.parse(SAMPLE_ENTRY_1)).thenReturn(entry1);
 		when(mockFilter.parse(SAMPLE_ENTRY_2)).thenReturn(entry2);

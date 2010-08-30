@@ -11,8 +11,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +37,7 @@ public class GenericSamplingByTimeTest {
 	private static final String SAMPLE_ENTRY_F = "10.118.101.132 - - [15/Dec/2008:17:15:00 +0000] \"POST /action.f HTTP/1.1\" 200 1779 2073";
 	private static final String SAMPLE_ACTION_A = "/action.a";
 	private static final String SAMPLE_ACTION_B = "/action.b";
-	private static final String SAMPLE_DURATION = "2073";
+	private static final double SAMPLE_DURATION = 2073D;
 	private LogEntry entryA;
 	private LogEntry entryB;
 	private LogEntry entryC;
@@ -55,12 +53,12 @@ public class GenericSamplingByTimeTest {
 
 	@Before
 	public void setUp() {
-		entryA = new LogEntry(SAMPLE_ENTRY_A, new Date(), SAMPLE_ACTION_A, SAMPLE_DURATION);
-		entryB = new LogEntry(SAMPLE_ENTRY_B, new Date(), SAMPLE_ACTION_A, SAMPLE_DURATION);
-		entryC = new LogEntry(SAMPLE_ENTRY_C, new Date(), SAMPLE_ACTION_A, SAMPLE_DURATION);
-		entryD = new LogEntry(SAMPLE_ENTRY_D, new Date(), SAMPLE_ACTION_B, SAMPLE_DURATION);
-		entryE = new LogEntry(SAMPLE_ENTRY_E, new Date(), SAMPLE_ACTION_B, SAMPLE_DURATION);
-		entryF = new LogEntry(SAMPLE_ENTRY_F, new Date(), SAMPLE_ACTION_B, SAMPLE_DURATION);
+		entryA = new LogEntry(1L, SAMPLE_ACTION_A, SAMPLE_DURATION);
+		entryB = new LogEntry(2L, SAMPLE_ACTION_A, SAMPLE_DURATION);
+		entryC = new LogEntry(3L, SAMPLE_ACTION_A, SAMPLE_DURATION);
+		entryD = new LogEntry(4L, SAMPLE_ACTION_B, SAMPLE_DURATION);
+		entryE = new LogEntry(5L, SAMPLE_ACTION_B, SAMPLE_DURATION);
+		entryF = new LogEntry(6L, SAMPLE_ACTION_B, SAMPLE_DURATION);
 		underTest = new GenericSamplingByTime<LogEntry>(mockFilter, mockTimeComparator);
 	}
 	
@@ -215,27 +213,6 @@ public class GenericSamplingByTimeTest {
 		assertThat(sampleD, is(notNullValue()));
 		assertThat(sampleD, is(equalTo(entryD)));
 		assertThat(sampleE, is(nullValue()));
-	}
-
-	@Test
-	public void testEntriesWithinTimeIntervalAreSampled() {
-		when(mockFilter.parse(SAMPLE_ENTRY_A)).thenReturn(entryA);
-		when(mockFilter.parse(SAMPLE_ENTRY_B)).thenReturn(entryB);
-		when(mockFilter.parse(SAMPLE_ENTRY_C)).thenReturn(entryC);
-		when(mockTimeComparator.isIntervalApart(entryA, entryB)).thenReturn(false);
-		when(mockTimeComparator.isIntervalApart(entryA, entryC)).thenReturn(true);
-
-		LogEntry sampledA = underTest.parse(SAMPLE_ENTRY_A);
-		LogEntry sampledB = underTest.parse(SAMPLE_ENTRY_B);
-		LogEntry sampledC = underTest.parse(SAMPLE_ENTRY_C);
-
-		verify(mockFilter, times(3)).parse(anyString());
-		verify(mockTimeComparator, times(2)).isIntervalApart(any(LogEntry.class), any(LogEntry.class));
-		assertThat(sampledA, is(notNullValue()));
-		assertThat(sampledA, is(equalTo(entryA)));
-		assertThat(sampledB, is(nullValue()));
-		assertThat(sampledC, is(notNullValue()));
-		assertThat(sampledC, is(equalTo(entryC)));
 	}
 
 	@Test
