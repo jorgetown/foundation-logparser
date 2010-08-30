@@ -1,22 +1,24 @@
 package org.logparser;
 
+import static org.logparser.Constants.LINE_SEPARATOR;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import net.jcip.annotations.Immutable;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.logparser.stats.DayStats;
+import org.logparser.stats.HourStats;
 
 import com.google.common.base.Preconditions;
 
@@ -29,15 +31,13 @@ import com.google.common.base.Preconditions;
  * @param <E> the type of log entries held.
  */
 @Immutable
-@JsonPropertyOrder( { "totalEntries", "summary", "timeBreakdown", "stats" })
-public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializable, ICsvSerializable {
+@JsonPropertyOrder({ "totalEntries", "dayStats", "hourStats" })
+public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializable<LogSnapshot<E>>, ICsvSerializable<LogSnapshot<E>> {
 	private final DecimalFormat decimalFormat;
 	private final List<E> filteredEntries;
-	private final Map<String, Integer> summary;
-	private final Map<Integer, Integer> timeBreakdown;
-	private final Map<String, IStatsView<E>> groupedByAction;
+	private final DayStats<E> dayStats;
+	private final HourStats<E> hourStats;
 	private final int groupBy;
-	private final Calendar calendar;
 	private final ObjectMapper jsonMapper;
 	private final Config config;
 	private int totalEntries;
@@ -45,12 +45,10 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 	public LogSnapshot(final Config config) {
 		Preconditions.checkNotNull(config);
 		this.filteredEntries = new ArrayList<E>();
-		this.summary = new TreeMap<String, Integer>();
-		this.timeBreakdown = new TreeMap<Integer, Integer>();
-		this.groupedByAction = new TreeMap<String, IStatsView<E>>();
+		this.dayStats = new DayStats<E>();
+		this.hourStats = new HourStats<E>();
 		this.config = config;
 		this.groupBy = config.groupByToCalendar();
-		this.calendar = Calendar.getInstance();
 		this.jsonMapper = new ObjectMapper();
 		this.decimalFormat = new DecimalFormat("####.##%");
 		this.totalEntries = 0;
@@ -60,46 +58,17 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 		totalEntries++;
 		if (entry != null) {
 			filteredEntries.add(entry);
-			updateBivariateStats(entry);
-			updateUnivariateSummary(entry);
-			updateUnivariateTimeBreakdown(entry);
+			dayStats.add(entry);
+			hourStats.add(entry);
 		}
 	}
 
-	private void updateBivariateStats(final E entry) {
-		String key = entry.getAction();
-		// new request? create a new stats wrapper for it
-		if (!groupedByAction.containsKey(key)) {
-			IStatsView<E> stats = new StatsSnapshot<E>(groupBy);
-			stats.add(entry);
-			groupedByAction.put(key, stats);
-		} else {
-			IStatsView<E> existingEntriesList = groupedByAction.get(key);
-			existingEntriesList.add(entry);
-		}
+	public DayStats<E> getDayStats() {
+		return dayStats;
 	}
 
-	private void updateUnivariateSummary(final E entry) {
-		String key = entry.getAction();
-		if (summary.containsKey(key)) {
-			Integer value = summary.get(key);
-			value++;
-			summary.put(key, value);
-		} else {
-			summary.put(key, 1);
-		}
-	}
-
-	private void updateUnivariateTimeBreakdown(final E entry) {
-		calendar.setTimeInMillis(entry.getTimestamp());
-		int key = calendar.get(groupBy);
-		if (timeBreakdown.containsKey(key)) {
-			int value = timeBreakdown.get(key);
-			value++;
-			timeBreakdown.put(key, value);
-		} else {
-			timeBreakdown.put(key, 1);
-		}
+	public HourStats<E> getHourStats() {
+		return hourStats;
 	}
 
 	public List<E> getFilteredEntries() {
@@ -110,65 +79,13 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 		return totalEntries;
 	}
 
-	public Map<String, Integer> getSummary() {
-		return Collections.unmodifiableMap(summary);
-	}
-
-	public Map<Integer, Integer> getTimeBreakdown() {
-		return Collections.unmodifiableMap(timeBreakdown);
-	}
-
-	public Map<String, IStatsView<E>> getStats() {
-		return Collections.unmodifiableMap(groupedByAction);
-	}
-	
 	public int getGroupBy() {
 		return groupBy;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("Action,\t # Total Entries,\t # Filtered Entries,\t Mean,\t Deviation,\t Maxima,\t Minima,\t");
-		sb.append(NEWLINE);
-		int filteredSize = getFilteredEntries().size();
-
-		IStatsView<E> stats = null;
-		for (Entry<String, IStatsView<E>> entries : groupedByAction.entrySet()) {
-			stats = entries.getValue();
-			sb.append(String.format("%s,\t %s,\t %s,\t %s,\t %s,\t %s,\t %s,\t", 
-					entries.getKey(), 
-					totalEntries, 
-					stats.getEntries().size(), 
-					stats.getMean(), 
-					stats.getDeviation(), 
-					stats.getMaxima().getText(), 
-					stats.getMinima().getText()));
-			sb.append(NEWLINE);
-
-			if (!entries.getValue().getTimeBreakdown().isEmpty()) {
-				sb.append(String.format("\t %s Breakdown,\t # Entries,\t %% Of Filtered,\t %% Of Total\t", config.getGroupBy()));
-				sb.append(NEWLINE);
-				sb.append(summarizeAsString(entries.getValue().getTimeBreakdown(), filteredSize, totalEntries, "\t %s,\t %s,\t %s,\t %s\t"));
-			}
-			sb.append(NEWLINE);
-		}
-
-		if (!getSummary().isEmpty()) {
-			sb.append(NEWLINE);
-			sb.append("Action,\t # Entries,\t % Of Filtered,\t % Of Total\t");
-			sb.append(NEWLINE);
-			sb.append(summarizeAsString(summary, filteredSize, totalEntries, "%s,\t %s,\t %s,\t %s\t"));
-		}
-
-		if (!getTimeBreakdown().isEmpty()) {
-			sb.append(NEWLINE);
-			sb.append(String.format("%s Breakdown,\t # Entries,\t %% Of Filtered,\t %% Of Total\t", config.getGroupBy()));
-			sb.append(NEWLINE);
-			sb.append(summarizeAsString(timeBreakdown, filteredSize, totalEntries, "%s,\t %s,\t %s,\t %s\t"));
-		}
-
-		sb.append(NEWLINE);
-		return sb.toString();
+		return dayStats.toString();
 	}
 
 	public String toJsonString() {
@@ -183,46 +100,14 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 	}
 
 	public String toCsvString() {
-		StringBuilder sb = new StringBuilder("Action, # Total Entries, # Filtered Entries, Mean, Deviation, Maxima, Minima");
-		sb.append(NEWLINE);
-		int filteredSize = getFilteredEntries().size();
-		IStatsView<E> stats = null;
-		for (Entry<String, IStatsView<E>> entries : groupedByAction.entrySet()) {
-			stats = entries.getValue();
-			sb.append(String.format("%s, %s, %s, %s, %s, %s, %s", 
-					StringEscapeUtils.escapeCsv(entries.getKey()), 
-					totalEntries, 
-					stats.getEntries().size(), 
-					StringEscapeUtils.escapeCsv(Double.toString(stats.getMean())), 
-					StringEscapeUtils.escapeCsv(Double.toString(stats.getDeviation())), 
-					StringEscapeUtils.escapeCsv(stats.getMaxima().getText()), 
-					StringEscapeUtils.escapeCsv(stats.getMinima().getText())));
-			sb.append(NEWLINE);
-
-			if (!entries.getValue().getTimeBreakdown().isEmpty()) {
-				sb.append(NEWLINE);
-				sb.append(String.format(", %s Breakdown, # Entries, %% Of Filtered, %% Of Total", config.getGroupBy()));
-				sb.append(NEWLINE);
-				sb.append(summarizeAsString(entries.getValue().getTimeBreakdown(), filteredSize, totalEntries, ", %s, %s, \"%s\", \"%s\""));
-			}
-			sb.append(NEWLINE);
-		}
-
-		if (!getSummary().isEmpty()) {
-			sb.append(NEWLINE);
-			sb.append("Action, # Entries, % Of Filtered, % Of Total");
-			sb.append(NEWLINE);
-			sb.append(summarizeAsString(summary, filteredSize, totalEntries, "\"%s\", %s, \"%s\", \"%s\""));
-		}
-
-		if (!getTimeBreakdown().isEmpty()) {
-			sb.append(NEWLINE);
-			sb.append(String.format("%s Breakdown, # Entries, %% Of Filtered, %% Of Total", config.getGroupBy()));
-			sb.append(NEWLINE);
-			sb.append(summarizeAsString(timeBreakdown, filteredSize, totalEntries, "%s, %s, \"%s\", \"%s\""));
-		}
-
-		sb.append(NEWLINE);
+		StringBuilder sb = new StringBuilder("DAILY BREAKDOWN");
+		sb.append(LINE_SEPARATOR);
+		sb.append(dayStats.toCsvString());
+		sb.append(LINE_SEPARATOR);
+		sb.append(LINE_SEPARATOR);
+		sb.append("HOURLY BREAKDOWN");
+		sb.append(LINE_SEPARATOR);
+		sb.append(hourStats.toCsvString());
 		return sb.toString();
 	}
 
@@ -240,9 +125,21 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 		StringBuilder sb = new StringBuilder();
 		for (Entry<K, Integer> entries : summary.entrySet()) {
 			value = entries.getValue();
-			sb.append(String.format(formatString, entries.getKey(), entries.getValue(), asPercentOf(value, filteredEntries), asPercentOf(value, totalEntries)));
-			sb.append(NEWLINE);
+			sb.append(String.format(formatString, 
+					entries.getKey(),
+					entries.getValue(), 
+					asPercentOf(value, filteredEntries),
+					asPercentOf(value, totalEntries)));
+			sb.append(LINE_SEPARATOR);
 		}
 		return sb.toString();
+	}
+
+	public LogSnapshot<E> fromCsvString(String csvString) {
+		throw new NotImplementedException("LogSnapshot does not implement CSV deserialization.");
+	}
+
+	public LogSnapshot<E> fromJsonString(String jsonString) {
+		throw new NotImplementedException("LogSnapshot does not implement JSON deserialization.");
 	}
 }
