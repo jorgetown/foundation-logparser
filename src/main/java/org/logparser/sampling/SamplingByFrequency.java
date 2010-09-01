@@ -11,12 +11,15 @@ import org.logparser.ITimestampedEntry;
 import com.google.common.base.Preconditions;
 
 /**
- * An {@link ILogEntryFilter} implementation that acts as a sampler.
+ * An {@link ILogEntryFilter} decorator that adds frequency-sampling behavior to
+ * the {@link ILogEntryFilter} it decorates.
  * 
- * In this particular case, it extracts log entries at the rate given by the
- * sampling {@code interval}. 
+ * In this particular case, it extracts log entries at the rate given by the sampling {@code interval}. 
  * If every 3rd log {@code E}ntry is desired, for example, the sampling {@code interval} is 3.
  * 
+ * Decorator instances can be chained.
+ * 
+ * @see <a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator pattern</a>
  * @author jorge.decastro
  * 
  */

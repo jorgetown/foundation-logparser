@@ -12,11 +12,15 @@ import org.logparser.ITimestampedEntry;
 import com.google.common.base.Preconditions;
 
 /**
- * An {@link ILogEntryFilter} implementation that acts as a sampler.
+ * An {@link ILogEntryFilter} decorator that adds time-sampling behavior to the
+ * {@link ILogEntryFilter} it decorates.
  * 
  * In this particular case, it extracts log entries each time the time interval
  * between any 2 entries is longer than the value given by {@code timeInMillis}.
  * 
+ * Decorator instances can be chained.
+ * 
+ * @see <a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator pattern</a>
  * @author jorge.decastro
  * 
  */
