@@ -2,10 +2,8 @@ package org.logparser.stats;
 
 import static org.logparser.Constants.LINE_SEPARATOR;
 
-import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -31,7 +29,7 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 @JsonPropertyOrder({ "timeStats" })
-public class TimeStats<E extends ITimestampedEntry> implements Serializable {
+public class TimeStats<E extends ITimestampedEntry> extends AbstractStats<E> {
 	public static final int DEFAULT_TIME_CRITERIA = Calendar.DAY_OF_MONTH;
 	private static final long serialVersionUID = 3662219442973110796L;
 	private final Map<Integer, StatisticalSummary> timeStats;
@@ -48,25 +46,24 @@ public class TimeStats<E extends ITimestampedEntry> implements Serializable {
 		this.timeCriteria = timeCriteria;
 	}
 
+	@Override
 	public void add(final E newEntry) {
 		Preconditions.checkNotNull(newEntry);
 		calendar.setTimeInMillis(newEntry.getTimestamp());
 		int time = calendar.get(timeCriteria);
-		SummaryStatistics stats = null;
-		if (timeStats.containsKey(time)) {
-			stats = (SummaryStatistics) timeStats.get(time);
-		} else {
-			stats = new SummaryStatistics();
-		}
-		stats.addValue(newEntry.getDuration());
-		timeStats.put(time, stats);
+		SummaryStatistics summaryStatistics = getNewOrExistingSummaryStatistics(time);
+		summaryStatistics.addValue(newEntry.getDuration());
+		timeStats.put(time, summaryStatistics);
 	}
 
-	public void addAll(final List<E> logEntries) {
-		Preconditions.checkNotNull(logEntries);
-		for (E entry : logEntries) {
-			add(entry);
+	private SummaryStatistics getNewOrExistingSummaryStatistics(final int time) {
+		SummaryStatistics summaryStatistics = null;
+		if (timeStats.containsKey(time)) {
+			summaryStatistics = (SummaryStatistics) timeStats.get(time);
+		} else {
+			summaryStatistics = new SummaryStatistics();
 		}
+		return summaryStatistics;
 	}
 
 	@JsonIgnore

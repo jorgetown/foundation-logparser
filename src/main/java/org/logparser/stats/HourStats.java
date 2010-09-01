@@ -3,10 +3,8 @@ package org.logparser.stats;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -39,7 +37,7 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 @JsonPropertyOrder({ "hourStats" })
-public class HourStats<E extends ITimestampedEntry> implements Serializable, ICsvSerializable<HourStats<E>>, IJsonSerializable<HourStats<E>> {
+public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> implements ICsvSerializable<HourStats<E>>, IJsonSerializable<HourStats<E>> {
 	private static final long serialVersionUID = -6956010383538378498L;
 	private final Map<String, Map<Integer, TimeStats<E>>> hourStats;
 	private final Calendar calendar;
@@ -51,46 +49,46 @@ public class HourStats<E extends ITimestampedEntry> implements Serializable, ICs
 		jsonMapper = new ObjectMapper();
 	}
 
+	@Override
 	public void add(final E newEntry) {
 		Preconditions.checkNotNull(newEntry);
 
 		String key = newEntry.getAction();
-		Map<Integer, TimeStats<E>> timeStatsByKey = null;
-		if (hourStats.containsKey(key)) {
-			timeStatsByKey = hourStats.get(key);
-		} else {
-			timeStatsByKey = new TreeMap<Integer, TimeStats<E>>();
-		}
+		Map<Integer, TimeStats<E>> dayStatsByKey = getNewOrExistingDayStats(key);
 
 		calendar.setTimeInMillis(newEntry.getTimestamp());
 		int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 
+		TimeStats<E> hourlyStats = getNewOrExistingHourStats(dayStatsByKey, dayOfMonth);
+
+		hourlyStats.add(newEntry);
+		dayStatsByKey.put(dayOfMonth, hourlyStats);
+		hourStats.put(key, dayStatsByKey);
+	}
+
+	private Map<Integer, TimeStats<E>> getNewOrExistingDayStats(final String key) {
+		Map<Integer, TimeStats<E>> dayStats = null;
+		if (hourStats.containsKey(key)) {
+			dayStats = hourStats.get(key);
+		} else {
+			dayStats = new TreeMap<Integer, TimeStats<E>>();
+		}
+		return dayStats;
+	}
+
+	private TimeStats<E> getNewOrExistingHourStats(Map<Integer, TimeStats<E>> dayStatsByKey, final int dayOfMonth) {
 		TimeStats<E> hourlyStats = null;
-		if (timeStatsByKey.containsKey(dayOfMonth)) {
-			hourlyStats = timeStatsByKey.get(dayOfMonth);
+		if (dayStatsByKey.containsKey(dayOfMonth)) {
+			hourlyStats = dayStatsByKey.get(dayOfMonth);
 		} else {
 			hourlyStats = new TimeStats<E>(Calendar.HOUR_OF_DAY);
 		}
+		return hourlyStats;
+	}
 
-		hourlyStats.add(newEntry);
-		timeStatsByKey.put(dayOfMonth, hourlyStats);
-		hourStats.put(key, timeStatsByKey);
-	}
-	
-	public void addAll(final List<E> logEntries) {
-		Preconditions.checkNotNull(logEntries);
-		for (E entry : logEntries) {
-			add(entry);
-		}
-	}
-	
 	@JsonIgnore
 	public Map<Integer, TimeStats<E>> getTimeStats(final String key) {
-		if (hourStats.containsKey(key)) {
-			Map<Integer, TimeStats<E>> timeStats = hourStats.get(key);
-			return timeStats;
-		}
-		return null;
+		return hourStats.get(key);
 	}
 
 	public Map<String, Map<Integer, TimeStats<E>>> getHourStats() {
@@ -180,7 +178,7 @@ public class HourStats<E extends ITimestampedEntry> implements Serializable, ICs
 		return null;
 	}
 
-	public HourStats<E> fromJsonString(String jsonString) {
+	public HourStats<E> fromJsonString(final String jsonString) {
 		throw new NotImplementedException("HourStats does not implement JSON deserialization.");
 	}
 }

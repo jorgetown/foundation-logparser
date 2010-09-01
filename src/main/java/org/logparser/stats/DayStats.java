@@ -3,9 +3,7 @@ package org.logparser.stats;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -37,7 +35,7 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 @JsonPropertyOrder({ "dayStats" })
-public class DayStats<E extends ITimestampedEntry> implements Serializable, ICsvSerializable<DayStats<E>>, IJsonSerializable<DayStats<E>> {
+public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> implements ICsvSerializable<DayStats<E>>, IJsonSerializable<DayStats<E>> {
 	private static final long serialVersionUID = 6551391859868552192L;
 	private final Map<String, TimeStats<E>> dayStats;
 	private final ObjectMapper jsonMapper;
@@ -47,33 +45,28 @@ public class DayStats<E extends ITimestampedEntry> implements Serializable, ICsv
 		jsonMapper = new ObjectMapper();
 	}
 
+	@Override
 	public void add(final E newEntry) {
 		Preconditions.checkNotNull(newEntry);
 		String key = newEntry.getAction();
+		TimeStats<E> timeStats = getNewOrExistingTimeStats(key);
+		timeStats.add(newEntry);
+		dayStats.put(key, timeStats);
+	}
+
+	private TimeStats<E> getNewOrExistingTimeStats(final String key) {
 		TimeStats<E> timeStats = null;
 		if (dayStats.containsKey(key)) {
 			timeStats = dayStats.get(key);
 		} else {
 			timeStats = new TimeStats<E>();
 		}
-		timeStats.add(newEntry);
-		dayStats.put(key, timeStats);
+		return timeStats;
 	}
-	
-	public void addAll(final List<E> logEntries) {
-		Preconditions.checkNotNull(logEntries);
-		for (E entry : logEntries) {
-			add(entry);
-		}
-	}
-	
+
 	@JsonIgnore
 	public TimeStats<E> getTimeStats(final String key) {
-		if (dayStats.containsKey(key)) {
-			TimeStats<E> timeStats = dayStats.get(key);
-			return timeStats;
-		}
-		return null;
+		return dayStats.get(key);
 	}
 
 	public Map<String, TimeStats<E>> getDayStats() {
@@ -141,7 +134,7 @@ public class DayStats<E extends ITimestampedEntry> implements Serializable, ICsv
 		return null;
 	}
 
-	public DayStats<E> fromJsonString(String jsonString) {
+	public DayStats<E> fromJsonString(final String jsonString) {
 		throw new NotImplementedException("DayStats does not implement JSON deserialization.");
 	}
 }
