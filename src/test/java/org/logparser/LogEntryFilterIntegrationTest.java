@@ -15,7 +15,7 @@ import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
 
 /**
- * Integration test for {@link LogEntryFilter}s.
+ * Integration tests for {@link LogEntryFilter}s.
  * 
  * @author jorge.decastro
  * 
@@ -48,7 +48,7 @@ public class LogEntryFilterIntegrationTest {
 	}
 
 	@Test
-	public void testFilterSettingsGivenConfigSettings() {
+	public void testLogFilterSettingsGivenConfigSettings() {
 		assertThat(underTest.getActionPattern().pattern(), is(equalTo(config.getActionPattern())));
 		assertThat(underTest.getDurationPattern().pattern(), is(equalTo(config.getDurationPattern())));
 		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(config.getFilterPattern())));
@@ -57,7 +57,7 @@ public class LogEntryFilterIntegrationTest {
 	}
 
 	@Test
-	public void testFilterParsesAndFiltersLogEntries() {
+	public void testLogFilterParsesAndFiltersLogEntries() {
 		LogFiles logfiles = config.getLogFiles();
 		File[] files = logfiles.list();
 
