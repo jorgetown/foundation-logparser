@@ -99,6 +99,7 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 	public String toString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 		for (Entry<String, Map<Integer, TimeStats<E>>> entries : hourStats.entrySet()) {
+			sb.append(LINE_SEPARATOR);
 			sb.append(entries.getKey());
 			sb.append(LINE_SEPARATOR);
 
@@ -128,23 +129,28 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 
 	public String toCsvString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
+		boolean header = true;
 		for (Entry<String, Map<Integer, TimeStats<E>>> entries : hourStats.entrySet()) {
+			sb.append(LINE_SEPARATOR);
 			sb.append(StringEscapeUtils.escapeCsv(entries.getKey()));
 			sb.append(LINE_SEPARATOR);
 
 			for (Entry<Integer, TimeStats<E>> values : entries.getValue().entrySet()) {
-				for (Integer i : values.getValue().getTimeStats().keySet()) {
-					sb.append(", , , , ");
-					sb.append(i);
-					sb.append(", , ");
+				if (header) {
+					for (Integer i : values.getValue().getTimeStats().keySet()) {
+						sb.append(", , , , ");
+						sb.append(i);
+						sb.append(", , ");
+					}
+					sb.append(LINE_SEPARATOR);
+	
+					sb.append(", Day, ");
+					for (Integer i : values.getValue().getTimeStats().keySet()) {
+						sb.append("#, Mean, Standard Deviation, Max, Min, , ");
+					}
+					sb.append(LINE_SEPARATOR);
+					header = false;
 				}
-				sb.append(LINE_SEPARATOR);
-
-				sb.append(", Day, ");
-				for (Integer i : values.getValue().getTimeStats().keySet()) {
-					sb.append("#, Mean, Standard Deviation, Max, Min, , ");
-				}
-				sb.append(LINE_SEPARATOR);
 				sb.append(",");
 				sb.append(values.getKey());
 				sb.append(",");
@@ -159,6 +165,7 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 				}
 				sb.append(LINE_SEPARATOR);
 			}
+			header = true;
 		}
 		return sb.toString();
 	}
