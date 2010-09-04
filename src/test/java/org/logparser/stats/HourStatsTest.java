@@ -24,6 +24,7 @@ public class HourStatsTest {
 	private LogEntry entryXAtTimeA;
 	private LogEntry entryYAtTimeA;
 	private LogEntry entryXAtTimeB;
+	private LogEntry entryYAtTimeB;
 	private HourStats<LogEntry> underTest;
 
 	@Before
@@ -37,6 +38,7 @@ public class HourStatsTest {
 		entryXAtTimeA = new LogEntry(timeA.getTime(), "/entry.x", 1000D);
 		entryYAtTimeA = new LogEntry(timeA.getTime(), "/entry.y", 2000D);
 		entryXAtTimeB = new LogEntry(timeB.getTime(), "/entry.x", 3000D);
+		entryYAtTimeB = new LogEntry(timeB.getTime(), "/entry.y", 4000D);
 		underTest = new HourStats<LogEntry>();
 	}
 
@@ -45,6 +47,7 @@ public class HourStatsTest {
 		entryXAtTimeA = null;
 		entryYAtTimeA = null;
 		entryXAtTimeB = null;
+		entryYAtTimeB = null;
 		underTest = null;
 	}
 
@@ -95,5 +98,64 @@ public class HourStatsTest {
 		timeStats = underTest.getTimeStats(entryYAtTimeA.getAction());
 		assertThat(timeStats.size(), is(1));
 		assertThat(timeStats.keySet(), hasItem(27));
+	}
+	
+	@Test
+	public void testTimeStatsOfMultipleLogEntriesOnSameDay() {
+		underTest.add(entryXAtTimeA);
+		underTest.add(entryYAtTimeA);
+		assertThat(underTest.getHourStats().size(), is(2));
+		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
+		assertThat(timeStats.size(), is(1));
+		assertThat(timeStats.keySet(), hasItem(27));
+		timeStats = underTest.getTimeStats(entryYAtTimeA.getAction());
+		assertThat(timeStats.size(), is(1));
+		assertThat(timeStats.keySet(), hasItem(27));
+	}
+	
+	@Test
+	public void testTimeStatsOfMultipleLogEntriesOnDifferentDays() {
+		underTest.add(entryXAtTimeA);
+		underTest.add(entryYAtTimeB);
+		assertThat(underTest.getHourStats().size(), is(2));
+		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
+		assertThat(timeStats.size(), is(1));
+		assertThat(timeStats.keySet(), hasItem(27));
+		timeStats = underTest.getTimeStats(entryYAtTimeB.getAction());
+		assertThat(timeStats.size(), is(1));
+		assertThat(timeStats.keySet(), hasItem(31));
+	}
+	
+	@Test
+	public void testTimeStatsOfMultipleLogEntriesOnSameHour() {
+		underTest.add(entryXAtTimeA);
+		underTest.add(entryYAtTimeA);
+		assertThat(underTest.getHourStats().size(), is(2));
+		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
+		assertThat(timeStats.size(), is(1));
+		assertThat(timeStats.keySet(), hasItem(27));
+		TimeStats<LogEntry> stats = timeStats.get(27);
+		assertThat(stats.getTimeStats().keySet(), hasItem(1));
+		timeStats = underTest.getTimeStats(entryYAtTimeA.getAction());
+		assertThat(timeStats.size(), is(1));
+		assertThat(timeStats.keySet(), hasItem(27));
+		stats = timeStats.get(27);
+		assertThat(stats.getTimeStats().keySet(), hasItem(1));
+	}
+	
+	@Test
+	public void testTimeStatsOfMultipleLogEntriesOnDifferentHours() {
+		underTest.add(entryXAtTimeA);
+		underTest.add(entryXAtTimeB);
+		assertThat(underTest.getHourStats().size(), is(1));
+		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
+		assertThat(timeStats.size(), is(2));
+		assertThat(timeStats.keySet(), hasItem(27));
+		TimeStats<LogEntry> stats = timeStats.get(27);
+		assertThat(stats.getTimeStats().keySet(), hasItem(1));
+		timeStats = underTest.getTimeStats(entryXAtTimeB.getAction());
+		assertThat(timeStats.keySet(), hasItem(31));
+		stats = timeStats.get(31);
+		assertThat(stats.getTimeStats().keySet(), hasItem(16));
 	}
 }
