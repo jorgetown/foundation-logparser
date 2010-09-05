@@ -12,15 +12,17 @@ import org.logparser.time.TimeComparator;
 import com.google.common.base.Preconditions;
 
 /**
- * An {@link ILogEntryFilter} decorator that adds time-sampling behavior to the
+ * An {@link ILogEntryFilter} decorator that applies a sampling method to the
  * {@link ILogEntryFilter} it decorates.
  * 
- * In this particular case, it extracts log {@link ITimestampedEntry}s each time
- * the time interval between any 2 entries is longer than the time given by the
- * given {@link TimeComparator}.
+ * It implements stratified sampling, with systematic sampling applied within each stratum. 
+ * Each sample is selected from the (sub-)population at a regular/systematic interval.
  * 
- * Decorator instances can be chained.
+ * In this particular case, it extracts {@link ITimestampedEntry}s each time the
+ * time interval between any 2 entries is longer than the time given by the given {@link TimeComparator}.
  * 
+ * @see <a href="http://en.wikipedia.org/wiki/Stratified_sampling">Stratified sampling</a>
+ * @see <a href="http://en.wikipedia.org/wiki/Systematic_sampling">Systematic sampling</a>
  * @see <a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator pattern</a>
  * @author jorge.decastro
  * 

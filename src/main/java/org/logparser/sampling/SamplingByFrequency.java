@@ -11,14 +11,17 @@ import org.logparser.ITimestampedEntry;
 import com.google.common.base.Preconditions;
 
 /**
- * An {@link ILogEntryFilter} decorator that adds frequency-sampling behavior to
- * the {@link ILogEntryFilter} it decorates.
+ * An {@link ILogEntryFilter} decorator that applies a sampling method to the
+ * {@link ILogEntryFilter} it decorates.
+ * 
+ * It implements stratified sampling, with systematic sampling applied within each stratum. 
+ * Each sample is selected from the (sub-)population at a regular/systematic interval.
  * 
  * In this particular case, it extracts log entries at the rate given by the sampling {@code interval}. 
  * If every 3rd log {@code E}ntry is desired, for example, the sampling {@code interval} is 3.
  * 
- * Decorator instances can be chained.
- * 
+ * @see <a href="http://en.wikipedia.org/wiki/Stratified_sampling">Stratified sampling</a>
+ * @see <a href="http://en.wikipedia.org/wiki/Systematic_sampling">Systematic sampling</a>
  * @see <a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator pattern</a>
  * @author jorge.decastro
  * 
