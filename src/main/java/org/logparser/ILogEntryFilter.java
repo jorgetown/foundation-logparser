@@ -6,6 +6,8 @@ package org.logparser;
  * Typically, an {@link ILogEntryFilter} implementation will parse a log entry string
  * and return a corresponding log entry E if successful.
  * 
+ * {@link ILogEntryFilter} implementations can be chained.
+ * 
  * @author jorge.decastro
  * 
  * @param <E> the type of log entry.
