@@ -28,6 +28,7 @@ import org.logparser.io.LogFiles;
 import org.logparser.sampling.SamplingByFrequency;
 import org.logparser.sampling.SamplingByTime;
 import org.logparser.stats.PercentagePredicate;
+import org.logparser.stats.PredicateArguments;
 import org.logparser.stats.StandardDeviationPredicate;
 import org.logparser.stats.TimeStats;
 
@@ -125,7 +126,7 @@ public class CommandLineApplicationRunner {
 				long end = (System.nanoTime() - start) / 1000000;
 				totalEntries = logSnapshot.getTotalEntries() - previousTotal;
 				filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
-				LOGGER.info(String.format("LINE_SEPARATOR%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %sLINE_SEPARATOR", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
+				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
 				previousTotal = totalEntries;
 				previousFiltered = filteredEntries;
 			}
@@ -150,7 +151,7 @@ public class CommandLineApplicationRunner {
 			LOGGER.info(toString(filtered));
 			
 			LOGGER.info("Filtering by disjunction of 30% and 1xStandard Deviation" + LINE_SEPARATOR);
-			filtered = logSnapshot.getDayStats().filter(Predicates.or(percentagePredicate, variancePredicate));
+			filtered = logSnapshot.getDayStats().filter(Predicates.<PredicateArguments>or(percentagePredicate, variancePredicate));
 			LOGGER.info(toString(filtered));
 		}
 	}
