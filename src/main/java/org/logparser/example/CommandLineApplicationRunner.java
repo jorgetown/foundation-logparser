@@ -1,11 +1,15 @@
 package org.logparser.example;
 
+import static org.logparser.Constants.LINE_SEPARATOR;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.math.stat.descriptive.StatisticalSummary;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -17,15 +21,18 @@ import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
-import org.logparser.io.ChartView;
 import org.logparser.io.CommandLineArguments;
 import org.logparser.io.CsvView;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
 import org.logparser.sampling.SamplingByFrequency;
 import org.logparser.sampling.SamplingByTime;
+import org.logparser.stats.PercentagePredicate;
+import org.logparser.stats.StandardDeviationPredicate;
+import org.logparser.stats.TimeStats;
 
 import com.beust.jcommander.JCommander;
+import com.google.common.base.Predicates;
 
 /**
  * Responsible for running the log parser via the command line.
@@ -118,7 +125,7 @@ public class CommandLineApplicationRunner {
 				long end = (System.nanoTime() - start) / 1000000;
 				totalEntries = logSnapshot.getTotalEntries() - previousTotal;
 				filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
-				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
+				LOGGER.info(String.format("LINE_SEPARATOR%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %sLINE_SEPARATOR", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
 				previousTotal = totalEntries;
 				previousFiltered = filteredEntries;
 			}
@@ -126,12 +133,48 @@ public class CommandLineApplicationRunner {
 			if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(filename)) {
 				CsvView csvView = new CsvView();
 				csvView.write(path, filename, logSnapshot);				
-				ChartView<LogEntry> chartView;
-				chartView = new ChartView<LogEntry>(logSnapshot);
-				chartView.write(path, filename);
+				// ChartView<LogEntry> chartView;
+				// chartView = new ChartView<LogEntry>(logSnapshot);
+				// chartView.write(path, filename);
 			}
 
-			LOGGER.info("\n" + logSnapshot.getDayStats().toString());
+			LOGGER.info(LINE_SEPARATOR + logSnapshot.getDayStats().toString() + LINE_SEPARATOR);
+			LOGGER.info("Filtering by 1xStandard Deviation" + LINE_SEPARATOR);
+			StandardDeviationPredicate variancePredicate = new StandardDeviationPredicate();
+			Map<String, TimeStats<LogEntry>> filtered = logSnapshot.getDayStats().filter(variancePredicate);
+			LOGGER.info(toString(filtered));
+			
+			LOGGER.info("Filtering by 30%" + LINE_SEPARATOR);
+			PercentagePredicate percentagePredicate = new PercentagePredicate(30);
+			filtered = logSnapshot.getDayStats().filter(percentagePredicate);
+			LOGGER.info(toString(filtered));
+			
+			LOGGER.info("Filtering by disjunction of 30% and 1xStandard Deviation" + LINE_SEPARATOR);
+			filtered = logSnapshot.getDayStats().filter(Predicates.or(percentagePredicate, variancePredicate));
+			LOGGER.info(toString(filtered));
 		}
+	}
+	
+	public static String toString(final Map<String, TimeStats<LogEntry>> input) {
+		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
+		sb.append(LINE_SEPARATOR);
+		for (Entry<String, TimeStats<LogEntry>> entries : input.entrySet()) {
+			sb.append(entries.getKey());
+			sb.append(LINE_SEPARATOR);
+			sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
+			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
+				sb.append(LINE_SEPARATOR);
+				StatisticalSummary summary = timeStats.getValue();
+				sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
+						timeStats.getKey(), 
+						summary.getN(), 
+						summary.getMean(),
+						summary.getStandardDeviation(), 
+						summary.getMax(),
+						summary.getMin()));
+			}
+			sb.append(LINE_SEPARATOR);
+		}
+		return sb.toString();
 	}
 }
