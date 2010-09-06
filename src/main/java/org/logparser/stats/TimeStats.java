@@ -55,6 +55,11 @@ public class TimeStats<E extends ITimestampedEntry> extends AbstractStats<E> {
 		summaryStatistics.addValue(newEntry.getDuration());
 		timeStats.put(time, summaryStatistics);
 	}
+	
+	public void add(final int time, final StatisticalSummary stats) {
+		Preconditions.checkNotNull(stats);
+		timeStats.put(time, stats);
+	}
 
 	private SummaryStatistics getNewOrExistingSummaryStatistics(final int time) {
 		SummaryStatistics summaryStatistics = null;
