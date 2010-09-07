@@ -1,5 +1,7 @@
 package org.logparser.stats;
 
+import net.jcip.annotations.Immutable;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 
@@ -10,6 +12,7 @@ import com.google.common.base.Predicate;
  * @author jorge.decastro
  * 
  */
+@Immutable
 public class StandardDeviationPredicate implements Predicate<PredicateArguments> {
 	private final int noOfStandardDeviations;
 
@@ -26,5 +29,9 @@ public class StandardDeviationPredicate implements Predicate<PredicateArguments>
 		double delta = arguments.getPrevious().getMean() - arguments.getCurrent();
 		double sd = noOfStandardDeviations * arguments.getPrevious().getStandardDeviation();
 		return sd > 0 && Math.abs(delta) > sd;
+	}
+
+	public int getNumberOfStandardDeviations() {
+		return noOfStandardDeviations;
 	}
 }
