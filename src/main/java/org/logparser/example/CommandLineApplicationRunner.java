@@ -68,7 +68,7 @@ public class CommandLineApplicationRunner {
 		ObjectMapper mapper = new ObjectMapper();
 		Config config = null;
 		try {
-			Map<String, Config> configs = mapper.readValue(new File(cla.configFile), new TypeReference<Map<String, Config>>() { });
+			Map<String, Config> configs = mapper.readValue(new File(cla.configFile), new TypeReference<Map<String, Config>>() {});
 			config = configs.get(cla.logName);
 
 			config.validate();
@@ -105,7 +105,7 @@ public class CommandLineApplicationRunner {
 
 			@SuppressWarnings("unchecked")
 			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(config, sampler != null ? sampler : filter);
-			
+
 			DecimalFormat df = new DecimalFormat("####.##");
 
 			String filepath;
@@ -115,7 +115,8 @@ public class CommandLineApplicationRunner {
 			int previousTotal = 0;
 			int filteredEntries = 0;
 			int previousFiltered = 0;
-			LogSnapshot<LogEntry> logSnapshot = null;;
+			LogSnapshot<LogEntry> logSnapshot = null;
+
 			for (File f : files) {
 				filepath = f.getAbsolutePath();
 				filename = f.getName();
@@ -130,32 +131,32 @@ public class CommandLineApplicationRunner {
 				previousTotal = totalEntries;
 				previousFiltered = filteredEntries;
 			}
-			
+
 			if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(filename)) {
 				CsvView csvView = new CsvView();
-				csvView.write(path, filename, logSnapshot);				
+				csvView.write(path, filename, logSnapshot);
 				// ChartView<LogEntry> chartView;
 				// chartView = new ChartView<LogEntry>(logSnapshot);
 				// chartView.write(path, filename);
 			}
 
-			LOGGER.info(LINE_SEPARATOR + logSnapshot.getDayStats().toString() + LINE_SEPARATOR);
-			LOGGER.info("Filtering by 1xStandard Deviation" + LINE_SEPARATOR);
+			// LOGGER.info(LINE_SEPARATOR + logSnapshot.getDayStats().toString() + LINE_SEPARATOR);
 			StandardDeviationPredicate variancePredicate = new StandardDeviationPredicate();
+			LOGGER.info(String.format("Filtering by %sxStandard Deviation(s) %s", variancePredicate.getNumberOfStandardDeviations(), LINE_SEPARATOR));
 			Map<String, TimeStats<LogEntry>> filtered = logSnapshot.getDayStats().filter(variancePredicate);
 			LOGGER.info(toString(filtered));
-			
-			LOGGER.info("Filtering by 30%" + LINE_SEPARATOR);
+
 			PercentagePredicate percentagePredicate = new PercentagePredicate(30);
+			LOGGER.info(String.format("Filtering by %s%% %s", percentagePredicate.getPercentage(), LINE_SEPARATOR));
 			filtered = logSnapshot.getDayStats().filter(percentagePredicate);
 			LOGGER.info(toString(filtered));
-			
-			LOGGER.info("Filtering by disjunction of 30% and 1xStandard Deviation" + LINE_SEPARATOR);
-			filtered = logSnapshot.getDayStats().filter(Predicates.<PredicateArguments>or(percentagePredicate, variancePredicate));
+
+			LOGGER.info(String.format("Filtering by %sxStandard Deviation(s) and %s%% %s", variancePredicate.getNumberOfStandardDeviations(), percentagePredicate.getPercentage(), LINE_SEPARATOR));
+			filtered = logSnapshot.getDayStats().filter(Predicates.<PredicateArguments> or(percentagePredicate, variancePredicate));
 			LOGGER.info(toString(filtered));
 		}
 	}
-	
+
 	public static String toString(final Map<String, TimeStats<LogEntry>> input) {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 		sb.append(LINE_SEPARATOR);
