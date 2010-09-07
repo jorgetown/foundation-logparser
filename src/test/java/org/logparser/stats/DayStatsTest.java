@@ -3,15 +3,26 @@ package org.logparser.stats;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.logparser.LogEntry;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import com.google.common.base.Predicate;
 
 /**
  * Tests for {@link DayStats}.
@@ -19,11 +30,14 @@ import org.logparser.LogEntry;
  * @author jorge.decastro
  * 
  */
+@RunWith(MockitoJUnitRunner.class)
 public class DayStatsTest {
 	private LogEntry entryXAtTimeA;
 	private LogEntry entryYAtTimeA;
 	private LogEntry entryXAtTimeB;
 	private DayStats<LogEntry> underTest;
+	@Mock
+	Predicate<PredicateArguments> mockPredicate;
 
 	@Before
 	public void setUp() {
@@ -94,5 +108,43 @@ public class DayStatsTest {
 		timeStats = underTest.getTimeStats(entryYAtTimeA.getAction());
 		assertThat(timeStats.getTimeStats().size(), is(1));
 		assertThat(timeStats.getTimeStats().keySet(), hasItem(27));
+	}
+
+	@Test
+	public void testFilterEntriesWherePredicateIsFalse() {
+		when(mockPredicate.apply(any(PredicateArguments.class))).thenReturn(false);
+
+		underTest.add(entryXAtTimeA);
+		underTest.add(entryYAtTimeA);
+
+		Map<String, TimeStats<LogEntry>> filtered = underTest.filter(mockPredicate);
+
+		assertThat(underTest.getDayStats().size(), is(2));
+		assertThat(underTest.getDayStats().keySet(), hasItem(entryXAtTimeA.getAction()));
+		assertThat(underTest.getDayStats().keySet(), hasItem(entryYAtTimeA.getAction()));
+
+		verify(mockPredicate, times(2)).apply(any(PredicateArguments.class));
+		assertThat(filtered.size(), is(notNullValue()));
+		assertThat(filtered.size(), is(0));
+	}
+	
+	@Test
+	public void testFilterEntriesWherePredicateIsTrue() {
+		when(mockPredicate.apply(any(PredicateArguments.class))).thenReturn(true);
+
+		underTest.add(entryXAtTimeA);
+		underTest.add(entryYAtTimeA);
+
+		Map<String, TimeStats<LogEntry>> filtered = underTest.filter(mockPredicate);
+
+		assertThat(underTest.getDayStats().size(), is(2));
+		assertThat(underTest.getDayStats().keySet(), hasItem(entryXAtTimeA.getAction()));
+		assertThat(underTest.getDayStats().keySet(), hasItem(entryYAtTimeA.getAction()));
+
+		verify(mockPredicate, times(2)).apply(any(PredicateArguments.class));
+		assertThat(filtered.size(), is(notNullValue()));
+		assertThat(filtered.size(), is(2));
+		assertThat(filtered.keySet(), hasItem(entryXAtTimeA.getAction()));
+		assertThat(filtered.keySet(), hasItem(entryYAtTimeA.getAction()));
 	}
 }

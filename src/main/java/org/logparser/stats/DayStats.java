@@ -71,14 +71,15 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 		SummaryStatistics movingStats;
 		StatisticalSummary currentStats;
 		PredicateArguments arguments;
+		TimeStats<E> timeStats;
 		for (Entry<String, TimeStats<E>> entries : dayStats.entrySet()) {
 			movingStats = new SummaryStatistics();
+			timeStats = new TimeStats<E>();
 			for (Entry<Integer, StatisticalSummary> times : entries.getValue().getTimeStats().entrySet()) {
 				currentStats = times.getValue();
 				movingStats.addValue(currentStats.getMean()); // calculate moving average
 				arguments = new PredicateArguments(movingStats, currentStats.getMean());
 				if (predicate.apply(arguments)) {
-					TimeStats<E> timeStats = new TimeStats<E>();
 					timeStats.add(times.getKey(), times.getValue());
 					filtered.put(entries.getKey(), timeStats);
 				}
