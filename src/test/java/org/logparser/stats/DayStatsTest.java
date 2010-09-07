@@ -124,7 +124,7 @@ public class DayStatsTest {
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryYAtTimeA.getAction()));
 
 		verify(mockPredicate, times(2)).apply(any(PredicateArguments.class));
-		assertThat(filtered.size(), is(notNullValue()));
+		assertThat(filtered, is(notNullValue()));
 		assertThat(filtered.size(), is(0));
 	}
 	
@@ -142,7 +142,7 @@ public class DayStatsTest {
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryYAtTimeA.getAction()));
 
 		verify(mockPredicate, times(2)).apply(any(PredicateArguments.class));
-		assertThat(filtered.size(), is(notNullValue()));
+		assertThat(filtered, is(notNullValue()));
 		assertThat(filtered.size(), is(2));
 		assertThat(filtered.keySet(), hasItem(entryXAtTimeA.getAction()));
 		assertThat(filtered.keySet(), hasItem(entryYAtTimeA.getAction()));
