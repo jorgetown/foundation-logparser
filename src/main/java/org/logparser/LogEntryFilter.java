@@ -64,19 +64,21 @@ public class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 		Matcher m = timestampPattern.matcher(text);
 		if (m.find()) {
 			Date date = getDateFromString(m.group(1));
-			m = actionPattern.matcher(text);
-			if (m.find()) {
-				String action = m.group(1);
-				m = durationPattern.matcher(text);
+			if (timeInterval.isBetweenInstants(date)) {
+				m = actionPattern.matcher(text);
 				if (m.find()) {
-					String duration = m.group(1);
-					if (timeInterval.isBetweenInstants(date) && filterPattern.matcher(action).matches()) {						
-						return new LogEntry(date.getTime(), action, Double.valueOf(duration));
+					String action = m.group(1);
+					if (filterPattern.matcher(action).matches()) {
+						m = durationPattern.matcher(text);
+						if (m.find()) {
+							String duration = m.group(1);
+							return new LogEntry(date.getTime(), action, Double.valueOf(duration));
+						}
 					}
 				}
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -95,27 +97,27 @@ public class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	public Pattern getTimestampPattern() {
 		return timestampPattern;
 	}
-	
+
 	public DateFormat getDateFormatter() {
 		return dateFormatter.get();
 	}
-	
+
 	public Pattern getActionPattern() {
 		return actionPattern;
 	}
-	
+
 	public Pattern getDurationPattern() {
 		return durationPattern;
 	}
-	
+
 	public Pattern getFilterPattern() {
 		return filterPattern;
 	}
-	
+
 	public ITimeInterval getTimeInterval() {
 		return timeInterval;
 	}
-	
+
 	public Config getConfig() {
 		return config;
 	}
