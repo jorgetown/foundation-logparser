@@ -4,6 +4,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -74,17 +77,36 @@ public class LogSnapshotTest {
 
 	@Test
 	public void testFilteredEntriesWithSingleConsumedEntry() {
+		when(mockConfig.isFilteredEntriesStored()).thenReturn(true);
+		
+		underTest = new LogSnapshot<LogEntry>(mockConfig);
 		underTest.consume(entryA);
 
+		verify(mockConfig, atLeastOnce()).isFilteredEntriesStored();
 		assertThat(underTest.getFilteredEntries().size(), is(1));
 		assertThat(underTest.getFilteredEntries(), hasItem(entryA));
+	}
+	
+	@Test
+	public void testFilteredEntriesWithSingleConsumedEntryAndStoringDisabled() {
+		when(mockConfig.isFilteredEntriesStored()).thenReturn(false);
+		
+		underTest = new LogSnapshot<LogEntry>(mockConfig);
+		underTest.consume(entryA);
+
+		verify(mockConfig, atLeastOnce()).isFilteredEntriesStored();
+		assertThat(underTest.getFilteredEntries().size(), is(0));
 	}
 
 	@Test
 	public void testFilteredEntriesWithMultipleConsumedEntries() {
+		when(mockConfig.isFilteredEntriesStored()).thenReturn(true);
+		
+		underTest = new LogSnapshot<LogEntry>(mockConfig);
 		underTest.consume(entryA);
 		underTest.consume(entryB);
 
+		verify(mockConfig, atLeastOnce()).isFilteredEntriesStored();
 		assertThat(underTest.getFilteredEntries().size(), is(2));
 		assertThat(underTest.getFilteredEntries(), hasItem(entryA));
 		assertThat(underTest.getFilteredEntries(), hasItem(entryB));

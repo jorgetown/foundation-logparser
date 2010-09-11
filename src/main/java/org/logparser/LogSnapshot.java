@@ -38,17 +38,17 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 	private final DayStats<E> dayStats;
 	private final HourStats<E> hourStats;
 	private final int groupBy;
-	private final ObjectMapper jsonMapper;
-	private final Config config;
+	private transient final ObjectMapper jsonMapper;
 	private int totalEntries;
+	private final boolean filteredEntriesStored;
 
 	public LogSnapshot(final Config config) {
 		Preconditions.checkNotNull(config);
 		this.filteredEntries = new ArrayList<E>();
 		this.dayStats = new DayStats<E>();
 		this.hourStats = new HourStats<E>();
-		this.config = config;
 		this.groupBy = config.groupByToCalendar();
+		this.filteredEntriesStored = config.isFilteredEntriesStored();
 		this.jsonMapper = new ObjectMapper();
 		this.decimalFormat = new DecimalFormat("####.##%");
 		this.totalEntries = 0;
@@ -57,7 +57,10 @@ public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializab
 	public void consume(final E entry) {
 		totalEntries++;
 		if (entry != null) {
-			filteredEntries.add(entry);
+			// avoid the overhead of storing the filtered entries if dealing with large datasets
+			if (filteredEntriesStored) {
+				filteredEntries.add(entry);
+			}
 			dayStats.add(entry);
 			hourStats.add(entry);
 		}
