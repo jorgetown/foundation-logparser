@@ -35,11 +35,13 @@ public class Config {
 	private TimeInterval timeInterval;
 	private GroupBy groupBy;
 	private SamplerConfig samplerConfig;
+	private boolean filteredEntriesStored;
 
 	public Config() {
 		filterPattern = DEFAULT_FILTER_PATTERN;
 		decimalFormat = DEFAULT_DECIMAL_FORMAT;
 		groupBy = GroupBy.DAY_OF_MONTH;
+		filteredEntriesStored = true;
 	}
 
 	public String getFriendlyName() {
@@ -136,6 +138,14 @@ public class Config {
 
 	public void setDecimalFormat(final String decimalFormat) {
 		this.decimalFormat = decimalFormat;
+	}
+	
+	public boolean isFilteredEntriesStored() {
+		return filteredEntriesStored;
+	}
+	
+	public void setFilteredEntriesStored(final boolean filteredEntriesStored) {
+		this.filteredEntriesStored = filteredEntriesStored;
 	}
 
 	public int groupByToCalendar() {
