@@ -22,7 +22,7 @@ import com.google.common.io.Closeables;
 /**
  * Implementation of {@link ILogFilter} that processes a log file one line at a
  * time. It is expected to have slightly worse performance than
- * {@link InMemoryLogFilter} but with better memory utilization.
+ * an "in memory" implementation but with better memory utilization.
  * 
  * @author jorge.decastro
  * 
