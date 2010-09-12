@@ -12,7 +12,7 @@ import net.jcip.annotations.Immutable;
  * 
  */
 @Immutable
-public class Instant {
+public final class Instant {
 	private static final Pattern TIME_FORMAT = Pattern.compile("(\\d{1,2})\\:((\\d{1,2}))");
 	private final int hour;
 	private final int minute;

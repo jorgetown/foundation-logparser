@@ -22,7 +22,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * 
  */
 @Immutable
-public class LogFiles {
+public final class LogFiles {
 	private static final Logger LOGGER = Logger.getLogger(LogFiles.class.getName());
 	private final Pattern filenamePattern;
 	private final String[] baseDir;

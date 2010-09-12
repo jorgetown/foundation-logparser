@@ -15,7 +15,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * 
  */
 @Immutable
-public class TimeInterval implements ITimeInterval {
+public final class TimeInterval implements ITimeInterval {
 	private final Instant before;
 	private final Instant after;
 	private final Calendar cal;

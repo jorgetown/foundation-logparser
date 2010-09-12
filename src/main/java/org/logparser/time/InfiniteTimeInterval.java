@@ -11,7 +11,7 @@ import net.jcip.annotations.Immutable;
  * 
  */
 @Immutable
-public class InfiniteTimeInterval implements ITimeInterval {
+public final class InfiniteTimeInterval implements ITimeInterval {
 
 	public boolean isBetweenInstants(final Date date) {
 		return true;

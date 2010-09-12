@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
  * 
  */
 @Immutable
-public class GenericSamplingByTime<E extends ITimestampedEntry> implements ILogEntryFilter<E> {
+public final class GenericSamplingByTime<E extends ITimestampedEntry> implements ILogEntryFilter<E> {
 	private final ILogEntryFilter<E> filter;
 	private final TimeComparator<E> timeComparator;
 	private final Map<String, E> sampleTable;

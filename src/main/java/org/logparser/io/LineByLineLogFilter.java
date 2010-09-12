@@ -29,7 +29,7 @@ import com.google.common.io.Closeables;
  * @param <E> the type of elements held by this {@link ILogFilter}.
  */
 @Immutable
-public class LineByLineLogFilter<E extends ITimestampedEntry> implements ILogFilter<E> {
+public final class LineByLineLogFilter<E extends ITimestampedEntry> implements ILogFilter<E> {
 	private static final Logger LOGGER = Logger.getLogger(LineByLineLogFilter.class.getName());
 	private final List<ILogEntryFilter<E>> logEntryFilters;
 	private final LogSnapshot<E> logSnapshot;

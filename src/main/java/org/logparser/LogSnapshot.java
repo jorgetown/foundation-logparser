@@ -32,7 +32,7 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 @JsonPropertyOrder({ "totalEntries", "dayStats", "hourStats" })
-public class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializable<LogSnapshot<E>>, ICsvSerializable<LogSnapshot<E>> {
+public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializable<LogSnapshot<E>>, ICsvSerializable<LogSnapshot<E>> {
 	private final DecimalFormat decimalFormat;
 	private final List<E> filteredEntries;
 	private final DayStats<E> dayStats;

@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
  * 
  */
 @Immutable
-public class SamplingByFrequency<E extends ITimestampedEntry> implements ILogEntryFilter<E> {
+public final class SamplingByFrequency<E extends ITimestampedEntry> implements ILogEntryFilter<E> {
 	private final ILogEntryFilter<E> filter;
 	private final int samplingInterval;
 	private final Map<String, Integer> sampleTable;

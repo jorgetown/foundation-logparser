@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 @JsonPropertyOrder({ "timestamp", "action", "duration" })
-public class LogEntry implements Serializable, ITimestampedEntry, ICsvSerializable<ITimestampedEntry>, IJsonSerializable<ITimestampedEntry> {
+public final class LogEntry implements Serializable, ITimestampedEntry, ICsvSerializable<ITimestampedEntry>, IJsonSerializable<ITimestampedEntry> {
 	private static final long serialVersionUID = -1019020702743392905L;
 	private final long timestamp;
 	private final String action;

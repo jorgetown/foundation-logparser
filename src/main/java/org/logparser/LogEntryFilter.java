@@ -21,7 +21,7 @@ import com.google.common.base.Preconditions;
  * 
  */
 @Immutable
-public class LogEntryFilter implements ILogEntryFilter<LogEntry> {
+public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	private final Pattern timestampPattern;
 	private final Pattern actionPattern;
 	private final Pattern durationPattern;
