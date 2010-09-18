@@ -57,25 +57,26 @@ public class LogEntryFilterIntegrationTest {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testLogFilterParsesAndFiltersLogEntries() {
 		LogFiles logfiles = config.getLogFiles();
 		File[] files = logfiles.list();
 
-		@SuppressWarnings("unchecked")
-		LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(config, underTest);
+		LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);
+
+		LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(underTest);
+		lineByLineParser.attach(logSnapshot);
+
 		String filepath;
-		int totalEntries = 0;
 		int filteredEntries = 0;
-		LogSnapshot<LogEntry> logSnapshot = null;
 		for (File f : files) {
 			filepath = f.getAbsolutePath();
-			logSnapshot = lineByLineParser.filter(filepath);
-			totalEntries = logSnapshot.getTotalEntries();
+			lineByLineParser.filter(filepath);
 			filteredEntries = logSnapshot.getFilteredEntries().size();
 		}
 		System.out.println("\n" + logSnapshot.getDayStats().toString());
 
-		assertThat(totalEntries, is(10822));
+		assertThat(lineByLineParser.size(), is(10822));
 		assertThat(filteredEntries, is(167));
 	}
 }

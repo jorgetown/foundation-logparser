@@ -54,17 +54,20 @@ public class DayStatsIntegrationTest {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testDayStatsSummaryStatisticsAreCalculatedCorrectly() {
 		LogFiles logfiles = config.getLogFiles();
 		File[] files = logfiles.list();
 
-		@SuppressWarnings("unchecked")
-		LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(config, underTest);
+		LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);
+
+		LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(underTest);
+		lineByLineParser.attach(logSnapshot);
+
 		String filepath;
-		LogSnapshot<LogEntry> logSnapshot = null;
 		for (File f : files) {
 			filepath = f.getAbsolutePath();
-			logSnapshot = lineByLineParser.filter(filepath);
+			lineByLineParser.filter(filepath);
 		}
 		Map<String, TimeStats<LogEntry>> dayStats = logSnapshot.getDayStats().getDayStats();
 
