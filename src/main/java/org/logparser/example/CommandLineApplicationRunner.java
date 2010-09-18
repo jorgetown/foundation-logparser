@@ -15,14 +15,17 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.logparser.ChartParams;
 import org.logparser.Config;
 import org.logparser.Config.SamplerConfig;
 import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
+import org.logparser.io.ChartView;
 import org.logparser.io.CommandLineArguments;
 import org.logparser.io.CsvView;
+import org.logparser.io.GoogleChartView;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
 import org.logparser.sampling.SamplingByFrequency;
@@ -66,22 +69,7 @@ public class CommandLineApplicationRunner {
 			return;
 		}
 
-		ObjectMapper mapper = new ObjectMapper();
-		Config config = null;
-		try {
-			Map<String, Config> configs = mapper.readValue(new File(cla.configFile), new TypeReference<Map<String, Config>>() {});
-			config = configs.get(cla.logName);
-
-			config.validate();
-			LOGGER.info(String.format("Loaded '%s' configuration", config.getFriendlyName()));
-			// TODO fix exception handling
-		} catch (JsonParseException jpe) {
-			jpe.printStackTrace();
-		} catch (JsonMappingException jme) {
-			jme.printStackTrace();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
+		Config config = getConfig(cla);
 
 		if (config != null) {
 			LogFiles logfiles = config.getLogFiles();
@@ -115,7 +103,6 @@ public class CommandLineApplicationRunner {
 			String path = null;
 			String filename = null;
 			int totalEntries = 0;
-			int previousTotal = 0;
 			int filteredEntries = 0;
 			int previousFiltered = 0;
 
@@ -127,19 +114,19 @@ public class CommandLineApplicationRunner {
 				long start = System.nanoTime();
 				lineByLineParser.filter(filepath);
 				long end = (System.nanoTime() - start) / 1000000;
-				totalEntries = logSnapshot.getTotalEntries() - previousTotal;
+				totalEntries = lineByLineParser.size();
 				filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
 				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
-				previousTotal = totalEntries;
 				previousFiltered = filteredEntries;
 			}
 
 			if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(filename)) {
 				CsvView csvView = new CsvView();
 				csvView.write(path, filename, logSnapshot);
-				// ChartView<LogEntry> chartView;
-				// chartView = new ChartView<LogEntry>(logSnapshot);
-				// chartView.write(path, filename);
+				if (config.isFilteredEntriesStored()) {
+					ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
+					chartView.write(path, filename);					
+				}
 			}
 
 			LOGGER.info(LINE_SEPARATOR + logSnapshot.getDayStats().toString() + LINE_SEPARATOR);
@@ -157,7 +144,33 @@ public class CommandLineApplicationRunner {
 			filtered = logSnapshot.getDayStats().filter(Predicates.<PredicateArguments> or(percentagePredicate, variancePredicate));
 			LOGGER.info(toString(filtered));
 
+			ChartParams chartParams = config.getChartParams();
+			if (chartParams != null) {
+				GoogleChartView gcv = new GoogleChartView(chartParams.getBaseUri(), chartParams.getParams());
+				Map<String, String> urls = gcv.createChartUrls(logSnapshot.getDayStats());
+				gcv.write(urls);	
+			}
 		}
+	}
+
+	private static Config getConfig(final CommandLineArguments cla) {
+		ObjectMapper mapper = new ObjectMapper();
+		Config config = null;
+		try {
+			Map<String, Config> configs = mapper.readValue(new File(cla.configFile), new TypeReference<Map<String, Config>>() {});
+			config = configs.get(cla.logName);
+
+			config.validate();
+			LOGGER.info(String.format("Loaded '%s' configuration", config.getFriendlyName()));
+			// TODO fix exception handling
+		} catch (JsonParseException jpe) {
+			jpe.printStackTrace();
+		} catch (JsonMappingException jme) {
+			jme.printStackTrace();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+		return config;
 	}
 
 	public static String toString(final Map<String, TimeStats<LogEntry>> input) {
