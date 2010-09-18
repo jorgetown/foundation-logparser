@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.logparser.ILogEntryFilter;
 import org.logparser.ILogFilter;
 import org.logparser.IObserver;
+import org.logparser.ITimestampedEntry;
 import org.logparser.Observable;
 
 import com.google.common.base.Preconditions;
@@ -20,7 +21,8 @@ import com.google.common.io.Closeables;
 
 /**
  * Implementation of {@link ILogFilter} that processes a log file one line at a
- * time, and publishes filtered events to all {@link IObserver}s attached.
+ * time, and publishes filtered {@link ITimestampedEntry}s as events to all
+ * {@link IObserver}s attached.
  * 
  * It is expected to have slightly worse performance than an "in memory"
  * implementation but with better memory utilization.
