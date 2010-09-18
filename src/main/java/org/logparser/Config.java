@@ -35,6 +35,7 @@ public class Config {
 	private TimeInterval timeInterval;
 	private GroupBy groupBy;
 	private SamplerConfig samplerConfig;
+	private ChartParams chartParams;
 	private boolean filteredEntriesStored;
 
 	public Config() {
@@ -146,6 +147,14 @@ public class Config {
 	
 	public void setFilteredEntriesStored(final boolean filteredEntriesStored) {
 		this.filteredEntriesStored = filteredEntriesStored;
+	}
+	
+	public ChartParams getChartParams() {
+		return chartParams;
+	}
+	
+	public void setChartParams(final ChartParams chartParams) {
+		this.chartParams = chartParams;
 	}
 
 	public int groupByToCalendar() {
