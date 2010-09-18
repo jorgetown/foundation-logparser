@@ -41,7 +41,7 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 	private static final long serialVersionUID = -6956010383538378498L;
 	private final Map<String, Map<Integer, TimeStats<E>>> hourStats;
 	private final Calendar calendar;
-	private final ObjectMapper jsonMapper;
+	private transient final ObjectMapper jsonMapper;
 
 	public HourStats() {
 		hourStats = new TreeMap<String, Map<Integer, TimeStats<E>>>();

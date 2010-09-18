@@ -40,7 +40,7 @@ import com.google.common.base.Predicate;
 public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> implements ICsvSerializable<DayStats<E>>, IJsonSerializable<DayStats<E>> {
 	private static final long serialVersionUID = 6551391859868552192L;
 	private final Map<String, TimeStats<E>> dayStats;
-	private final ObjectMapper jsonMapper;
+	private transient final ObjectMapper jsonMapper;
 
 	public DayStats() {
 		dayStats = new TreeMap<String, TimeStats<E>>();
