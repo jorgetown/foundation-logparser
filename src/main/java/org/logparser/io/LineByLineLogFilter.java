@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
 import org.logparser.ILogEntryFilter;
 import org.logparser.ILogFilter;
 import org.logparser.IObserver;
-import org.logparser.ITimestampedEntry;
 import org.logparser.Observable;
 
 import com.google.common.base.Preconditions;
@@ -21,7 +20,7 @@ import com.google.common.io.Closeables;
 
 /**
  * Implementation of {@link ILogFilter} that processes a log file one line at a
- * time, and publishes filtered {@link ITimestampedEntry}s as events to all
+ * time, and publishes filtered entries as events to all
  * {@link IObserver}s attached.
  * 
  * It is expected to have slightly worse performance than an "in memory"
@@ -44,7 +43,7 @@ public final class LineByLineLogFilter<E> extends Observable<E> implements ILogF
 	public LineByLineLogFilter(final List<ILogEntryFilter<E>> messageFilters) {
 		Preconditions.checkNotNull(messageFilters, "'messageFilters' argument cannot be null.");
 		for (ILogEntryFilter<E> filter : messageFilters) {
-			Preconditions.checkNotNull(filter, "'filter' element of 'messageFilters' argument cannot be null.");
+			Preconditions.checkNotNull(filter, "'filter' elements of 'messageFilters' argument cannot be null.");
 		}
 		this.logEntryFilters = Collections.unmodifiableList(messageFilters);
 		this.size = 0;

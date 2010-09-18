@@ -38,6 +38,7 @@ public class Observable<T> implements IObservable<T> {
 
 	public void notifyObservers(final T event) {
 		for (IObserver<T> subscriber : subscribers) {
+			// detach subscriber if exception is thrown?
 			subscriber.consume(event);
 		}
 	}
