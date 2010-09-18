@@ -167,13 +167,15 @@ public class CommandLineApplicationRunner {
 			sb.append(entries.getKey());
 			sb.append(LINE_SEPARATOR);
 			sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
-			for (Entry<Integer, StatisticalSummary> timeStats : entries
-					.getValue().getTimeStats().entrySet()) {
+			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
 				sb.append(LINE_SEPARATOR);
 				StatisticalSummary summary = timeStats.getValue();
 				sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-						timeStats.getKey(), summary.getN(), summary.getMean(),
-						summary.getStandardDeviation(), summary.getMax(),
+						timeStats.getKey(), 
+						summary.getN(), 
+						summary.getMean(),
+						summary.getStandardDeviation(), 
+						summary.getMax(),
 						summary.getMin()));
 			}
 			sb.append(LINE_SEPARATOR);

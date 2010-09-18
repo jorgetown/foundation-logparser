@@ -21,17 +21,17 @@ public class Observable<T> implements IObservable<T> {
 	}
 
 	public void attach(final IObserver<T>... observers) {
-		Preconditions.checkNotNull(observers, "'observers[]' argument cannot be null");
+		Preconditions.checkNotNull(observers, "'observers[]' argument cannot be null.");
 		for (IObserver<T> subscriber : observers) {
-			Preconditions.checkNotNull(subscriber, "'observer' element in observers[] cannot be null");
+			Preconditions.checkNotNull(subscriber, "'observer' element in observers[] cannot be null.");
 		}
 		subscribers.addAll(Arrays.asList(observers));
 	}
 
 	public void detach(final IObserver<T>... observers) {
-		Preconditions.checkNotNull(observers, "'observers[]' argument cannot be null");
+		Preconditions.checkNotNull(observers, "'observers[]' argument cannot be null.");
 		for (IObserver<T> subscriber : observers) {
-			Preconditions.checkNotNull(subscriber, "'observer' element in observers[] cannot be null");
+			Preconditions.checkNotNull(subscriber, "'observer' element in observers[] cannot be null.");
 		}
 		subscribers.removeAll(Arrays.asList(observers));
 	}
