@@ -10,55 +10,58 @@ import java.util.List;
 import net.jcip.annotations.Immutable;
 
 import org.apache.log4j.Logger;
-import org.logparser.Config;
 import org.logparser.ILogEntryFilter;
 import org.logparser.ILogFilter;
-import org.logparser.ITimestampedEntry;
-import org.logparser.LogSnapshot;
+import org.logparser.IObserver;
+import org.logparser.Observable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closeables;
 
 /**
  * Implementation of {@link ILogFilter} that processes a log file one line at a
- * time. It is expected to have slightly worse performance than
- * an "in memory" implementation but with better memory utilization.
+ * time, and publishes filtered events to all {@link IObserver}s attached.
+ * 
+ * It is expected to have slightly worse performance than an "in memory"
+ * implementation but with better memory utilization.
  * 
  * @author jorge.decastro
  * 
  * @param <E> the type of elements held by this {@link ILogFilter}.
  */
 @Immutable
-public final class LineByLineLogFilter<E extends ITimestampedEntry> implements ILogFilter<E> {
+public final class LineByLineLogFilter<E> extends Observable<E> implements ILogFilter {
 	private static final Logger LOGGER = Logger.getLogger(LineByLineLogFilter.class.getName());
 	private final List<ILogEntryFilter<E>> logEntryFilters;
-	private final LogSnapshot<E> logSnapshot;
+	private int size;
 
-	public LineByLineLogFilter(final Config config, final ILogEntryFilter<E>... messageFilter) {
-		this(config, Arrays.asList(messageFilter));
+	public LineByLineLogFilter(final ILogEntryFilter<E>... messageFilter) {
+		this(Arrays.asList(messageFilter));
 	}
 
-	public LineByLineLogFilter(final Config config, final List<ILogEntryFilter<E>> messageFilters) {
-		Preconditions.checkNotNull(messageFilters);
+	public LineByLineLogFilter(final List<ILogEntryFilter<E>> messageFilters) {
+		Preconditions.checkNotNull(messageFilters, "'messageFilters' argument cannot be null.");
 		for (ILogEntryFilter<E> filter : messageFilters) {
-			Preconditions.checkNotNull(filter);
+			Preconditions.checkNotNull(filter, "'filter' element of 'messageFilters' argument cannot be null.");
 		}
 		this.logEntryFilters = Collections.unmodifiableList(messageFilters);
-		this.logSnapshot = new LogSnapshot<E>(config);
+		this.size = 0;
 	}
 
-	public LogSnapshot<E> filter(final String filepath) {
-		Preconditions.checkNotNull(filepath);
+	public void filter(final String filepath) {
+		Preconditions.checkNotNull(filepath, "'filepath' argument cannot be null.");
 		BufferedReader in = null;
-		int count = 0;
+		size = 0;
 		try {
 			in = new BufferedReader(new FileReader(filepath));
 			String str;
 			E entry;
 			while ((str = in.readLine()) != null) {
-				count++;
+				size++;
 				entry = applyFilters(str, logEntryFilters);
-				logSnapshot.consume(entry);
+				if (entry != null) {
+					notifyObservers(entry);
+				}
 			}
 			in.close();
 		} catch (IOException ioe) {
@@ -66,7 +69,10 @@ public final class LineByLineLogFilter<E extends ITimestampedEntry> implements I
 		} finally {
 			Closeables.closeQuietly(in);
 		}
-		return logSnapshot;
+	}
+
+	public int size() {
+		return size;
 	}
 
 	private E applyFilters(final String toParse, final List<ILogEntryFilter<E>> filters) {

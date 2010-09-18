@@ -5,9 +5,10 @@ package org.logparser;
  * 
  * @author jorge.decastro
  * 
- * @param <E> the type of log entries held.
  */
-public interface ILogFilter<E extends ITimestampedEntry> {
+public interface ILogFilter {
 
-	public LogSnapshot<E> filter(String filepath);
+	public void filter(String filepath);
+
+	public int size();
 }
