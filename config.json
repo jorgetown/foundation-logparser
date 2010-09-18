@@ -6,21 +6,36 @@
 		"timestampFormat" : "dd/MMM/yyyy:HH:mm:ss",
 		"actionPattern" : "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
 		"durationPattern" : "(\\d+)$",
-		"filterPattern" : ".*\\.do$",
-		"groupBy" : "DAY_OF_MONTH",		
+		"filterPattern" : ".*(refresh|reload|save)\\.do$",
+		"groupBy" : "DAY_OF_MONTH",	
 		"timeInterval" : {
 			"after" : "06:30",
 			"before" : "23:30"
 		},
 		"sampler" : {
 			"sampleBy" : "FREQUENCY", 
-			"value" : "5"
+			"value" : "1"
+		},
+		"chartParams" : {
+			"baseUri" : "http://chart.apis.google.com/chart?",
+			"params" : {
+				"cht" : "bvg",
+				"chxt" : "x,y,r",
+				"chbh" : "r,4,1",
+				"chco" : "76A4FB",
+				"chdl" : "Daily times in ms",
+				"chs" : "750x400",
+				"chdlp" : "b",
+				"chm" : "D,FF0000,0,-1,1|N,FF0000,0,-1,9|fMilestone A,000000,0,1,15",
+				"chg" : "0,25"
+			}
 		},
 		"logFiles" : {
-			"filenamePattern" : "EXAMPLE_log_(.+)-15.log",
+			"filenamePattern" : "^EXAMPLE(.+)-12-1[567].log$",
 			"baseDirs" : ["."]
 		}
 	},
+	
 	
 	"example2" : {
 		"friendlyName" : "Another Example Log",
