@@ -54,6 +54,7 @@ import com.google.common.base.Predicates;
  * 
  * @author jorge.decastro
  */
+@SuppressWarnings("unchecked")
 public class CommandLineApplicationRunner {
 	private static final Logger LOGGER = Logger.getLogger(CommandLineApplicationRunner.class.getName());
 
@@ -103,8 +104,10 @@ public class CommandLineApplicationRunner {
 				}
 			}
 
-			@SuppressWarnings("unchecked")
-			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(config, sampler != null ? sampler : filter);
+			LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);
+
+			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(sampler != null ? sampler : filter);
+			lineByLineParser.attach(logSnapshot);
 
 			DecimalFormat df = new DecimalFormat("####.##");
 
@@ -115,7 +118,6 @@ public class CommandLineApplicationRunner {
 			int previousTotal = 0;
 			int filteredEntries = 0;
 			int previousFiltered = 0;
-			LogSnapshot<LogEntry> logSnapshot = null;
 
 			for (File f : files) {
 				filepath = f.getAbsolutePath();
@@ -123,7 +125,7 @@ public class CommandLineApplicationRunner {
 				path = f.getParent();
 
 				long start = System.nanoTime();
-				logSnapshot = lineByLineParser.filter(filepath);
+				lineByLineParser.filter(filepath);
 				long end = (System.nanoTime() - start) / 1000000;
 				totalEntries = logSnapshot.getTotalEntries() - previousTotal;
 				filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
@@ -140,7 +142,7 @@ public class CommandLineApplicationRunner {
 				// chartView.write(path, filename);
 			}
 
-			// LOGGER.info(LINE_SEPARATOR + logSnapshot.getDayStats().toString() + LINE_SEPARATOR);
+			LOGGER.info(LINE_SEPARATOR + logSnapshot.getDayStats().toString() + LINE_SEPARATOR);
 			StandardDeviationPredicate variancePredicate = new StandardDeviationPredicate();
 			LOGGER.info(String.format("Filtering by %sxStandard Deviation(s) %s", variancePredicate.getNumberOfStandardDeviations(), LINE_SEPARATOR));
 			Map<String, TimeStats<LogEntry>> filtered = logSnapshot.getDayStats().filter(variancePredicate);
@@ -154,6 +156,7 @@ public class CommandLineApplicationRunner {
 			LOGGER.info(String.format("Filtering by %sxStandard Deviation(s) and %s%% %s", variancePredicate.getNumberOfStandardDeviations(), percentagePredicate.getPercentage(), LINE_SEPARATOR));
 			filtered = logSnapshot.getDayStats().filter(Predicates.<PredicateArguments> or(percentagePredicate, variancePredicate));
 			LOGGER.info(toString(filtered));
+
 		}
 	}
 
@@ -164,15 +167,13 @@ public class CommandLineApplicationRunner {
 			sb.append(entries.getKey());
 			sb.append(LINE_SEPARATOR);
 			sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
-			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
+			for (Entry<Integer, StatisticalSummary> timeStats : entries
+					.getValue().getTimeStats().entrySet()) {
 				sb.append(LINE_SEPARATOR);
 				StatisticalSummary summary = timeStats.getValue();
 				sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-						timeStats.getKey(), 
-						summary.getN(), 
-						summary.getMean(),
-						summary.getStandardDeviation(), 
-						summary.getMax(),
+						timeStats.getKey(), summary.getN(), summary.getMean(),
+						summary.getStandardDeviation(), summary.getMax(),
 						summary.getMin()));
 			}
 			sb.append(LINE_SEPARATOR);
