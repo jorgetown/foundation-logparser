@@ -5,6 +5,7 @@ import static org.logparser.Constants.LINE_SEPARATOR;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -15,13 +16,14 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-import org.logparser.ChartParams;
-import org.logparser.Config;
-import org.logparser.Config.SamplerConfig;
 import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
+import org.logparser.config.ChartParams;
+import org.logparser.config.Config;
+import org.logparser.config.Config.SamplerConfig;
+import org.logparser.config.StatsParams;
 import org.logparser.io.ChartView;
 import org.logparser.io.CommandLineArguments;
 import org.logparser.io.CsvView;
@@ -30,13 +32,11 @@ import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
 import org.logparser.sampling.SamplingByFrequency;
 import org.logparser.sampling.SamplingByTime;
-import org.logparser.stats.PercentagePredicate;
 import org.logparser.stats.PredicateArguments;
-import org.logparser.stats.StandardDeviationPredicate;
 import org.logparser.stats.TimeStats;
 
 import com.beust.jcommander.JCommander;
-import com.google.common.base.Predicates;
+import com.google.common.base.Predicate;
 
 /**
  * Responsible for running the log parser via the command line.
@@ -75,22 +75,9 @@ public class CommandLineApplicationRunner {
 			LogFiles logfiles = config.getLogFiles();
 			File[] files = logfiles.list();
 
-			LogEntryFilter filter = new LogEntryFilter(config);
+			LogEntryFilter filter = new LogEntryFilter(config.getFilterParams());
 			// for large log files sampling is preferred/required
-			ILogEntryFilter<LogEntry> sampler = null;
-			if (config.getSampler() != null) {
-				SamplerConfig samplerConfig = config.getSampler();
-				switch (samplerConfig.sampleBy) {
-				case TIME:
-					sampler = new SamplingByTime<LogEntry>(filter, samplerConfig.value);
-					break;
-				case FREQUENCY:
-					sampler = new SamplingByFrequency<LogEntry>(filter, samplerConfig.value);
-					break;
-				default:
-					sampler = null;
-				}
-			}
+			ILogEntryFilter<LogEntry> sampler = getSamplerIfAvailable(config, filter);
 
 			LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);
 
@@ -130,27 +117,43 @@ public class CommandLineApplicationRunner {
 			}
 
 			LOGGER.info(LINE_SEPARATOR + logSnapshot.getDayStats().toString() + LINE_SEPARATOR);
-			StandardDeviationPredicate variancePredicate = new StandardDeviationPredicate();
-			LOGGER.info(String.format("Filtering by %sxStandard Deviation(s) %s", variancePredicate.getNumberOfStandardDeviations(), LINE_SEPARATOR));
-			Map<String, TimeStats<LogEntry>> filtered = logSnapshot.getDayStats().filter(variancePredicate);
-			LOGGER.info(toString(filtered));
-
-			PercentagePredicate percentagePredicate = new PercentagePredicate(30);
-			LOGGER.info(String.format("Filtering by %s%% %s", percentagePredicate.getPercentage(), LINE_SEPARATOR));
-			filtered = logSnapshot.getDayStats().filter(percentagePredicate);
-			LOGGER.info(toString(filtered));
-
-			LOGGER.info(String.format("Filtering by %sxStandard Deviation(s) and %s%% %s", variancePredicate.getNumberOfStandardDeviations(), percentagePredicate.getPercentage(), LINE_SEPARATOR));
-			filtered = logSnapshot.getDayStats().filter(Predicates.<PredicateArguments> or(percentagePredicate, variancePredicate));
-			LOGGER.info(toString(filtered));
+			StatsParams statsParams = config.getStatsParams();
+			Map<String, TimeStats<LogEntry>> filtered = new HashMap<String, TimeStats<LogEntry>>();
+			if (statsParams != null) {
+				Predicate<PredicateArguments> predicate = statsParams.getPredicate();
+				if (predicate != null) {
+					LOGGER.info(String.format("Filtering by %s %s %s", statsParams.getPredicateValue(), statsParams.getPredicateType().toString(), LINE_SEPARATOR));
+					filtered = logSnapshot.getDayStats().filter(predicate);
+					LOGGER.info(toString(filtered));				
+				}
+			}
 
 			ChartParams chartParams = config.getChartParams();
 			if (chartParams != null) {
-				GoogleChartView gcv = new GoogleChartView(chartParams.getBaseUri(), chartParams.getParams());
-				Map<String, String> urls = gcv.createChartUrls(logSnapshot.getDayStats());
+				GoogleChartView gcv = new GoogleChartView(config.getChartParams());
+				Map<String, String> urls = gcv.createChartUrls(logSnapshot.getDayStats(), filtered);
 				gcv.write(urls);	
 			}
 		}
+	}
+
+	// @TODO this should be responsibility of 'sampler params': return given filter decorated with a sampler if one is given, or return given filter 
+	private static ILogEntryFilter<LogEntry> getSamplerIfAvailable(final Config config, final LogEntryFilter filter) {
+		ILogEntryFilter<LogEntry> sampler = null;
+		if (config.getSampler() != null) {
+			SamplerConfig samplerConfig = config.getSampler();
+			switch (samplerConfig.sampleBy) {
+			case TIME:
+				sampler = new SamplingByTime<LogEntry>(filter, samplerConfig.value);
+				break;
+			case FREQUENCY:
+				sampler = new SamplingByFrequency<LogEntry>(filter, samplerConfig.value);
+				break;
+			default:
+				sampler = null;
+			}
+		}
+		return sampler;
 	}
 
 	private static Config getConfig(final CommandLineArguments cla) {
