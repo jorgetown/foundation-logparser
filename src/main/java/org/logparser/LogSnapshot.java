@@ -17,6 +17,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.logparser.config.Config;
 import org.logparser.stats.DayStats;
 import org.logparser.stats.HourStats;
 
@@ -37,7 +38,6 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 	private final List<E> filteredEntries;
 	private final DayStats<E> dayStats;
 	private final HourStats<E> hourStats;
-	private final int groupBy;
 	private transient final ObjectMapper jsonMapper;
 	private int totalEntries;
 	private final boolean filteredEntriesStored;
@@ -47,7 +47,6 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 		this.filteredEntries = new ArrayList<E>();
 		this.dayStats = new DayStats<E>();
 		this.hourStats = new HourStats<E>();
-		this.groupBy = config.groupByToCalendar();
 		this.filteredEntriesStored = config.isFilteredEntriesStored();
 		this.jsonMapper = new ObjectMapper();
 		this.decimalFormat = new DecimalFormat("####.##%");
@@ -80,10 +79,6 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 
 	public int getTotalEntries() {
 		return totalEntries;
-	}
-
-	public int getGroupBy() {
-		return groupBy;
 	}
 
 	@Override
