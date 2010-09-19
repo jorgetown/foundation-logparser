@@ -32,6 +32,7 @@ public final class LogEntry implements Serializable, ITimestampedEntry, ICsvSeri
 	private final String action;
 	private final double duration;
 	private volatile int hashCode;
+	private static ObjectMapper mapper = new ObjectMapper();
 
 	@JsonCreator
 	public LogEntry(@JsonProperty("timestamp") final long timestamp, @JsonProperty("action") final String action, @JsonProperty("duration") final double duration) {
@@ -97,7 +98,6 @@ public final class LogEntry implements Serializable, ITimestampedEntry, ICsvSeri
 	}
 
 	public String toJsonString() {
-		ObjectMapper mapper = new ObjectMapper();
 		try {
 			return mapper.writeValueAsString(this);
 			// TODO proper exception handling
@@ -110,7 +110,6 @@ public final class LogEntry implements Serializable, ITimestampedEntry, ICsvSeri
 
 	public LogEntry fromJsonString(final String jsonString) {
 		Preconditions.checkNotNull(jsonString);
-		ObjectMapper mapper = new ObjectMapper();
 		LogEntry entry = null;
 		try {
 			entry = mapper.readValue(jsonString, LogEntry.class);
