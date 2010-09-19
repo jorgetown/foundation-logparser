@@ -14,14 +14,14 @@ import com.google.common.base.Predicate;
  */
 @Immutable
 public class StandardDeviationPredicate implements Predicate<PredicateArguments> {
-	private final int noOfStandardDeviations;
+	private final double noOfStandardDeviations;
 
 	public StandardDeviationPredicate() {
 		this(1);
 	}
 
-	public StandardDeviationPredicate(final int noOfStandardDeviations) {
-		Preconditions.checkArgument(noOfStandardDeviations > 0, "Number of standard deviations must be a positive integer.");
+	public StandardDeviationPredicate(final double noOfStandardDeviations) {
+		Preconditions.checkArgument(noOfStandardDeviations > 0, "Number of standard deviations must be a positive number.");
 		this.noOfStandardDeviations = noOfStandardDeviations;
 	}
 
@@ -31,7 +31,7 @@ public class StandardDeviationPredicate implements Predicate<PredicateArguments>
 		return sd > 0 && Math.abs(delta) > sd;
 	}
 
-	public int getNumberOfStandardDeviations() {
+	public double getNumberOfStandardDeviations() {
 		return noOfStandardDeviations;
 	}
 }

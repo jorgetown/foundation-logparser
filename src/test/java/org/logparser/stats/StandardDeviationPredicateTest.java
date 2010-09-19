@@ -34,13 +34,13 @@ public class StandardDeviationPredicateTest {
 
 	@Test
 	public void testNumberOfStandardDeviationsHasDefault() {
-		assertThat(underTest.getNumberOfStandardDeviations(), is(1));
+		assertThat(underTest.getNumberOfStandardDeviations(), is(1D));
 	}
 
 	@Test
 	public void testNumberOfStandardDeviationsGivenIsNumberObtained() {
 		underTest = new StandardDeviationPredicate(3);
-		assertThat(underTest.getNumberOfStandardDeviations(), is(3));
+		assertThat(underTest.getNumberOfStandardDeviations(), is(3D));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
