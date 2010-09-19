@@ -1,11 +1,13 @@
 package org.logparser.config;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.util.Map;
 
 import net.jcip.annotations.Immutable;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -50,7 +52,7 @@ public final class ChartParams {
 		return Maps.transformValues(toEncode, encodeString);
 	}
 
-	private Function<String, String> encodeString = new Function<String, String>() {
+	private final Function<String, String> encodeString = new Function<String, String>() {
 		public String apply(final String toEncode) {
 			try {
 				return URLEncoder.encode(toEncode, ENCODING_SCHEME);
@@ -61,4 +63,13 @@ public final class ChartParams {
 			return "";
 		}
 	};
+
+	@Override
+	public String toString() {
+		return (new ReflectionToStringBuilder(this) {
+			protected boolean accept(Field f) {
+				return super.accept(f) && !f.getName().equals("encodeString");
+			}
+		}).toString();
+	}
 }
