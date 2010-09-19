@@ -20,7 +20,7 @@ import com.google.common.base.Strings;
  * 
  */
 @Immutable
-public class FilterParams {
+public final class FilterParams {
 	public static final String DEFAULT_FILTER_PATTERN = ".*";
 	private final String sampleEntry;
 	private final Pattern timestampPattern;

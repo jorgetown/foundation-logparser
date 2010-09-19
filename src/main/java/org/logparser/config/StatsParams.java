@@ -23,7 +23,7 @@ import com.google.common.base.Predicate;
  * 
  */
 @Immutable
-public class StatsParams {
+public final class StatsParams {
 	public enum GroupBy {
 		DAY_OF_MONTH, DAY_OF_WEEK
 	};
