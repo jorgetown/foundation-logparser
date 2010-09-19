@@ -66,7 +66,7 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 		return timeStats;
 	}
 
-	public Map<String, TimeStats<E>> filter(final Predicate<PredicateArguments> predicate) {
+	public Map<String, TimeStats<E>> filter(final Predicate<? super PredicateArguments> predicate) {
 		Map<String, TimeStats<E>> filtered = new TreeMap<String, TimeStats<E>>();
 		SummaryStatistics movingStats;
 		StatisticalSummary currentStats;
