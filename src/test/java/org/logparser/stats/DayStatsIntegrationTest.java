@@ -12,13 +12,15 @@ import org.apache.commons.math.stat.descriptive.StatisticalSummary;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.logparser.Config;
-import org.logparser.Config.GroupBy;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
+import org.logparser.config.Config;
+import org.logparser.config.FilterParams;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
+import org.logparser.time.ITimeInterval;
+import org.logparser.time.InfiniteTimeInterval;
 
 /**
  * Integration tests for {@link DayStats}.
@@ -29,27 +31,39 @@ import org.logparser.io.LogFiles;
 public class DayStatsIntegrationTest {
 	private Config config;
 	private LogEntryFilter underTest;
+	private FilterParams filterParams;
 
 	@Before
 	public void setup() {
+		String sampleEntry = "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14";
+		String timestampPattern = "\\[((.*?))\\]";
+		String timestampFormat = "dd/MMM/yyyy:HH:mm:ss";
+		String actionPattern = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
+		String durationPattern = "(\\d+)$";
+		String filterPattern = ".*save.do$";
+		ITimeInterval timeInterval = new InfiniteTimeInterval();
+		filterParams = new FilterParams(
+				sampleEntry, 
+				timestampPattern,
+				timestampFormat, 
+				actionPattern, 
+				durationPattern, 
+				filterPattern,
+				timeInterval);
+		
 		config = new Config();
 		config.setFriendlyName("Example Log Integration Test");
-		config.setSampleEntry("10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14");
-		config.setActionPattern("(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))");
-		config.setDurationPattern("(\\d+)$");
-		config.setFilterPattern(".*save.do$");
-		config.setTimestampFormat("dd/MMM/yyyy:HH:mm:ss");
-		config.setTimestampPattern("\\[((.*?))\\]");
-		config.setGroupBy(GroupBy.DAY_OF_MONTH);
 		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { "." });
 		config.setLogFiles(logfiles);
+		config.setFilterParams(filterParams);
 
-		underTest = new LogEntryFilter(config);
+		underTest = new LogEntryFilter(filterParams);
 	}
 
 	@After
 	public void teardown() {
 		config = null;
+		filterParams = null;
 		underTest = null;
 	}
 
