@@ -3,16 +3,18 @@ package org.logparser;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
 
 import java.io.File;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.logparser.Config.GroupBy;
+import org.logparser.config.Config;
+import org.logparser.config.FilterParams;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
+import org.logparser.time.ITimeInterval;
+import org.logparser.time.InfiniteTimeInterval;
 
 /**
  * Integration tests for {@link LogEntryFilter}s.
@@ -22,38 +24,49 @@ import org.logparser.io.LogFiles;
  */
 public class LogEntryFilterIntegrationTest {
 	private Config config;
+	private FilterParams filterParams;
 	private LogEntryFilter underTest;
 
 	@Before
 	public void setup() {
+		String sampleEntry = "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14";
+		String timestampPattern = "\\[((.*?))\\]";
+		String timestampFormat = "dd/MMM/yyyy:HH:mm:ss";
+		String actionPattern = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
+		String durationPattern = "(\\d+)$";
+		String filterPattern = ".*save.do$";
+		ITimeInterval timeInterval = new InfiniteTimeInterval();
+		filterParams = new FilterParams(
+				sampleEntry, 
+				timestampPattern,
+				timestampFormat, 
+				actionPattern, 
+				durationPattern, 
+				filterPattern,
+				timeInterval);
+
 		config = new Config();
 		config.setFriendlyName("Example Log Integration Test");
-		config.setSampleEntry("10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14");
-		config.setActionPattern("(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))");
-		config.setDurationPattern("(\\d+)$");
-		config.setFilterPattern(".*save.do$");
-		config.setTimestampFormat("dd/MMM/yyyy:HH:mm:ss");
-		config.setTimestampPattern("\\[((.*?))\\]");
-		config.setGroupBy(GroupBy.DAY_OF_MONTH);
 		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { "." });
 		config.setLogFiles(logfiles);
+		config.setFilterParams(filterParams);
 
-		underTest = new LogEntryFilter(config);
+		underTest = new LogEntryFilter(filterParams);
 	}
 
 	@After
 	public void teardown() {
 		config = null;
+		filterParams = null;
 		underTest = null;
 	}
 
 	@Test
-	public void testLogFilterSettingsGivenConfigSettings() {
-		assertThat(underTest.getActionPattern().pattern(), is(equalTo(config.getActionPattern())));
-		assertThat(underTest.getDurationPattern().pattern(), is(equalTo(config.getDurationPattern())));
-		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(config.getFilterPattern())));
-		assertThat(underTest.getTimestampPattern().pattern(), is(equalTo(config.getTimestampPattern())));
-		assertThat(underTest.getConfig(), is(sameInstance(config)));
+	public void testLogFilterSettingsAgainstGivenParams() {
+		assertThat(underTest.getActionPattern(), is(equalTo(filterParams.getActionPattern())));
+		assertThat(underTest.getDurationPattern(), is(equalTo(filterParams.getDurationPattern())));
+		assertThat(underTest.getFilterPattern(), is(equalTo(filterParams.getFilterPattern())));
+		assertThat(underTest.getTimestampPattern(), is(equalTo(filterParams.getTimestampPattern())));
 	}
 
 	@Test
@@ -68,15 +81,13 @@ public class LogEntryFilterIntegrationTest {
 		lineByLineParser.attach(logSnapshot);
 
 		String filepath;
-		int filteredEntries = 0;
 		for (File f : files) {
 			filepath = f.getAbsolutePath();
 			lineByLineParser.filter(filepath);
-			filteredEntries = logSnapshot.getFilteredEntries().size();
 		}
 		System.out.println("\n" + logSnapshot.getDayStats().toString());
 
 		assertThat(lineByLineParser.size(), is(10822));
-		assertThat(filteredEntries, is(167));
+		assertThat(logSnapshot.getFilteredEntries().size(), is(167));
 	}
 }

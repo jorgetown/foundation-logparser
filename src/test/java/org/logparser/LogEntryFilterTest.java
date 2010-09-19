@@ -5,11 +5,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.logparser.config.FilterParams;
+import org.logparser.time.ITimeInterval;
+import org.logparser.time.InfiniteTimeInterval;
 
 /**
  * Unit tests for the {@link LogEntryFilter}.
@@ -18,51 +20,55 @@ import org.junit.Test;
  */
 public class LogEntryFilterTest {
 	private static final String SAMPLE_LOG_MESSAGE = "[15/Dec/2009:00:00:15 +0000] GET /path/something.html?event=execute&eventId=37087422 HTTP/1.1 200 14 300";
+	private static final String TIMESTAMP_PATTERN = "\\[((.*?))\\]";
+	private static final String TIMESTAMP_FORMAT = "dd/MMM/yyyy:HH:mm:ss";
+	private static final String ACTION_PATTERN = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
+	private static final String DURATION_PATTERN = "HTTP.*\\s((\\d)(.*))$";
+	private static final String FILTER_PATTERN = ".*.html";
+	private ITimeInterval timeInterval = new InfiniteTimeInterval();
+
 	private LogEntryFilter underTest;
-	private Config config;
+	private FilterParams filterParams;
 
 	@Before
 	public void setUp() {
-		config = new Config();
-		config.setFriendlyName("Test Log");
-		config.setSampleEntry(SAMPLE_LOG_MESSAGE);
-		config.setTimestampPattern("\\[((.*?))\\]");
-		config.setTimestampFormat("dd/MMM/yyyy:HH:mm:ss");
-		config.setActionPattern("\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))");
-		config.setDurationPattern("HTTP.*\\s((\\d)(.*))$");
-		config.setFilterPattern(".*.html");
-		underTest = new LogEntryFilter(config);
+		filterParams = new FilterParams(
+				SAMPLE_LOG_MESSAGE, 
+				TIMESTAMP_PATTERN,
+				TIMESTAMP_FORMAT, 
+				ACTION_PATTERN, 
+				DURATION_PATTERN,
+				FILTER_PATTERN, 
+				timeInterval);
+
+		underTest = new LogEntryFilter(filterParams);
 	}
 
 	@After
 	public void tearDown() {
-		config = null;
+		timeInterval = null;
+		filterParams = null;
 		underTest = null;
 	}
 
 	@Test
-	public void testFilterActionPatternGivenConfigActionPattern() {
-		assertThat(underTest.getActionPattern().pattern(), is(equalTo(config.getActionPattern())));
+	public void testActionPatternAgainstThatOfGivenParams() {
+		assertThat(underTest.getActionPattern(), is(equalTo(filterParams.getActionPattern())));
 	}
 
 	@Test
-	public void testFilterDurationPatternGivenConfigDurationPattern() {
-		assertThat(underTest.getDurationPattern().pattern(), is(equalTo(config.getDurationPattern())));
+	public void testDurationPatternAgainstThatOfGivenParams() {
+		assertThat(underTest.getDurationPattern(), is(equalTo(filterParams.getDurationPattern())));
 	}
 
 	@Test
-	public void testFilterPatternGivenConfigFilterPattern() {
-		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(config.getFilterPattern())));
+	public void testFilterPatternGiveAgainstThatOfGivenParams() {
+		assertThat(underTest.getFilterPattern(), is(equalTo(filterParams.getFilterPattern())));
 	}
 
 	@Test
-	public void testFilterTimestampPatternGivenConfigTimestampPattern() {
-		assertThat(underTest.getTimestampPattern().pattern(), is(equalTo(config.getTimestampPattern())));
-	}
-
-	@Test
-	public void testFilterConfigGivenConfigInstance() {
-		assertThat(underTest.getConfig(), is(sameInstance(config)));
+	public void testTimestampPatternAgainstThatOfGivenParams() {
+		assertThat(underTest.getTimestampPattern(), is(equalTo(filterParams.getTimestampPattern())));
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -76,35 +82,71 @@ public class LogEntryFilterTest {
 		assertThat(underTest, is(notNullValue()));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testMalformedTimestampFormatReturnsNullEntry() {
-		config.setTimestampFormat("MMM/yyyy:HH:mm");
-		underTest = new LogEntryFilter(config);
-		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
-		assertThat(entry, is(nullValue()));
-	}
-
 	@Test
-	public void testMalformedTimestampPatternReturnsNullEntry() {
-		config.setTimestampPattern("^NOTIMESTAMP");
-		underTest = new LogEntryFilter(config);
+	public void testMalformedDurationPatternReturnsNullEntry() {
+		filterParams = new FilterParams(
+				SAMPLE_LOG_MESSAGE, 
+				TIMESTAMP_PATTERN,
+				TIMESTAMP_FORMAT, 
+				ACTION_PATTERN, 
+				"^NOTPRESENT",
+				FILTER_PATTERN, 
+				timeInterval);
+
+		underTest = new LogEntryFilter(filterParams);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
+
 		assertThat(entry, is(nullValue()));
 	}
 
 	@Test
 	public void testMalformedActionPatternReturnsNullEntry() {
-		config.setActionPattern("^NOTHERE");
-		underTest = new LogEntryFilter(config);
+		filterParams = new FilterParams(
+				SAMPLE_LOG_MESSAGE, 
+				TIMESTAMP_PATTERN,
+				TIMESTAMP_FORMAT, 
+				"^NO_THERE", 
+				DURATION_PATTERN, 
+				FILTER_PATTERN,
+				timeInterval);
+
+		underTest = new LogEntryFilter(filterParams);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
+
+		assertThat(entry, is(nullValue()));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testMalformedTimestampFormatReturnsNullEntry() {
+		filterParams = new FilterParams(
+				SAMPLE_LOG_MESSAGE, 
+				TIMESTAMP_PATTERN,
+				"MMM/yyyy:HH:mm", 
+				ACTION_PATTERN, 
+				DURATION_PATTERN,
+				FILTER_PATTERN, 
+				timeInterval);
+
+		underTest = new LogEntryFilter(filterParams);
+		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
+
 		assertThat(entry, is(nullValue()));
 	}
 
 	@Test
-	public void testMalformedDurationPatternReturnsNullEntry() {
-		config.setDurationPattern("^NOTPRESENT");
-		underTest = new LogEntryFilter(config);
+	public void testMalformedTimestampPatternReturnsNullEntry() {
+		filterParams = new FilterParams(
+				SAMPLE_LOG_MESSAGE, 
+				"^NOTIMESTAMP",
+				TIMESTAMP_FORMAT, 
+				ACTION_PATTERN, 
+				DURATION_PATTERN,
+				FILTER_PATTERN, 
+				timeInterval);
+
+		underTest = new LogEntryFilter(filterParams);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
+
 		assertThat(entry, is(nullValue()));
 	}
 

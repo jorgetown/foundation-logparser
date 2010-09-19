@@ -9,8 +9,8 @@ import java.util.regex.Pattern;
 
 import net.jcip.annotations.Immutable;
 
+import org.logparser.config.FilterParams;
 import org.logparser.time.ITimeInterval;
-import org.logparser.time.InfiniteTimeInterval;
 
 import com.google.common.base.Preconditions;
 
@@ -27,37 +27,30 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	private final Pattern durationPattern;
 	private final Pattern filterPattern;
 	private final ITimeInterval timeInterval;
-	private final Config config;
 
 	/**
 	 * The date format to expect from the log entries to be filtered.
 	 */
 	private final ThreadLocal<DateFormat> dateFormatter;
 
-	public LogEntryFilter(final Config config) {
-		Preconditions.checkNotNull(config);
-		this.config = config;
-		Preconditions.checkNotNull(config.getTimestampFormat());
-		Preconditions.checkNotNull(config.getTimestampPattern());
-		Preconditions.checkNotNull(config.getActionPattern());
-		Preconditions.checkNotNull(config.getDurationPattern());
-		Preconditions.checkNotNull(config.getFilterPattern());
+	public LogEntryFilter(final FilterParams filterParams) {
+		Preconditions.checkNotNull(filterParams);
+		Preconditions.checkNotNull(filterParams.getTimestampFormat());
+		Preconditions.checkNotNull(filterParams.getTimestampPattern());
+		Preconditions.checkNotNull(filterParams.getActionPattern());
+		Preconditions.checkNotNull(filterParams.getDurationPattern());
+		Preconditions.checkNotNull(filterParams.getFilterPattern());
 		this.dateFormatter = new ThreadLocal<DateFormat>() {
 			@Override
 			protected DateFormat initialValue() {
-				return new SimpleDateFormat(config.getTimestampFormat());
+				return new SimpleDateFormat(filterParams.getTimestampFormat());
 			}
 		};
-		this.timestampPattern = Pattern.compile(config.getTimestampPattern());
-		this.actionPattern = Pattern.compile(config.getActionPattern());
-		this.durationPattern = Pattern.compile(config.getDurationPattern());
-		this.filterPattern = Pattern.compile(config.getFilterPattern());
-
-		if (config.getTimeInterval() != null) {
-			this.timeInterval = config.getTimeInterval();
-		} else {
-			this.timeInterval = new InfiniteTimeInterval();
-		}
+		this.timestampPattern = filterParams.getTimestampPattern();
+		this.actionPattern = filterParams.getActionPattern();
+		this.durationPattern = filterParams.getDurationPattern();
+		this.filterPattern = filterParams.getFilterPattern();
+		this.timeInterval = filterParams.getTimeInterval();
 	}
 
 	public LogEntry parse(final String text) {
@@ -89,7 +82,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 		} catch (ParseException pe) {
 			// If the date format is wrong, fail quickly
 			throw new IllegalArgumentException(
-					String.format("Check timestamp regex '%s' or timestamp format '%s'; unable to parse '%s'", config.getTimestampPattern(), config.getTimestampFormat(), dateTime), pe);
+					String.format("Check timestamp regex '%s' or timestamp format '%s'; unable to parse '%s'", getTimestampPattern(), getTimestampFormat(), dateTime), pe);
 		}
 		return date;
 	}
@@ -113,12 +106,12 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	public Pattern getFilterPattern() {
 		return filterPattern;
 	}
+	
+	public String getTimestampFormat() {
+		return dateFormatter.get().toString();
+	}
 
 	public ITimeInterval getTimeInterval() {
 		return timeInterval;
-	}
-
-	public Config getConfig() {
-		return config;
 	}
 }
