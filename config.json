@@ -1,20 +1,64 @@
 {
 	"example" : {
 		"friendlyName" : "Example Log",
-		"sampleEntry" : "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14",
-		"timestampPattern" : "\\[((.*?))\\]",
-		"timestampFormat" : "dd/MMM/yyyy:HH:mm:ss",
-		"actionPattern" : "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
-		"durationPattern" : "(\\d+)$",
-		"filterPattern" : ".*(refresh|reload|save)\\.do$",
-		"groupBy" : "DAY_OF_MONTH",	
-		"timeInterval" : {
-			"after" : "06:30",
-			"before" : "23:30"
+		"filterParams" : {
+			"sampleEntry" : "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14",
+			"timestampPattern" : "\\[((.*?))\\]",
+			"timestampFormat" : "dd/MMM/yyyy:HH:mm:ss",
+			"actionPattern" : "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
+			"durationPattern" : "(\\d+)$",
+			"filterPattern" : ".*(refresh|reload|save)\\.do$"
+			
 		},
 		"sampler" : {
 			"sampleBy" : "FREQUENCY", 
 			"value" : "1"
+		},
+		"statsParams" : {
+			"groupBy" : "DAY_OF_MONTH",	
+			"predicateType" : "STDEV",
+			"predicateValue" : "1"
+		},
+		"chartParams" : {
+			"baseUri" : "http://chart.apis.google.com/chart?",
+			"params" : {
+				"cht" : "bvg",
+				"chxt" : "x,y,r",
+				"chbh" : "r,4,1",
+				"chco" : "76A4FB",
+				"chdl" : "Daily times in ms",
+				"chs" : "750x400",
+				"chdlp" : "b",
+				"chm" : "D,FF0000,0,-1,1|N,FF0000,0,-1,9|f1.9.2,000000,0,9,15",
+				"chxtc" : "1,5,2|2,-800",
+				"chxs" : "2,C2BDDD,10,1,t,C2BDDD"
+			}
+		},
+		"logFiles" : {
+			"filenamePattern" : "^EXAMPLE(.+)-12-\\d{2}.log$",
+			"baseDirs" : ["."]
+		}
+	},
+	
+	
+	"example2" : {
+		"friendlyName" : "Another Example Log",
+		"filterParams" : {
+			"sampleEntry" : "2010-07-01 22:59:14,014 [http-8080-exec-8] INFO com.web.filter.PerformanceLoggingFilter - /example/cms-event/editorchoice.do 23ms",
+			"timestampPattern" : "^((\\d{4}-\\d{2}-\\d{2}.*)?)\\s\\[",
+			"timestampFormat" : "yyyy-MM-dd HH:mm:ss,SSS",
+			"actionPattern" : "\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
+			"durationPattern" : "\\s((\\d)*)ms$",
+			"filterPattern" : ".*.do"
+		},
+		"statsParams" : {
+			"groupBy" : "DAY_OF_MONTH",	
+			"predicateType" : "PERCENTAGE",
+			"predicateValue" : "30"
+		},		
+		"sampler" : {  		
+			"sampleBy" : "FREQUENCY",   		
+			"value" : "10"
 		},
 		"chartParams" : {
 			"baseUri" : "http://chart.apis.google.com/chart?",
@@ -29,26 +73,6 @@
 				"chm" : "D,FF0000,0,-1,1|N,FF0000,0,-1,9|fMilestone A,000000,0,1,15",
 				"chg" : "0,25"
 			}
-		},
-		"logFiles" : {
-			"filenamePattern" : "^EXAMPLE(.+)-12-1[567].log$",
-			"baseDirs" : ["."]
-		}
-	},
-	
-	
-	"example2" : {
-		"friendlyName" : "Another Example Log",
-		"sampleEntry" : "2010-07-01 22:59:14,014 [http-8080-exec-8] INFO com.web.filter.PerformanceLoggingFilter - /example/cms-event/editorchoice.do 23ms",
-		"timestampPattern" : "^((\\d{4}-\\d{2}-\\d{2}.*)?)\\s\\[",
-		"timestampFormat" : "yyyy-MM-dd HH:mm:ss,SSS",
-		"actionPattern" : "\\[.*?\\].*\\s(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
-		"durationPattern" : "\\s((\\d)*)ms$",
-		"filterPattern" : ".*.do",
-		"groupBy" : "DAY_OF_MONTH",		
-		"sampler" : {  		
-			"sampleBy" : "FREQUENCY",   		
-			"value" : "10"
 		},  
 		"logFiles" : {
 			"filenamePattern" : "EXAMPLE_2_cms.log",
