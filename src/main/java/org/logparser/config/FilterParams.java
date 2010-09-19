@@ -7,9 +7,11 @@ import net.jcip.annotations.Immutable;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.logparser.ILogEntryFilter;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
+import org.logparser.time.TimeInterval;
 
 import com.google.common.base.Strings;
 
@@ -39,7 +41,7 @@ public final class FilterParams {
 			@JsonProperty("actionPattern") final String actionPattern,
 			@JsonProperty("durationPattern") final String durationPattern,
 			@JsonProperty("filterPattern") final String filterPattern,
-			@JsonProperty("timeInterval") final ITimeInterval timeInterval) {
+			@JsonProperty("timeInterval") @JsonDeserialize(as=TimeInterval.class) final ITimeInterval timeInterval) {
 
 		if (Strings.isNullOrEmpty(timestampPattern)) {
 			throw new IllegalArgumentException("'timestampPattern' property is required. Check configuration file.");
