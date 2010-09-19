@@ -13,7 +13,7 @@ import org.logparser.io.LogFiles;
  * @author jorge.decastro
  * @TODO split it, as it became the 'The Bloated One'
  */
-public final class Config {
+public class Config {
 	public static final String DEFAULT_DECIMAL_FORMAT = "#####.#####";
 
 	private String friendlyName;

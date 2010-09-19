@@ -8,10 +8,8 @@ import static org.hamcrest.Matchers.notNullValue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.logparser.io.LogFiles;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.logparser.time.InfiniteTimeInterval;
 
 /**
  * Tests for the {@link Config}.
@@ -19,16 +17,16 @@ import org.mockito.runners.MockitoJUnitRunner;
  * @author jorge.decastro
  * 
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ConfigTest {
 	private static final String[] BASE_DIRS = new String[] { "." };
 	private static final String FILENAME_PATTERN = ".*.log";
 	private Config underTest;
-	@Mock
-	FilterParams filterParams;
+	private FilterParams filterParams;
 
 	@Before
 	public void setUp() {
+		filterParams = new FilterParams(".*", ".*", ".*", ".*", ".*", ".*", new InfiniteTimeInterval());
+
 		underTest = new Config();
 		underTest.setFriendlyName("Test Log");
 		underTest.setLogFiles(new LogFiles(FILENAME_PATTERN, BASE_DIRS));
@@ -47,7 +45,6 @@ public class ConfigTest {
 		assertThat(underTest.getLogFiles(), is(notNullValue()));
 		assertThat(underTest.getLogFiles().getBaseDirs(), is(equalTo(BASE_DIRS)));
 		assertThat(underTest.getLogFiles().getFilenamePattern().pattern(), is(equalTo(FILENAME_PATTERN)));
-
 	}
 
 	@Test
