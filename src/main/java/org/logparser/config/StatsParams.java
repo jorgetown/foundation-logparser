@@ -37,7 +37,6 @@ public final class StatsParams {
 	private final double predicateValue;
 	private final Predicate<PredicateArguments> predicate;
 
-	@JsonCreator
 	public StatsParams(@JsonProperty("predicateType") final PredicateType predicateType, @JsonProperty("predicateValue") final double predicateValue) {
 		this(predicateType, predicateValue, GroupBy.DAY_OF_MONTH);
 	}
