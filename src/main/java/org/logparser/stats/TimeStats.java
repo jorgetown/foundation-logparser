@@ -29,7 +29,7 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 @JsonPropertyOrder({ "timeStats" })
-public class TimeStats<E extends ITimestampedEntry> extends AbstractStats<E> {
+public final class TimeStats<E extends ITimestampedEntry> extends AbstractStats<E> {
 	public static final int DEFAULT_TIME_CRITERIA = Calendar.DAY_OF_MONTH;
 	private static final long serialVersionUID = 3662219442973110796L;
 	private final Map<Integer, StatisticalSummary> timeStats;
@@ -51,11 +51,15 @@ public class TimeStats<E extends ITimestampedEntry> extends AbstractStats<E> {
 		Preconditions.checkNotNull(newEntry);
 		calendar.setTimeInMillis(newEntry.getTimestamp());
 		int time = calendar.get(timeCriteria);
+		// keying just by day of month (when that's the chosen criteria) doesn't work when data spans multiple months
+		if (timeCriteria == Calendar.DAY_OF_MONTH) {
+			time = Integer.valueOf(dateFormatter.get().format(calendar.getTime()));
+		}
 		SummaryStatistics summaryStatistics = getNewOrExistingSummaryStatistics(time);
 		summaryStatistics.addValue(newEntry.getDuration());
 		timeStats.put(time, summaryStatistics);
 	}
-	
+
 	public void add(final int time, final StatisticalSummary stats) {
 		Preconditions.checkNotNull(stats);
 		timeStats.put(time, stats);

@@ -35,7 +35,7 @@ public class DayStatsIntegrationTest {
 
 	@Before
 	public void setup() {
-		String sampleEntry = "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14";
+		String sampleEntry = "10.117.101.80 - - [15/Dec/2008:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14";
 		String timestampPattern = "\\[((.*?))\\]";
 		String timestampFormat = "dd/MMM/yyyy:HH:mm:ss";
 		String actionPattern = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
@@ -90,9 +90,9 @@ public class DayStatsIntegrationTest {
 		TimeStats<LogEntry> timeStats = dayStats.get("/save.do");
 
 		assertThat(timeStats, is(notNullValue()));
-		assertThat(timeStats.getTimeStats().keySet(), hasItem(15));
+		assertThat(timeStats.getTimeStats().keySet(), hasItem(20081215));
 
-		StatisticalSummary stats = timeStats.getSummaryStatistics(15);
+		StatisticalSummary stats = timeStats.getSummaryStatistics(20081215);
 
 		assertThat(stats.getN(), is(167L));
 		assertThat(stats.getMean(), is(71.55089820359282D));

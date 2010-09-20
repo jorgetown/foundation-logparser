@@ -3,6 +3,7 @@ package org.logparser.stats;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Calendar;
@@ -87,7 +88,8 @@ public class TimeStatsTest {
 	public void testStatisticalSummaryOfSingleAddedLogEntry() {
 		underTest.add(entryXAtTimeA);
 		assertThat(underTest.getTimeStats().size(), is(1));
-		StatisticalSummary summary = underTest.getSummaryStatistics(27);
+		StatisticalSummary summary = underTest.getSummaryStatistics(20100727);
+		assertThat(summary, is(notNullValue()));
 		assertThat(summary.getN(), is(1L));
 		assertThat(summary.getMean(), is(1000D));
 		assertThat(summary.getStandardDeviation(), is(0D));
@@ -100,7 +102,8 @@ public class TimeStatsTest {
 		underTest.add(entryXAtTimeA);
 		underTest.add(entryYAtTimeA);
 		assertThat(underTest.getTimeStats().size(), is(1));
-		StatisticalSummary summary = underTest.getSummaryStatistics(27);
+		StatisticalSummary summary = underTest.getSummaryStatistics(20100727);
+		assertThat(summary, is(notNullValue()));
 		assertThat(summary.getN(), is(2L));
 		assertThat(summary.getMean(), is(1500D));
 		assertThat(summary.getStandardDeviation(), is(707.1067811865476D));
@@ -115,13 +118,15 @@ public class TimeStatsTest {
 		underTest.add(entryXAtTimeB);
 		underTest.add(entryYAtTimeB);
 		assertThat(underTest.getTimeStats().size(), is(2));
-		StatisticalSummary summary = underTest.getSummaryStatistics(27);
+		StatisticalSummary summary = underTest.getSummaryStatistics(20100727);
+		assertThat(summary, is(notNullValue()));
 		assertThat(summary.getN(), is(2L));
 		assertThat(summary.getMean(), is(1500D));
 		assertThat(summary.getStandardDeviation(), is(707.1067811865476D));
 		assertThat(summary.getMax(), is(2000D));
 		assertThat(summary.getMin(), is(1000D));
-		summary = underTest.getSummaryStatistics(31);
+		summary = underTest.getSummaryStatistics(20100731);
+		assertThat(summary, is(notNullValue()));
 		assertThat(summary.getN(), is(2L));
 		assertThat(summary.getMean(), is(3500D));
 		assertThat(summary.getStandardDeviation(), is(707.1067811865476D));

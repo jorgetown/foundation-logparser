@@ -80,7 +80,7 @@ public class DayStatsTest {
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryXAtTimeA.getAction()));
 		TimeStats<LogEntry> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
 		assertThat(timeStats.getTimeStats().size(), is(1));
-		assertThat(timeStats.getTimeStats().keySet(), hasItem(27));
+		assertThat(timeStats.getTimeStats().keySet(), hasItem(20100727));
 	}
 
 	@Test
@@ -91,8 +91,8 @@ public class DayStatsTest {
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryXAtTimeA.getAction()));
 		TimeStats<LogEntry> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
 		assertThat(timeStats.getTimeStats().size(), is(2));
-		assertThat(timeStats.getTimeStats().keySet(), hasItem(27));
-		assertThat(timeStats.getTimeStats().keySet(), hasItem(31));
+		assertThat(timeStats.getTimeStats().keySet(), hasItem(20100727));
+		assertThat(timeStats.getTimeStats().keySet(), hasItem(20100731));
 	}
 
 	@Test
@@ -104,10 +104,10 @@ public class DayStatsTest {
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryYAtTimeA.getAction()));
 		TimeStats<LogEntry> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
 		assertThat(timeStats.getTimeStats().size(), is(1));
-		assertThat(timeStats.getTimeStats().keySet(), hasItem(27));
+		assertThat(timeStats.getTimeStats().keySet(), hasItem(20100727));
 		timeStats = underTest.getTimeStats(entryYAtTimeA.getAction());
 		assertThat(timeStats.getTimeStats().size(), is(1));
-		assertThat(timeStats.getTimeStats().keySet(), hasItem(27));
+		assertThat(timeStats.getTimeStats().keySet(), hasItem(20100727));
 	}
 
 	@Test
