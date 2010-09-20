@@ -7,10 +7,8 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.math.stat.descriptive.StatisticalSummary;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -32,8 +30,10 @@ import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
 import org.logparser.sampling.SamplingByFrequency;
 import org.logparser.sampling.SamplingByTime;
+import org.logparser.stats.DayStats;
 import org.logparser.stats.PredicateArguments;
 import org.logparser.stats.TimeStats;
+import org.logparser.stats.WeekDayStats;
 
 import com.beust.jcommander.JCommander;
 import com.google.common.base.Predicate;
@@ -83,8 +83,18 @@ public class CommandLineApplicationRunner {
 
 			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(sampler != null ? sampler : filter);
 			lineByLineParser.attach(logSnapshot);
+			
+			StatsParams statsParams = config.getStatsParams();
+			DayStats<LogEntry> dayStats = null;
+			WeekDayStats<LogEntry> weekStats = null;
+			if (statsParams != null) {
+				dayStats = new DayStats<LogEntry>();
+				weekStats = new WeekDayStats<LogEntry>();
+				lineByLineParser.attach(dayStats);
+				lineByLineParser.attach(weekStats);
+			}
 
-			DecimalFormat df = new DecimalFormat("####.##");
+			DecimalFormat df = new DecimalFormat("#.##");
 
 			String filepath;
 			String path = null;
@@ -116,23 +126,24 @@ public class CommandLineApplicationRunner {
 				}
 			}
 
-			LOGGER.info(LINE_SEPARATOR + logSnapshot.getDayStats().toString() + LINE_SEPARATOR);
-			StatsParams statsParams = config.getStatsParams();
-			Map<String, TimeStats<LogEntry>> filtered = new HashMap<String, TimeStats<LogEntry>>();
-			if (statsParams != null) {
-				Predicate<PredicateArguments> predicate = statsParams.getPredicate();
-				if (predicate != null) {
-					LOGGER.info(String.format("Filtering by %s %s %s", statsParams.getPredicateValue(), statsParams.getPredicateType().toString(), LINE_SEPARATOR));
-					filtered = logSnapshot.getDayStats().filter(predicate);
-					LOGGER.info(toString(filtered));				
+			if (dayStats != null) {
+				LOGGER.info(LINE_SEPARATOR + dayStats.toString() + LINE_SEPARATOR);
+				LOGGER.info(LINE_SEPARATOR + weekStats.toString() + LINE_SEPARATOR);
+				Map<String, TimeStats<LogEntry>> filtered = new HashMap<String, TimeStats<LogEntry>>();
+				if (statsParams != null) {
+					Predicate<PredicateArguments> predicate = statsParams.getPredicate();
+					if (predicate != null) {
+						LOGGER.info(String.format("Filtering by %s %s %s", statsParams.getPredicateValue(), statsParams.getPredicateType().toString(), LINE_SEPARATOR));
+						filtered = dayStats.filter(predicate);
+						LOGGER.info(dayStats.toString(filtered));				
+					}
 				}
-			}
-
-			ChartParams chartParams = config.getChartParams();
-			if (chartParams != null) {
-				GoogleChartView gcv = new GoogleChartView(config.getChartParams());
-				Map<String, String> urls = gcv.createChartUrls(logSnapshot.getDayStats(), filtered);
-				gcv.write(urls);	
+				ChartParams chartParams = config.getChartParams();
+				if (chartParams != null) {
+					GoogleChartView gcv = new GoogleChartView(config.getChartParams());
+					Map<String, String> urls = gcv.createChartUrls(dayStats, filtered);
+					gcv.write(urls);	
+				}
 			}
 		}
 	}
@@ -174,28 +185,5 @@ public class CommandLineApplicationRunner {
 			ioe.printStackTrace();
 		}
 		return config;
-	}
-
-	public static String toString(final Map<String, TimeStats<LogEntry>> input) {
-		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
-		sb.append(LINE_SEPARATOR);
-		for (Entry<String, TimeStats<LogEntry>> entries : input.entrySet()) {
-			sb.append(entries.getKey());
-			sb.append(LINE_SEPARATOR);
-			sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
-			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
-				sb.append(LINE_SEPARATOR);
-				StatisticalSummary summary = timeStats.getValue();
-				sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-						timeStats.getKey(), 
-						summary.getN(), 
-						summary.getMean(),
-						summary.getStandardDeviation(), 
-						summary.getMax(),
-						summary.getMin()));
-			}
-			sb.append(LINE_SEPARATOR);
-		}
-		return sb.toString();
 	}
 }
