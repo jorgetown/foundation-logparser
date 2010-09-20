@@ -85,7 +85,7 @@ public class LogEntryFilterIntegrationTest {
 			filepath = f.getAbsolutePath();
 			lineByLineParser.filter(filepath);
 		}
-		System.out.println("\n" + logSnapshot.getDayStats().toString());
+		System.out.println("\n" + logSnapshot.toString());
 
 		assertThat(lineByLineParser.size(), is(10822));
 		assertThat(logSnapshot.getFilteredEntries().size(), is(167));

@@ -65,7 +65,6 @@ public class LogSnapshotTest {
 		assertThat(underTest, is(notNullValue()));
 		assertThat(underTest.getFilteredEntries().size(), is(0));
 		assertThat(underTest.getTotalEntries(), is(0));
-		assertThat(underTest.getDayStats().getDayStats().size(), is(0));
 		assertThat(underTest.getHourStats().getHourStats().size(), is(0));
 	}
 
@@ -139,7 +138,6 @@ public class LogSnapshotTest {
 	public void testStatsWithNullConsumedEntry() {
 		underTest.consume(null);
 
-		assertThat(underTest.getDayStats().getDayStats().size(), is(0));
 		assertThat(underTest.getHourStats().getHourStats().size(), is(0));
 	}
 
@@ -147,9 +145,7 @@ public class LogSnapshotTest {
 	public void testStatsWithSingleConsumedEntry() {
 		underTest.consume(entryA);
 
-		assertThat(underTest.getDayStats().getDayStats().size(), is(1));
 		assertThat(underTest.getHourStats().getHourStats().size(), is(1));
-		assertThat(underTest.getDayStats().getDayStats().keySet(), hasItem("/action.a"));
 		assertThat(underTest.getHourStats().getHourStats().size(), is(1));
 		assertThat(underTest.getHourStats().getHourStats().keySet(), hasItem("/action.a"));
 	}
@@ -159,10 +155,7 @@ public class LogSnapshotTest {
 		underTest.consume(entryA);
 		underTest.consume(entryB);
 
-		assertThat(underTest.getDayStats().getDayStats().size(), is(2));
 		assertThat(underTest.getHourStats().getHourStats().size(), is(2));
-		assertThat(underTest.getDayStats().getDayStats().keySet(), hasItem("/action.a"));
-		assertThat(underTest.getDayStats().getDayStats().keySet(), hasItem("/action.b"));
 		assertThat(underTest.getHourStats().getHourStats().keySet(), hasItem("/action.a"));
 		assertThat(underTest.getHourStats().getHourStats().keySet(), hasItem("/action.b"));
 	}

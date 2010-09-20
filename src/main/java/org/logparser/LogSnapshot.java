@@ -18,7 +18,6 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.logparser.config.Config;
-import org.logparser.stats.DayStats;
 import org.logparser.stats.HourStats;
 
 import com.google.common.base.Preconditions;
@@ -36,7 +35,6 @@ import com.google.common.base.Preconditions;
 public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializable<LogSnapshot<E>>, ICsvSerializable<LogSnapshot<E>>, IObserver<E> {
 	private final DecimalFormat decimalFormat;
 	private final List<E> filteredEntries;
-	private final DayStats<E> dayStats;
 	private final HourStats<E> hourStats;
 	private transient final ObjectMapper jsonMapper;
 	private int totalEntries;
@@ -45,7 +43,6 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 	public LogSnapshot(final Config config) {
 		Preconditions.checkNotNull(config);
 		this.filteredEntries = new ArrayList<E>();
-		this.dayStats = new DayStats<E>();
 		this.hourStats = new HourStats<E>();
 		this.filteredEntriesStored = config.isFilteredEntriesStored();
 		this.jsonMapper = new ObjectMapper();
@@ -60,13 +57,8 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 			if (filteredEntriesStored) {
 				filteredEntries.add(entry);
 			}
-			dayStats.add(entry);
-			hourStats.add(entry);
+			hourStats.consume(entry);
 		}
-	}
-
-	public DayStats<E> getDayStats() {
-		return dayStats;
 	}
 
 	public HourStats<E> getHourStats() {
@@ -83,7 +75,7 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 
 	@Override
 	public String toString() {
-		return dayStats.toString();
+		return "";
 	}
 
 	public String toJsonString() {
@@ -100,7 +92,6 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 	public String toCsvString() {
 		StringBuilder sb = new StringBuilder("DAILY BREAKDOWN");
 		sb.append(LINE_SEPARATOR);
-		sb.append(dayStats.toCsvString());
 		sb.append(LINE_SEPARATOR);
 		sb.append(LINE_SEPARATOR);
 		sb.append("HOURLY BREAKDOWN");
