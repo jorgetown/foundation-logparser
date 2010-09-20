@@ -75,6 +75,11 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 		}
 	}
 
+	@Override
+	public String getFormattedLabel(final int key) {
+		return weekdayNoToString(key);
+	}
+
 	private String weekdayNoToString(final int day) {
 		switch (day) {
 		case 1:

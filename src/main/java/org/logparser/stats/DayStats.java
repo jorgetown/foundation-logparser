@@ -50,14 +50,14 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 	public DayStats() {
 		dayStats = new TreeMap<String, TimeStats<E>>();
 		jsonMapper = new ObjectMapper();
-		// TODO inject as constructor argument
+		// TODO inject as constructor argument?
 		this.outputFormat = new ThreadLocal<DateFormat>() {
 			@Override
 			protected DateFormat initialValue() {
 				return new SimpleDateFormat(DEFAULT_REPORT_DATE_FORMAT);
 			}
 		};
-		// TODO inject as constructor argument
+		// TODO inject as constructor argument?
 		df = new DecimalFormat(DEFAULT_DECIMAL_FORMAT);
 	}
 
@@ -112,11 +112,17 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 		return Collections.unmodifiableMap(dayStats);
 	}
 
+	@JsonIgnore
+	public String getFormattedLabel(final int date) {
+		DateFormat to = new SimpleDateFormat("M/d");
+		return formatDate(to, "" + date);
+	}
+
 	@Override
 	public String toString() {
 		return toString(dayStats);
 	}
-	
+
 	public String toString(final Map<String, TimeStats<E>> dayStats) {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 		for (Entry<String, TimeStats<E>> entries : dayStats.entrySet()) {
@@ -135,10 +141,10 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 			sb.append(LINE_SEPARATOR);
 			StatisticalSummary summary = timeStats.getValue();
 			sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-					formatDate(outputFormat.get(), ""+timeStats.getKey()),
-					summary.getN(), 
+					formatDate(outputFormat.get(), "" + timeStats.getKey()),
+					summary.getN(),
 					Double.valueOf(df.format(summary.getMean())),
-					Double.valueOf(df.format(summary.getStandardDeviation())), 
+					Double.valueOf(df.format(summary.getStandardDeviation())),
 					Double.valueOf(df.format(summary.getMax())),
 					Double.valueOf(df.format(summary.getMin()))));
 		}
@@ -160,8 +166,8 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
 			StatisticalSummary summary = timeStats.getValue();
-			sb.append(String.format(", %s, %s, %s, %s, %s, %s", 
-					formatDate(outputFormat.get(), ""+timeStats.getKey()), 
+			sb.append(String.format(", %s, %s, %s, %s, %s, %s",
+					formatDate(outputFormat.get(), "" + timeStats.getKey()),
 					summary.getN(), 
 					StringEscapeUtils.escapeCsv(df.format(summary.getMean())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())), 
@@ -169,7 +175,7 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 					StringEscapeUtils.escapeCsv(df.format(summary.getMin()))));
 		}
 	}
-	
+
 	public DayStats<E> fromCsvString(final String csvString) {
 		throw new NotImplementedException("DayStats does not implement CSV deserialization.");
 	}
