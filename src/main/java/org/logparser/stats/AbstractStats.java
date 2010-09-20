@@ -20,7 +20,9 @@ import com.google.common.base.Preconditions;
 public abstract class AbstractStats<E> implements Serializable, IObserver<E> {
 	private static final Logger LOGGER = Logger.getLogger(AbstractStats.class.getName());
 	private static final long serialVersionUID = -5699879056725405682L;
-	
+
+	protected static final String DEFAULT_REPORT_DATE_FORMAT = "MM/dd";
+	protected static final String DEFAULT_DECIMAL_FORMAT = "#.##";
 	protected static final String DATE_FORMAT = "yyyyMMdd";
 	protected ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
 		@Override

@@ -41,8 +41,6 @@ import com.google.common.base.Predicate;
 @Immutable
 @JsonPropertyOrder({ "dayStats" })
 public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> implements ICsvSerializable<DayStats<E>>, IJsonSerializable<DayStats<E>> {
-	public static final String DEFAULT_REPORT_DATE_FORMAT = "MM/dd";
-	public static final String DEFAULT_DECIMAL_FORMAT = "#.##";
 	private static final long serialVersionUID = 6551391859868552192L;
 	protected final Map<String, TimeStats<E>> dayStats;
 	protected transient final ObjectMapper jsonMapper;
