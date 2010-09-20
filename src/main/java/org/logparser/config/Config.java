@@ -11,10 +11,10 @@ import org.logparser.io.LogFiles;
  * Contains configuration parameters for the participants.
  * 
  * @author jorge.decastro
- * @TODO split it, as it became the 'The Bloated One'
+ * TODO split it, as it became the 'The Bloated One'
  */
 public class Config {
-	public static final String DEFAULT_DECIMAL_FORMAT = "#####.#####";
+	public static final String DEFAULT_DECIMAL_FORMAT = "#.#####";
 
 	private String friendlyName;
 	private FilterParams filterParams;

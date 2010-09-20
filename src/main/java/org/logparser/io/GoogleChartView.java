@@ -95,7 +95,7 @@ public class GoogleChartView {
 		}
 	}
 	
-	// @TODO Oi. How did you get so big and clumsy?
+	// TODO Oi. How did you get so big and clumsy?
 	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Map<String, TimeStats<LogEntry>> alerts) {
 		Map<String, String> urls = new HashMap<String, String>();
 		
