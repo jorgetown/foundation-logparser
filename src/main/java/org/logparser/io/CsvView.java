@@ -5,8 +5,11 @@ import static org.logparser.Constants.FILE_SEPARATOR;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.logparser.Constants;
 import org.logparser.ICsvSerializable;
 
 import com.google.common.base.Preconditions;
@@ -24,21 +27,26 @@ public class CsvView {
 	public CsvView() {
 	}
 
-	public <T> void write(final String path, final String filename, ICsvSerializable<T> csvSerializable) {
+	public <T> void write(final String path, final String filename, final ICsvSerializable<T>... csvSerializables) {
 		Preconditions.checkNotNull(path);
 		Preconditions.checkNotNull(filename);
-		Preconditions.checkNotNull(csvSerializable);
+		Preconditions.checkNotNull(csvSerializables);
 
-		write(path, filename, csvSerializable.toCsvString());
+		write(path, filename, Arrays.asList(csvSerializables));
 	}
 
-	private void write(final String path, final String filename, final String csvSerializable) {
+	private <T> void write(final String path, final String filename, final List<ICsvSerializable<T>> csvSerializables) {
 		String filepath = String.format("%s%s%s.csv", path, FILE_SEPARATOR, filename);
+		
+		LOGGER.info(String.format("Writing CSV file '%s'", filepath));
 
 		BufferedWriter out = null;
 		try {
 			out = new BufferedWriter(new FileWriter(filepath));
-			out.write(csvSerializable);
+			for (ICsvSerializable<T> csvSerializable : csvSerializables) {
+				out.write(csvSerializable.toCsvString());
+				out.write(Constants.LINE_SEPARATOR);
+			}
 			out.close();
 		} catch (IOException ioe) {
 			LOGGER.warn(String.format("IO error writing to path '%s'", filepath), ioe);

@@ -119,7 +119,7 @@ public class CommandLineApplicationRunner {
 
 			if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(filename)) {
 				CsvView csvView = new CsvView();
-				csvView.write(path, filename, logSnapshot);
+				csvView.write(path, filename, dayStats, weekStats);
 				if (config.isFilteredEntriesStored()) {
 					ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
 					chartView.write(path, filename);					
@@ -142,13 +142,15 @@ public class CommandLineApplicationRunner {
 				if (chartParams != null) {
 					GoogleChartView gcv = new GoogleChartView(config.getChartParams());
 					Map<String, String> urls = gcv.createChartUrls(dayStats, filtered);
-					gcv.write(urls);	
+					gcv.write(urls, "png", "daily_");
+					urls = gcv.createChartUrls(weekStats, filtered);
+					gcv.write(urls, "png", "weekly_");
 				}
 			}
 		}
 	}
 
-	// @TODO this should be responsibility of 'sampler params': return given filter decorated with a sampler if one is given, or return given filter 
+	// TODO this should be responsibility of 'sampler params': return given filter decorated with a sampler if one is given, or return given filter 
 	private static ILogEntryFilter<LogEntry> getSamplerIfAvailable(final Config config, final LogEntryFilter filter) {
 		ILogEntryFilter<LogEntry> sampler = null;
 		if (config.getSampler() != null) {
