@@ -3,6 +3,7 @@ package org.logparser.stats;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Map;
@@ -42,11 +43,14 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 	private final Map<String, Map<Integer, TimeStats<E>>> hourStats;
 	private final Calendar calendar;
 	private transient final ObjectMapper jsonMapper;
+	private final DecimalFormat df;
 
 	public HourStats() {
 		hourStats = new TreeMap<String, Map<Integer, TimeStats<E>>>();
 		calendar = Calendar.getInstance();
 		jsonMapper = new ObjectMapper();
+		// TODO inject as constructor argument?
+		df = new DecimalFormat(DEFAULT_DECIMAL_FORMAT);
 	}
 
 	@Override
@@ -103,28 +107,32 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 			sb.append(entries.getKey());
 			sb.append(LINE_SEPARATOR);
 
-			for (Entry<Integer, TimeStats<E>> values : entries.getValue().entrySet()) {
-				sb.append("\tDay, ");
-				for (Integer i : values.getValue().getTimeStats().keySet()) {
-					sb.append("\t#, \tMean, \tStandard Deviation, \tMax, \tMin\t");
-				}
-				sb.append(LINE_SEPARATOR);
-				sb.append("\t");
-				sb.append(values.getKey());
-				sb.append(",");
-				for (Entry<Integer, StatisticalSummary> stats : values.getValue().getTimeStats().entrySet()) {
-					StatisticalSummary summary = stats.getValue();
-					sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s\t",
-							summary.getN(), 
-							summary.getMean(),
-							summary.getStandardDeviation(), 
-							summary.getMax(),
-							summary.getMin()));
-				}
-				sb.append(LINE_SEPARATOR);
-			}
+			writeColumns(sb, entries);
 		}
 		return sb.toString();
+	}
+
+	private void writeColumns(StringBuilder sb, final Entry<String, Map<Integer, TimeStats<E>>> entries) {
+		for (Entry<Integer, TimeStats<E>> values : entries.getValue().entrySet()) {
+			sb.append("\tDay, ");
+			for (Integer i : values.getValue().getTimeStats().keySet()) {
+				sb.append("\t#, \tMean, \tStandard Deviation, \tMax, \tMin\t");
+			}
+			sb.append(LINE_SEPARATOR);
+			sb.append("\t");
+			sb.append(values.getKey());
+			sb.append(",");
+			for (Entry<Integer, StatisticalSummary> stats : values.getValue().getTimeStats().entrySet()) {
+				StatisticalSummary summary = stats.getValue();
+				sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s\t",
+						summary.getN(), 
+						Double.valueOf(df.format(summary.getMean())),
+						Double.valueOf(df.format(summary.getStandardDeviation())), 
+						Double.valueOf(df.format(summary.getMax())),
+						Double.valueOf(df.format(summary.getMin()))));
+			}
+			sb.append(LINE_SEPARATOR);
+		}
 	}
 
 	public String toCsvString() {
@@ -154,20 +162,24 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 				sb.append(",");
 				sb.append(values.getKey());
 				sb.append(",");
-				for (Entry<Integer, StatisticalSummary> stats : values.getValue().getTimeStats().entrySet()) {
-					StatisticalSummary summary = stats.getValue();
-					sb.append(String.format("%s, %s, %s, %s, %s, ,", 
-							summary.getN(), 
-							StringEscapeUtils.escapeCsv(Double.toString(summary.getMean())), 
-							StringEscapeUtils.escapeCsv(Double.toString(summary.getStandardDeviation())),
-							StringEscapeUtils.escapeCsv(Double.toString(summary.getMax())),
-							StringEscapeUtils.escapeCsv(Double.toString(summary.getMin()))));
-				}
+				writeCsvColumns(sb, values);
 				sb.append(LINE_SEPARATOR);
 			}
 			header = true;
 		}
 		return sb.toString();
+	}
+
+	private void writeCsvColumns(StringBuilder sb, final Entry<Integer, TimeStats<E>> values) {
+		for (Entry<Integer, StatisticalSummary> stats : values.getValue().getTimeStats().entrySet()) {
+			StatisticalSummary summary = stats.getValue();
+			sb.append(String.format("%s, %s, %s, %s, %s, ,", 
+					summary.getN(), 
+					StringEscapeUtils.escapeCsv(df.format(summary.getMean())), 
+					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())),
+					StringEscapeUtils.escapeCsv(df.format(summary.getMax())),
+					StringEscapeUtils.escapeCsv(df.format(summary.getMin()))));
+		}
 	}
 
 	public HourStats<E> fromCsvString(final String csvString) {
