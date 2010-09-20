@@ -7,10 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +41,6 @@ public class GoogleChartView {
 	private final String baseUri;
 	private final Map<String, String> params;
 	private final ChartParams chartParams;
-	private final ThreadLocal<DateFormat> dateFormatter;
-	private final ThreadLocal<DateFormat> dateParser;
 	private final DecimalFormat df;
 
 	public GoogleChartView(final ChartParams chartParams) {
@@ -53,18 +48,6 @@ public class GoogleChartView {
 		this.chartParams = chartParams;
 		this.baseUri = chartParams.getBaseUri();
 		this.params = chartParams.getParams();
-		this.dateFormatter = new ThreadLocal<DateFormat>() {
-			@Override
-			protected DateFormat initialValue() {
-				return new SimpleDateFormat("dd");
-			}
-		};
-		this.dateParser = new ThreadLocal<DateFormat>() {
-			@Override
-			protected DateFormat initialValue() {
-				return new SimpleDateFormat("yyyyMMdd");
-			}
-		};
 		df = new DecimalFormat("#.#");
 	}
 
@@ -79,14 +62,15 @@ public class GoogleChartView {
 	};
 
 	public void write(final Map<String, String> urls) {
-		write(Maps.transformValues(urls, makeUrl), "png");
+		write(urls, "png", "");
 	}
 
-	public void write(final Map<String, URL> urls, final String format) {
+	public void write(final Map<String, String> strings, final String format, final  String prefix) {
+		Map<String, URL> urls = Maps.transformValues(strings, makeUrl);
 		for (Entry<String, URL> url : urls.entrySet()) {
 			try {
 				BufferedImage image = ImageIO.read(url.getValue());
-				File outfile = new File(String.format("%s.%s", CharMatcher.anyOf("<>:\"\\/|?*").removeFrom(url.getKey()), format));
+				File outfile = new File(String.format("%s%s.%s", prefix, CharMatcher.anyOf("<>:\"\\/|?*").removeFrom(url.getKey()), format));
 				ImageIO.write(image, format, outfile);
 				LOGGER.info(String.format("Writing image chart to %s", outfile));
 			} catch (IOException ioe) {
@@ -98,8 +82,8 @@ public class GoogleChartView {
 	// TODO Oi. How did you get so big and clumsy?
 	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Map<String, TimeStats<LogEntry>> alerts) {
 		Map<String, String> urls = new HashMap<String, String>();
-		
-		String marker = params.remove("chm");
+		Map<String, String> paramsCopy = new HashMap<String, String>(params);
+		String marker = paramsCopy.remove("chm");
 		String statsMarker = marker;
 
 		for (Entry<String, TimeStats<LogEntry>> entries : dayStats.getDayStats().entrySet()) {
@@ -114,7 +98,10 @@ public class GoogleChartView {
 			int index = 0;
 			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
 				means.add(Double.valueOf(df.format(timeStats.getValue().getMean())));
-				labels.add(parseAndFormatDate(""+timeStats.getKey()));
+				try {
+					labels.add(URLEncoder.encode(dayStats.getFormattedLabel(timeStats.getKey()), "UTF-8"));
+				} catch (UnsupportedEncodingException uee) {
+				}
 				stats.addValue(Double.valueOf(df.format(timeStats.getValue().getMean())));
 				
 				if (alerts.containsKey(entries.getKey())) {
@@ -132,7 +119,7 @@ public class GoogleChartView {
 			}
 			statsMarker = marker;
 			
-			Map<String, String> encodedParams = chartParams.urlEncodeValues(params);
+			Map<String, String> encodedParams = chartParams.urlEncodeValues(paramsCopy);
 			for (Entry<String, String> entry : encodedParams.entrySet()) {
 				url.append("&");
 				url.append(entry.getKey());
@@ -151,14 +138,5 @@ public class GoogleChartView {
 		}
 
 		return urls;
-	}
-	
-	private String parseAndFormatDate(final String date){
-		try {
-			return URLEncoder.encode(dateFormatter.get().format(dateParser.get().parse(date)), "UTF-8");
-		} catch (ParseException pe) {
-		} catch (UnsupportedEncodingException uee) {
-		}
-		return "";
 	}
 }
