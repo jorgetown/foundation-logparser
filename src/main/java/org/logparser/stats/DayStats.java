@@ -3,6 +3,9 @@ package org.logparser.stats;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,25 +41,39 @@ import com.google.common.base.Predicate;
 @Immutable
 @JsonPropertyOrder({ "dayStats" })
 public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> implements ICsvSerializable<DayStats<E>>, IJsonSerializable<DayStats<E>> {
+	public static final String DEFAULT_REPORT_DATE_FORMAT = "MM/dd";
+	public static final String DEFAULT_DECIMAL_FORMAT = "#.##";
 	private static final long serialVersionUID = 6551391859868552192L;
 	private final Map<String, TimeStats<E>> dayStats;
 	private transient final ObjectMapper jsonMapper;
+	private final ThreadLocal<DateFormat> outputFormat;
+	private final DecimalFormat df;
 
 	public DayStats() {
 		dayStats = new TreeMap<String, TimeStats<E>>();
 		jsonMapper = new ObjectMapper();
+		// TODO inject as constructor argument
+		this.outputFormat = new ThreadLocal<DateFormat>() {
+			@Override
+			protected DateFormat initialValue() {
+				return new SimpleDateFormat(DEFAULT_REPORT_DATE_FORMAT);
+			}
+		};
+		// TODO inject as constructor argument
+		df = new DecimalFormat(DEFAULT_DECIMAL_FORMAT);
 	}
 
 	@Override
-	public void add(final E newEntry) {
+	public void consume(final E newEntry) {
 		Preconditions.checkNotNull(newEntry);
 		String key = newEntry.getAction();
 		TimeStats<E> timeStats = getNewOrExistingTimeStats(key);
-		timeStats.add(newEntry);
+		timeStats.consume(newEntry);
 		dayStats.put(key, timeStats);
 	}
 
-	private TimeStats<E> getNewOrExistingTimeStats(final String key) {
+	@JsonIgnore
+	protected TimeStats<E> getNewOrExistingTimeStats(final String key) {
 		TimeStats<E> timeStats = null;
 		if (dayStats.containsKey(key)) {
 			timeStats = dayStats.get(key);
@@ -99,26 +116,34 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 
 	@Override
 	public String toString() {
+		return toString(dayStats);
+	}
+	
+	public String toString(final Map<String, TimeStats<E>> dayStats) {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 		for (Entry<String, TimeStats<E>> entries : dayStats.entrySet()) {
 			sb.append(entries.getKey());
 			sb.append(LINE_SEPARATOR);
-			sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
-			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
-				sb.append(LINE_SEPARATOR);
-				StatisticalSummary summary = timeStats.getValue();
-				sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-						timeStats.getKey(), 
-						summary.getN(), 
-						summary.getMean(),
-						summary.getStandardDeviation(), 
-						summary.getMax(),
-						summary.getMin()));
-			}
+			writeColumns(sb, entries);
 			sb.append(LINE_SEPARATOR);
 		}
 
 		return sb.toString();
+	}
+
+	private void writeColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
+		sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
+		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
+			sb.append(LINE_SEPARATOR);
+			StatisticalSummary summary = timeStats.getValue();
+			sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
+					formatDate(outputFormat.get(), ""+timeStats.getKey()),
+					summary.getN(), 
+					Double.valueOf(df.format(summary.getMean())),
+					Double.valueOf(df.format(summary.getStandardDeviation())), 
+					Double.valueOf(df.format(summary.getMax())),
+					Double.valueOf(df.format(summary.getMin()))));
+		}
 	}
 
 	public String toCsvString() {
@@ -126,23 +151,27 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 		for (Entry<String, TimeStats<E>> entries : dayStats.entrySet()) {
 			sb.append(StringEscapeUtils.escapeCsv(entries.getKey()));
 			sb.append(LINE_SEPARATOR);
-			sb.append(", Day, #, Mean, Standard Deviation, Max, Min");
-			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
-				sb.append(LINE_SEPARATOR);
-				StatisticalSummary summary = timeStats.getValue();
-				sb.append(String.format(", %s, %s, %s, %s, %s, %s", 
-						timeStats.getKey(), 
-						summary.getN(), 
-						StringEscapeUtils.escapeCsv(Double.toString(summary.getMean())),
-						StringEscapeUtils.escapeCsv(Double.toString(summary.getStandardDeviation())), 
-						StringEscapeUtils.escapeCsv(Double.toString(summary.getMax())),
-						StringEscapeUtils.escapeCsv(Double.toString(summary.getMin()))));
-			}
+			writeCsvColumns(sb, entries);
 			sb.append(LINE_SEPARATOR);
 		}
 		return sb.toString();
 	}
 
+	private void writeCsvColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
+		sb.append(", Day, #, Mean, Standard Deviation, Max, Min");
+		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
+			sb.append(LINE_SEPARATOR);
+			StatisticalSummary summary = timeStats.getValue();
+			sb.append(String.format(", %s, %s, %s, %s, %s, %s", 
+					formatDate(outputFormat.get(), ""+timeStats.getKey()), 
+					summary.getN(), 
+					StringEscapeUtils.escapeCsv(df.format(summary.getMean())),
+					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())), 
+					StringEscapeUtils.escapeCsv(df.format(summary.getMax())),
+					StringEscapeUtils.escapeCsv(df.format(summary.getMin()))));
+		}
+	}
+	
 	public DayStats<E> fromCsvString(final String csvString) {
 		throw new NotImplementedException("DayStats does not implement CSV deserialization.");
 	}

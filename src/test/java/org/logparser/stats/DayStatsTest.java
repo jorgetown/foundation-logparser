@@ -63,19 +63,19 @@ public class DayStatsTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testAddNullLogEntryResultsInEmptyDayStats() {
-		underTest.add(null);
+		underTest.consume(null);
 		assertThat(underTest.getDayStats().isEmpty(), is(true));
 	}
 
 	@Test
 	public void testAddNotNullLogEntryPopulatesDayStats() {
-		underTest.add(entryXAtTimeA);
+		underTest.consume(entryXAtTimeA);
 		assertThat(underTest.getDayStats().isEmpty(), is(false));
 	}
 
 	@Test
 	public void testTimeStatsOfSingleAddedLogEntry() {
-		underTest.add(entryXAtTimeA);
+		underTest.consume(entryXAtTimeA);
 		assertThat(underTest.getDayStats().size(), is(1));
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryXAtTimeA.getAction()));
 		TimeStats<LogEntry> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
@@ -85,8 +85,8 @@ public class DayStatsTest {
 
 	@Test
 	public void testTimeStatsOfMultipleLogEntriesWithSameKey() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryXAtTimeB);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryXAtTimeB);
 		assertThat(underTest.getDayStats().size(), is(1));
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryXAtTimeA.getAction()));
 		TimeStats<LogEntry> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
@@ -97,8 +97,8 @@ public class DayStatsTest {
 
 	@Test
 	public void testTimeStatsOfMultipleLogEntriesWithDifferentKeys() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeA);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeA);
 		assertThat(underTest.getDayStats().size(), is(2));
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryXAtTimeA.getAction()));
 		assertThat(underTest.getDayStats().keySet(), hasItem(entryYAtTimeA.getAction()));
@@ -114,8 +114,8 @@ public class DayStatsTest {
 	public void testFilterEntriesWherePredicateIsFalse() {
 		when(mockPredicate.apply(any(PredicateArguments.class))).thenReturn(false);
 
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeA);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeA);
 
 		Map<String, TimeStats<LogEntry>> filtered = underTest.filter(mockPredicate);
 
@@ -132,8 +132,8 @@ public class DayStatsTest {
 	public void testFilterEntriesWherePredicateIsTrue() {
 		when(mockPredicate.apply(any(PredicateArguments.class))).thenReturn(true);
 
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeA);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeA);
 
 		Map<String, TimeStats<LogEntry>> filtered = underTest.filter(mockPredicate);
 

@@ -74,30 +74,34 @@ public class DayStatsIntegrationTest {
 		File[] files = logfiles.list();
 
 		LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);
+		DayStats<LogEntry> dayStats = new DayStats<LogEntry>();
 
 		LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(underTest);
 		lineByLineParser.attach(logSnapshot);
+		lineByLineParser.attach(dayStats);
 
 		String filepath;
 		for (File f : files) {
 			filepath = f.getAbsolutePath();
 			lineByLineParser.filter(filepath);
 		}
-		Map<String, TimeStats<LogEntry>> dayStats = logSnapshot.getDayStats().getDayStats();
+		Map<String, TimeStats<LogEntry>> stats = dayStats.getDayStats();
+		
+		System.out.println("\n" + dayStats.toString());
 
-		assertThat(dayStats.keySet(), hasItem("/save.do"));
+		assertThat(stats.keySet(), hasItem("/save.do"));
 
-		TimeStats<LogEntry> timeStats = dayStats.get("/save.do");
+		TimeStats<LogEntry> timeStats = stats.get("/save.do");
 
 		assertThat(timeStats, is(notNullValue()));
 		assertThat(timeStats.getTimeStats().keySet(), hasItem(20081215));
 
-		StatisticalSummary stats = timeStats.getSummaryStatistics(20081215);
+		StatisticalSummary summaryStats = timeStats.getSummaryStatistics(20081215);
 
-		assertThat(stats.getN(), is(167L));
-		assertThat(stats.getMean(), is(71.55089820359282D));
-		assertThat(stats.getStandardDeviation(), is(440.11781909270985D));
-		assertThat(stats.getMax(), is(5421D));
-		assertThat(stats.getMin(), is(11D));
+		assertThat(summaryStats.getN(), is(167L));
+		assertThat(summaryStats.getMean(), is(71.55089820359282D));
+		assertThat(summaryStats.getStandardDeviation(), is(440.11781909270985D));
+		assertThat(summaryStats.getMax(), is(5421D));
+		assertThat(summaryStats.getMin(), is(11D));
 	}
 }
