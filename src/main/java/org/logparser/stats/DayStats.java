@@ -44,10 +44,10 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 	public static final String DEFAULT_REPORT_DATE_FORMAT = "MM/dd";
 	public static final String DEFAULT_DECIMAL_FORMAT = "#.##";
 	private static final long serialVersionUID = 6551391859868552192L;
-	private final Map<String, TimeStats<E>> dayStats;
-	private transient final ObjectMapper jsonMapper;
-	private final ThreadLocal<DateFormat> outputFormat;
-	private final DecimalFormat df;
+	protected final Map<String, TimeStats<E>> dayStats;
+	protected transient final ObjectMapper jsonMapper;
+	protected final ThreadLocal<DateFormat> outputFormat;
+	protected final DecimalFormat df;
 
 	public DayStats() {
 		dayStats = new TreeMap<String, TimeStats<E>>();
@@ -131,7 +131,7 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 		return sb.toString();
 	}
 
-	private void writeColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
+	protected void writeColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
 		sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
 		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
@@ -157,7 +157,7 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 		return sb.toString();
 	}
 
-	private void writeCsvColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
+	protected void writeCsvColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
 		sb.append(", Day, #, Mean, Standard Deviation, Max, Min");
 		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
