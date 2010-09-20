@@ -47,14 +47,10 @@ public final class TimeStats<E extends ITimestampedEntry> extends AbstractStats<
 	}
 
 	@Override
-	public void add(final E newEntry) {
+	public void consume(final E newEntry) {
 		Preconditions.checkNotNull(newEntry);
 		calendar.setTimeInMillis(newEntry.getTimestamp());
-		int time = calendar.get(timeCriteria);
-		// keying just by day of month (when that's the chosen criteria) doesn't work when data spans multiple months
-		if (timeCriteria == Calendar.DAY_OF_MONTH) {
-			time = Integer.valueOf(dateFormatter.get().format(calendar.getTime()));
-		}
+		int time = getTimeKey(calendar);
 		SummaryStatistics summaryStatistics = getNewOrExistingSummaryStatistics(time);
 		summaryStatistics.addValue(newEntry.getDuration());
 		timeStats.put(time, summaryStatistics);
@@ -63,6 +59,16 @@ public final class TimeStats<E extends ITimestampedEntry> extends AbstractStats<
 	public void add(final int time, final StatisticalSummary stats) {
 		Preconditions.checkNotNull(stats);
 		timeStats.put(time, stats);
+	}
+
+	private int getTimeKey(final Calendar calendar) {
+		int time = calendar.get(timeCriteria);
+		// keying just by day of month (when that's the chosen criteria) doesn't work when data spans multiple months;
+		// need to combine year and month as key too.
+		if (timeCriteria == Calendar.DAY_OF_MONTH) {
+			time = Integer.valueOf(dateFormatter.get().format(calendar.getTime()));
+		}
+		return time;
 	}
 
 	private SummaryStatistics getNewOrExistingSummaryStatistics(final int time) {

@@ -67,13 +67,13 @@ public class TimeStatsTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testAddNullLogEntryResultsInEmptyTimeStats() {
-		underTest.add(null);
+		underTest.consume(null);
 		assertThat(underTest.getTimeStats().isEmpty(), is(true));
 	}
 
 	@Test
 	public void testAddNotNullLogEntryPopulatesTimeStats() {
-		underTest.add(entryXAtTimeA);
+		underTest.consume(entryXAtTimeA);
 		assertThat(underTest.getTimeStats().isEmpty(), is(false));
 		assertThat(underTest.getTimeStats().size(), is(1));
 	}
@@ -86,7 +86,7 @@ public class TimeStatsTest {
 
 	@Test
 	public void testStatisticalSummaryOfSingleAddedLogEntry() {
-		underTest.add(entryXAtTimeA);
+		underTest.consume(entryXAtTimeA);
 		assertThat(underTest.getTimeStats().size(), is(1));
 		StatisticalSummary summary = underTest.getSummaryStatistics(20100727);
 		assertThat(summary, is(notNullValue()));
@@ -99,8 +99,8 @@ public class TimeStatsTest {
 
 	@Test
 	public void testStatisticalSummaryOfMultipleLogEntriesAtSameTime() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeA);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeA);
 		assertThat(underTest.getTimeStats().size(), is(1));
 		StatisticalSummary summary = underTest.getSummaryStatistics(20100727);
 		assertThat(summary, is(notNullValue()));
@@ -113,10 +113,10 @@ public class TimeStatsTest {
 
 	@Test
 	public void testStatisticalSummaryOfMultipleLogEntriesAtDifferentTimes() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeA);
-		underTest.add(entryXAtTimeB);
-		underTest.add(entryYAtTimeB);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeA);
+		underTest.consume(entryXAtTimeB);
+		underTest.consume(entryYAtTimeB);
 		assertThat(underTest.getTimeStats().size(), is(2));
 		StatisticalSummary summary = underTest.getSummaryStatistics(20100727);
 		assertThat(summary, is(notNullValue()));

@@ -2,8 +2,12 @@ package org.logparser.stats;
 
 import java.io.Serializable;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.logparser.IObserver;
 
 import com.google.common.base.Preconditions;
 
@@ -13,7 +17,10 @@ import com.google.common.base.Preconditions;
  * @author jorge.decastro
  * 
  */
-public abstract class AbstractStats<E> implements Serializable {
+public abstract class AbstractStats<E> implements Serializable, IObserver<E> {
+	private static final Logger LOGGER = Logger.getLogger(AbstractStats.class.getName());
+	private static final long serialVersionUID = -5699879056725405682L;
+	
 	protected static final String DATE_FORMAT = "yyyyMMdd";
 	protected ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
 		@Override
@@ -22,14 +29,25 @@ public abstract class AbstractStats<E> implements Serializable {
 		}
 	};
 	
-	private static final long serialVersionUID = -5699879056725405682L;
-
-	protected void addAll(final List<E> logEntries) {
+	protected void consumeAll(final List<E> logEntries) {
 		Preconditions.checkNotNull(logEntries);
 		for (E entry : logEntries) {
-			add(entry);
+			consume(entry);
 		}
 	}
+	
+	protected String formatDate(final DateFormat to, final String date){
+		return formatDate(dateFormatter.get(), to, date);
+	}
+	
+	private String formatDate(final DateFormat from, final DateFormat to, final String date) {
+		try {
+			return to.format(from.parse(date));
+		} catch (ParseException pe) {
+			LOGGER.error(String.format("Error parsing date '%s' from format '%s' to format '%s'.", date, from, to), pe);
+		}
+		return "";
+	}
 
-	protected abstract void add(final E entry);
+	public abstract void consume(final E entry);
 }
