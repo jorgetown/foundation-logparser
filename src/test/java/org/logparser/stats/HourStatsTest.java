@@ -53,19 +53,19 @@ public class HourStatsTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testAddNullLogEntryResultsInEmptyHourStats() {
-		underTest.add(null);
+		underTest.consume(null);
 		assertThat(underTest.getHourStats().isEmpty(), is(true));
 	}
 
 	@Test
 	public void testAddNotNullLogEntryPopulatesHourStats() {
-		underTest.add(entryXAtTimeA);
+		underTest.consume(entryXAtTimeA);
 		assertThat(underTest.getHourStats().isEmpty(), is(false));
 	}
 
 	@Test
 	public void testTimeStatsOfSingleAddedLogEntry() {
-		underTest.add(entryXAtTimeA);
+		underTest.consume(entryXAtTimeA);
 		assertThat(underTest.getHourStats().size(), is(1));
 		assertThat(underTest.getHourStats().keySet(), hasItem(entryXAtTimeA.getAction()));
 		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
@@ -75,8 +75,8 @@ public class HourStatsTest {
 
 	@Test
 	public void testTimeStatsOfMultipleLogEntriesWithSameKey() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryXAtTimeB);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryXAtTimeB);
 		assertThat(underTest.getHourStats().size(), is(1));
 		assertThat(underTest.getHourStats().keySet(), hasItem(entryXAtTimeA.getAction()));
 		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
@@ -87,8 +87,8 @@ public class HourStatsTest {
 
 	@Test
 	public void testTimeStatsOfMultipleLogEntriesWithDifferentKeys() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeA);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeA);
 		assertThat(underTest.getHourStats().size(), is(2));
 		assertThat(underTest.getHourStats().keySet(), hasItem(entryXAtTimeA.getAction()));
 		assertThat(underTest.getHourStats().keySet(), hasItem(entryYAtTimeA.getAction()));
@@ -102,8 +102,8 @@ public class HourStatsTest {
 	
 	@Test
 	public void testTimeStatsOfMultipleLogEntriesOnSameDay() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeA);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeA);
 		assertThat(underTest.getHourStats().size(), is(2));
 		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
 		assertThat(timeStats.size(), is(1));
@@ -115,8 +115,8 @@ public class HourStatsTest {
 	
 	@Test
 	public void testTimeStatsOfMultipleLogEntriesOnDifferentDays() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeB);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeB);
 		assertThat(underTest.getHourStats().size(), is(2));
 		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
 		assertThat(timeStats.size(), is(1));
@@ -128,8 +128,8 @@ public class HourStatsTest {
 	
 	@Test
 	public void testTimeStatsOfMultipleLogEntriesOnSameHour() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryYAtTimeA);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryYAtTimeA);
 		assertThat(underTest.getHourStats().size(), is(2));
 		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
 		assertThat(timeStats.size(), is(1));
@@ -145,8 +145,8 @@ public class HourStatsTest {
 	
 	@Test
 	public void testTimeStatsOfMultipleLogEntriesOnDifferentHours() {
-		underTest.add(entryXAtTimeA);
-		underTest.add(entryXAtTimeB);
+		underTest.consume(entryXAtTimeA);
+		underTest.consume(entryXAtTimeB);
 		assertThat(underTest.getHourStats().size(), is(1));
 		Map<Integer, TimeStats<LogEntry>> timeStats = underTest.getTimeStats(entryXAtTimeA.getAction());
 		assertThat(timeStats.size(), is(2));

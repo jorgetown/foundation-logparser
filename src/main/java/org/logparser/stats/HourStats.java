@@ -50,7 +50,7 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 	}
 
 	@Override
-	public void add(final E newEntry) {
+	public void consume(final E newEntry) {
 		Preconditions.checkNotNull(newEntry);
 
 		String key = newEntry.getAction();
@@ -61,7 +61,7 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 
 		TimeStats<E> hourlyStats = getNewOrExistingHourStats(dayStatsByKey, dayOfMonth);
 
-		hourlyStats.add(newEntry);
+		hourlyStats.consume(newEntry);
 		dayStatsByKey.put(dayOfMonth, hourlyStats);
 		hourStats.put(key, dayStatsByKey);
 	}
