@@ -7,6 +7,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,12 +44,28 @@ public class GoogleChartView {
 	private final String baseUri;
 	private final Map<String, String> params;
 	private final ChartParams chartParams;
+	private final ThreadLocal<DateFormat> dateFormatter;
+	private final ThreadLocal<DateFormat> dateParser;
+	private final DecimalFormat df;
 
 	public GoogleChartView(final ChartParams chartParams) {
 		Preconditions.checkNotNull(chartParams, "'chartParams' argument cannot be null.");
 		this.chartParams = chartParams;
 		this.baseUri = chartParams.getBaseUri();
 		this.params = chartParams.getParams();
+		this.dateFormatter = new ThreadLocal<DateFormat>() {
+			@Override
+			protected DateFormat initialValue() {
+				return new SimpleDateFormat("dd");
+			}
+		};
+		this.dateParser = new ThreadLocal<DateFormat>() {
+			@Override
+			protected DateFormat initialValue() {
+				return new SimpleDateFormat("yyyyMMdd");
+			}
+		};
+		df = new DecimalFormat("#.#");
 	}
 
 	private final Function<String, URL> makeUrl = new Function<String, URL>() {
@@ -86,16 +106,16 @@ public class GoogleChartView {
 
 			StringBuilder url = new StringBuilder(baseUri);
 			List<Double> means = new ArrayList<Double>();
-			List<Integer> labels = new ArrayList<Integer>();
+			List<String> labels = new ArrayList<String>();
 			url.append("chtt=");
 			url.append(entries.getKey());
 			
 			SummaryStatistics stats = new SummaryStatistics();
 			int index = 0;
 			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
-				means.add(timeStats.getValue().getMean());
-				labels.add(timeStats.getKey());
-				stats.addValue(timeStats.getValue().getMean());
+				means.add(Double.valueOf(df.format(timeStats.getValue().getMean())));
+				labels.add(parseAndFormatDate(""+timeStats.getKey()));
+				stats.addValue(Double.valueOf(df.format(timeStats.getValue().getMean())));
 				
 				if (alerts.containsKey(entries.getKey())) {
 					TimeStats<LogEntry> alertStats = alerts.get(entries.getKey());
@@ -131,5 +151,14 @@ public class GoogleChartView {
 		}
 
 		return urls;
+	}
+	
+	private String parseAndFormatDate(final String date){
+		try {
+			return URLEncoder.encode(dateFormatter.get().format(dateParser.get().parse(date)), "UTF-8");
+		} catch (ParseException pe) {
+		} catch (UnsupportedEncodingException uee) {
+		}
+		return "";
 	}
 }
