@@ -125,23 +125,23 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 
 	public String toString(final Map<String, TimeStats<E>> dayStats) {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
-		for (Entry<String, TimeStats<E>> entries : dayStats.entrySet()) {
-			sb.append(entries.getKey());
+		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			sb.append(entry.getKey());
 			sb.append(LINE_SEPARATOR);
-			writeColumns(sb, entries);
+			writeColumns(sb, entry.getValue());
 			sb.append(LINE_SEPARATOR);
 		}
 
 		return sb.toString();
 	}
 
-	protected void writeColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
+	protected void writeColumns(StringBuilder sb, final TimeStats<E> timeStats) {
 		sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
-		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
+		for (Entry<Integer, StatisticalSummary> entry : timeStats.getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
-			StatisticalSummary summary = timeStats.getValue();
+			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-					formatDate(outputFormat.get(), "" + timeStats.getKey()),
+					formatDate(outputFormat.get(), "" + entry.getKey()),
 					summary.getN(),
 					Double.valueOf(df.format(summary.getMean())),
 					Double.valueOf(df.format(summary.getStandardDeviation())),
@@ -152,22 +152,22 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 
 	public String toCsvString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
-		for (Entry<String, TimeStats<E>> entries : dayStats.entrySet()) {
-			sb.append(StringEscapeUtils.escapeCsv(entries.getKey()));
+		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			sb.append(StringEscapeUtils.escapeCsv(entry.getKey()));
 			sb.append(LINE_SEPARATOR);
-			writeCsvColumns(sb, entries);
+			writeCsvColumns(sb, entry.getValue());
 			sb.append(LINE_SEPARATOR);
 		}
 		return sb.toString();
 	}
 
-	protected void writeCsvColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
+	protected void writeCsvColumns(StringBuilder sb, final TimeStats<E> timeStats) {
 		sb.append(", Day, #, Mean, Standard Deviation, Max, Min");
-		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
+		for (Entry<Integer, StatisticalSummary> entry : timeStats.getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
-			StatisticalSummary summary = timeStats.getValue();
+			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format(", %s, %s, %s, %s, %s, %s",
-					formatDate(outputFormat.get(), "" + timeStats.getKey()),
+					formatDate(outputFormat.get(), "" + entry.getKey()),
 					summary.getN(), 
 					StringEscapeUtils.escapeCsv(df.format(summary.getMean())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())), 

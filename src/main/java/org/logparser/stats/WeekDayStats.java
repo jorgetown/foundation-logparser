@@ -23,12 +23,20 @@ import org.logparser.ITimestampedEntry;
  * @param <E> the type of log entries held.
  */
 @Immutable
-@JsonPropertyOrder({ "dayStats" })
+@JsonPropertyOrder({ "dayStats", "aggregateDayStats" })
 public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 	private static final long serialVersionUID = -3821734276444687735L;
+	private final TimeStats<E> aggregateTimeStats;
 
 	public WeekDayStats() {
 		super();
+		aggregateTimeStats = new TimeStats<E>(Calendar.DAY_OF_WEEK);
+	}
+	
+	@Override
+	public void consume(E entry) {
+		super.consume(entry);
+		aggregateTimeStats.consume(entry);
 	}
 
 	@JsonIgnore
@@ -42,15 +50,19 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 		}
 		return timeStats;
 	}
+	
+	public TimeStats<E> getAggregateDayStats() {
+		return aggregateTimeStats;
+	}
 
 	@Override
-	protected void writeColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
+	protected void writeColumns(StringBuilder sb, final TimeStats<E> timeStats) {
 		sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
-		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
+		for (Entry<Integer, StatisticalSummary> entry : timeStats.getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
-			StatisticalSummary summary = timeStats.getValue();
+			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-					weekdayNoToString(timeStats.getKey()), 
+					weekdayNoToString(entry.getKey()), 
 					summary.getN(),
 					Double.valueOf(df.format(summary.getMean())),
 					Double.valueOf(df.format(summary.getStandardDeviation())),
@@ -58,15 +70,29 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 					Double.valueOf(df.format(summary.getMin()))));
 		}
 	}
+	
+	@Override
+	public String toCsvString() {
+		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
+		writeCsvColumns(sb, aggregateTimeStats);
+		sb.append(LINE_SEPARATOR);
+		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			sb.append(StringEscapeUtils.escapeCsv(entry.getKey()));
+			sb.append(LINE_SEPARATOR);
+			writeCsvColumns(sb, entry.getValue());
+			sb.append(LINE_SEPARATOR);
+		}
+		return sb.toString();
+	}
 
 	@Override
-	protected void writeCsvColumns(StringBuilder sb, final Entry<String, TimeStats<E>> entries) {
+	protected void writeCsvColumns(StringBuilder sb, final TimeStats<E> timeStats) {
 		sb.append(", Day, #, Mean, Standard Deviation, Max, Min");
-		for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
+		for (Entry<Integer, StatisticalSummary> entry : timeStats.getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
-			StatisticalSummary summary = timeStats.getValue();
+			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format(", %s, %s, %s, %s, %s, %s",
-					weekdayNoToString(timeStats.getKey()), 
+					weekdayNoToString(entry.getKey()), 
 					summary.getN(),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMean())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())), 
