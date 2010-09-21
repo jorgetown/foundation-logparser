@@ -1,6 +1,7 @@
 package org.logparser.io;
 
 import static org.logparser.Constants.FILE_SEPARATOR;
+import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -9,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.logparser.Constants;
 import org.logparser.ICsvSerializable;
 
 import com.google.common.base.Preconditions;
@@ -37,7 +37,7 @@ public class CsvView {
 
 	private <T> void write(final String path, final String filename, final List<ICsvSerializable<T>> csvSerializables) {
 		String filepath = String.format("%s%s%s.csv", path, FILE_SEPARATOR, filename);
-		
+
 		LOGGER.info(String.format("Writing CSV file '%s'", filepath));
 
 		BufferedWriter out = null;
@@ -45,7 +45,7 @@ public class CsvView {
 			out = new BufferedWriter(new FileWriter(filepath));
 			for (ICsvSerializable<T> csvSerializable : csvSerializables) {
 				out.write(csvSerializable.toCsvString());
-				out.write(Constants.LINE_SEPARATOR);
+				out.write(LINE_SEPARATOR);
 			}
 			out.close();
 		} catch (IOException ioe) {
