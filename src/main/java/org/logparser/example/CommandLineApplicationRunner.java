@@ -83,7 +83,7 @@ public class CommandLineApplicationRunner {
 
 			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(sampler != null ? sampler : filter);
 			lineByLineParser.attach(logSnapshot);
-			
+
 			StatsParams statsParams = config.getStatsParams();
 			DayStats<LogEntry> dayStats = null;
 			WeekDayStats<LogEntry> weekStats = null;
@@ -117,12 +117,14 @@ public class CommandLineApplicationRunner {
 				previousFiltered = filteredEntries;
 			}
 
+			LOGGER.info(LINE_SEPARATOR + logSnapshot.toString() + LINE_SEPARATOR);
+
 			if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(filename)) {
 				CsvView csvView = new CsvView();
-				csvView.write(path, filename, dayStats, weekStats);
+				csvView.write(path, filename, logSnapshot, dayStats, weekStats);
 				if (config.isFilteredEntriesStored()) {
 					ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
-					chartView.write(path, filename);					
+					chartView.write(path, filename);
 				}
 			}
 
@@ -135,7 +137,7 @@ public class CommandLineApplicationRunner {
 					if (predicate != null) {
 						LOGGER.info(String.format("Filtering by %s %s %s", statsParams.getPredicateValue(), statsParams.getPredicateType().toString(), LINE_SEPARATOR));
 						filtered = dayStats.filter(predicate);
-						LOGGER.info(dayStats.toString(filtered));				
+						LOGGER.info(dayStats.toString(filtered));
 					}
 				}
 				ChartParams chartParams = config.getChartParams();
@@ -152,7 +154,7 @@ public class CommandLineApplicationRunner {
 		}
 	}
 
-	// TODO this should be responsibility of 'sampler params': return given filter decorated with a sampler if one is given, or return given filter 
+	// TODO this should be responsibility of 'sampler params': return given filter decorated with a sampler if one is given, or return given filter
 	private static ILogEntryFilter<LogEntry> getSamplerIfAvailable(final Config config, final LogEntryFilter filter) {
 		ILogEntryFilter<LogEntry> sampler = null;
 		if (config.getSampler() != null) {
