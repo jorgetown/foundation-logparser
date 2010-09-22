@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,7 +19,6 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.logparser.config.Config;
-import org.logparser.stats.HourStats;
 
 import com.google.common.base.Preconditions;
 
@@ -31,23 +31,25 @@ import com.google.common.base.Preconditions;
  * @param <E> the type of log entries held.
  */
 @Immutable
-@JsonPropertyOrder({ "totalEntries", "dayStats", "hourStats" })
+@JsonPropertyOrder({ "totalEntries", "summary" })
 public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializable<LogSnapshot<E>>, ICsvSerializable<LogSnapshot<E>>, IObserver<E> {
 	private final DecimalFormat decimalFormat;
 	private final List<E> filteredEntries;
-	private final HourStats<E> hourStats;
+	private final Map<String, Integer> summary;
 	private transient final ObjectMapper jsonMapper;
 	private int totalEntries;
+	private int filtered;
 	private final boolean filteredEntriesStored;
 
 	public LogSnapshot(final Config config) {
 		Preconditions.checkNotNull(config);
 		this.filteredEntries = new ArrayList<E>();
-		this.hourStats = new HourStats<E>();
+		this.summary = new HashMap<String, Integer>();
 		this.filteredEntriesStored = config.isFilteredEntriesStored();
 		this.jsonMapper = new ObjectMapper();
-		this.decimalFormat = new DecimalFormat("####.##%");
+		this.decimalFormat = new DecimalFormat("#.##%");
 		this.totalEntries = 0;
+		this.filtered = 0;
 	}
 
 	public void consume(final E entry) {
@@ -56,17 +58,29 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 			// avoid the overhead of storing the filtered entries if dealing with large datasets
 			if (filteredEntriesStored) {
 				filteredEntries.add(entry);
+				filtered++;
 			}
-			hourStats.consume(entry);
+			updateUnivariateSummary(entry);
 		}
 	}
 
-	public HourStats<E> getHourStats() {
-		return hourStats;
+	private void updateUnivariateSummary(final E entry) {
+		String key = entry.getAction();
+		if (summary.containsKey(key)) {
+			Integer value = summary.get(key);
+			value++;
+			summary.put(key, value);
+		} else {
+			summary.put(key, 1);
+		}
 	}
 
 	public List<E> getFilteredEntries() {
 		return Collections.unmodifiableList(filteredEntries);
+	}
+
+	public Map<String, Integer> getSummary() {
+		return Collections.unmodifiableMap(summary);
 	}
 
 	public int getTotalEntries() {
@@ -75,7 +89,13 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 
 	@Override
 	public String toString() {
-		return "";
+		StringBuilder sb = new StringBuilder("Action,\t # Entries,\t % Of Filtered,\t % Of Total\t");
+		if (!summary.isEmpty()) {
+			sb.append(LINE_SEPARATOR);
+			sb.append(summarizeAsString(summary, filtered, totalEntries, "%s,\t %s,\t %s,\t %s\t"));
+		}
+		sb.append(LINE_SEPARATOR);
+		return sb.toString();
 	}
 
 	public String toJsonString() {
@@ -90,13 +110,12 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 	}
 
 	public String toCsvString() {
-		StringBuilder sb = new StringBuilder("DAILY BREAKDOWN");
+		StringBuilder sb = new StringBuilder("Action, # Entries, % Of Filtered, % Of Total");
+		if (!summary.isEmpty()) {
+			sb.append(LINE_SEPARATOR);
+			sb.append(summarizeAsString(summary, filtered, totalEntries, "\"%s\", %s, \"%s\", \"%s\""));
+		}
 		sb.append(LINE_SEPARATOR);
-		sb.append(LINE_SEPARATOR);
-		sb.append(LINE_SEPARATOR);
-		sb.append("HOURLY BREAKDOWN");
-		sb.append(LINE_SEPARATOR);
-		sb.append(hourStats.toCsvString());
 		return sb.toString();
 	}
 
@@ -114,7 +133,8 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 		StringBuilder sb = new StringBuilder();
 		for (Entry<K, Integer> entries : summary.entrySet()) {
 			value = entries.getValue();
-			sb.append(String.format(formatString, 
+			sb.append(String.format(
+					formatString, 
 					entries.getKey(),
 					entries.getValue(), 
 					asPercentOf(value, filteredEntries),
@@ -124,10 +144,12 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 		return sb.toString();
 	}
 
+	// TODO
 	public LogSnapshot<E> fromCsvString(String csvString) {
 		throw new NotImplementedException("LogSnapshot does not implement CSV deserialization.");
 	}
 
+	// TODO
 	public LogSnapshot<E> fromJsonString(String jsonString) {
 		throw new NotImplementedException("LogSnapshot does not implement JSON deserialization.");
 	}

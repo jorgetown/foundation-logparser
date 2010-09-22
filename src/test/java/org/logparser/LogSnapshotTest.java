@@ -65,7 +65,6 @@ public class LogSnapshotTest {
 		assertThat(underTest, is(notNullValue()));
 		assertThat(underTest.getFilteredEntries().size(), is(0));
 		assertThat(underTest.getTotalEntries(), is(0));
-		assertThat(underTest.getHourStats().getHourStats().size(), is(0));
 	}
 
 	@Test
@@ -78,7 +77,7 @@ public class LogSnapshotTest {
 	@Test
 	public void testFilteredEntriesWithSingleConsumedEntry() {
 		when(mockConfig.isFilteredEntriesStored()).thenReturn(true);
-		
+
 		underTest = new LogSnapshot<LogEntry>(mockConfig);
 		underTest.consume(entryA);
 
@@ -86,11 +85,11 @@ public class LogSnapshotTest {
 		assertThat(underTest.getFilteredEntries().size(), is(1));
 		assertThat(underTest.getFilteredEntries(), hasItem(entryA));
 	}
-	
+
 	@Test
 	public void testFilteredEntriesWithSingleConsumedEntryAndStoringDisabled() {
 		when(mockConfig.isFilteredEntriesStored()).thenReturn(false);
-		
+
 		underTest = new LogSnapshot<LogEntry>(mockConfig);
 		underTest.consume(entryA);
 
@@ -101,7 +100,7 @@ public class LogSnapshotTest {
 	@Test
 	public void testFilteredEntriesWithMultipleConsumedEntries() {
 		when(mockConfig.isFilteredEntriesStored()).thenReturn(true);
-		
+
 		underTest = new LogSnapshot<LogEntry>(mockConfig);
 		underTest.consume(entryA);
 		underTest.consume(entryB);
@@ -132,31 +131,5 @@ public class LogSnapshotTest {
 		underTest.consume(entryB);
 
 		assertThat(underTest.getTotalEntries(), is(2));
-	}
-
-	@Test
-	public void testStatsWithNullConsumedEntry() {
-		underTest.consume(null);
-
-		assertThat(underTest.getHourStats().getHourStats().size(), is(0));
-	}
-
-	@Test
-	public void testStatsWithSingleConsumedEntry() {
-		underTest.consume(entryA);
-
-		assertThat(underTest.getHourStats().getHourStats().size(), is(1));
-		assertThat(underTest.getHourStats().getHourStats().size(), is(1));
-		assertThat(underTest.getHourStats().getHourStats().keySet(), hasItem("/action.a"));
-	}
-
-	@Test
-	public void testStatsWithMultipleConsumedEntries() {
-		underTest.consume(entryA);
-		underTest.consume(entryB);
-
-		assertThat(underTest.getHourStats().getHourStats().size(), is(2));
-		assertThat(underTest.getHourStats().getHourStats().keySet(), hasItem("/action.a"));
-		assertThat(underTest.getHourStats().getHourStats().keySet(), hasItem("/action.b"));
 	}
 }
