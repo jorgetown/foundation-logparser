@@ -30,18 +30,18 @@ public abstract class AbstractStats<E> implements Serializable, IObserver<E> {
 			return new SimpleDateFormat(DATE_FORMAT);
 		}
 	};
-	
+
 	protected void consumeAll(final List<E> logEntries) {
 		Preconditions.checkNotNull(logEntries);
 		for (E entry : logEntries) {
 			consume(entry);
 		}
 	}
-	
-	protected String formatDate(final DateFormat to, final String date){
+
+	protected String formatDate(final DateFormat to, final String date) {
 		return formatDate(dateFormatter.get(), to, date);
 	}
-	
+
 	private String formatDate(final DateFormat from, final DateFormat to, final String date) {
 		try {
 			return to.format(from.parse(date));
@@ -50,6 +50,6 @@ public abstract class AbstractStats<E> implements Serializable, IObserver<E> {
 		}
 		return "";
 	}
-
+	
 	public abstract void consume(final E entry);
 }

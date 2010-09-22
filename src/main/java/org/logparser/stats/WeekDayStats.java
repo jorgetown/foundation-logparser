@@ -13,6 +13,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.logparser.ITimestampedEntry;
 
+import com.google.common.base.Function;
+
 /**
  * Provides a statistical summary of a collection of log
  * {@link ITimestampedEntry}s, grouped by the day of the week and keyed by
@@ -23,7 +25,7 @@ import org.logparser.ITimestampedEntry;
  * @param <E> the type of log entries held.
  */
 @Immutable
-@JsonPropertyOrder({ "dayStats", "aggregateDayStats" })
+@JsonPropertyOrder({ "dayStats", "aggregatedStats" })
 public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 	private static final long serialVersionUID = -3821734276444687735L;
 	private final TimeStats<E> aggregateTimeStats;
@@ -32,7 +34,7 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 		super();
 		aggregateTimeStats = new TimeStats<E>(Calendar.DAY_OF_WEEK);
 	}
-	
+
 	@Override
 	public void consume(E entry) {
 		super.consume(entry);
@@ -50,9 +52,23 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 		}
 		return timeStats;
 	}
-	
-	public TimeStats<E> getAggregateDayStats() {
+
+	public TimeStats<E> getAggregatedStats() {
 		return aggregateTimeStats;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
+		writeColumns(sb, aggregateTimeStats);
+		sb.append(LINE_SEPARATOR);
+		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			sb.append(entry.getKey());
+			sb.append(LINE_SEPARATOR);
+			writeColumns(sb, entry.getValue());
+			sb.append(LINE_SEPARATOR);
+		}
+		return sb.toString();
 	}
 
 	@Override
@@ -62,15 +78,15 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 			sb.append(LINE_SEPARATOR);
 			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-					weekdayNoToString(entry.getKey()), 
+					formatToDayOfWeek.apply(entry.getKey()), 
 					summary.getN(),
-					Double.valueOf(df.format(summary.getMean())),
-					Double.valueOf(df.format(summary.getStandardDeviation())),
-					Double.valueOf(df.format(summary.getMax())),
-					Double.valueOf(df.format(summary.getMin()))));
+					df.format(summary.getMean()),
+					df.format(summary.getStandardDeviation()),
+					df.format(summary.getMax()),
+					df.format(summary.getMin())));
 		}
 	}
-	
+
 	@Override
 	public String toCsvString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
@@ -92,7 +108,7 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 			sb.append(LINE_SEPARATOR);
 			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format(", %s, %s, %s, %s, %s, %s",
-					weekdayNoToString(entry.getKey()), 
+					formatToDayOfWeek.apply(entry.getKey()), 
 					summary.getN(),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMean())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())), 
@@ -100,29 +116,26 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 					StringEscapeUtils.escapeCsv(df.format(summary.getMin()))));
 		}
 	}
-
-	@Override
-	public String getFormattedLabel(final int key) {
-		return weekdayNoToString(key);
-	}
-
-	private String weekdayNoToString(final int day) {
-		switch (day) {
-		case 1:
-			return "Sun";
-		case 2:
-			return "Mon";
-		case 3:
-			return "Tue";
-		case 4:
-			return "Wed";
-		case 5:
-			return "Thu";
-		case 6:
-			return "Fri";
-		case 7:
-			return "Sat";
+	
+	public Function<Integer, String> formatToDayOfWeek = new Function<Integer, String>() {
+		public String apply(final Integer day) {
+			switch (day) {
+			case 1:
+				return "Sun";
+			case 2:
+				return "Mon";
+			case 3:
+				return "Tue";
+			case 4:
+				return "Wed";
+			case 5:
+				return "Thu";
+			case 6:
+				return "Fri";
+			case 7:
+				return "Sat";
+			}
+			return "";
 		}
-		return "";
-	}
+	};
 }

@@ -26,6 +26,7 @@ import org.logparser.ICsvSerializable;
 import org.logparser.IJsonSerializable;
 import org.logparser.ITimestampedEntry;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 
@@ -111,12 +112,13 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 	public Map<String, TimeStats<E>> getDayStats() {
 		return Collections.unmodifiableMap(dayStats);
 	}
-
-	@JsonIgnore
-	public String getFormattedLabel(final int date) {
-		DateFormat to = new SimpleDateFormat("M/d");
-		return formatDate(to, "" + date);
-	}
+	
+	public Function<Integer, String> formatToShortDate = new Function<Integer, String>() {
+		public String apply(final Integer date) {
+			DateFormat to = new SimpleDateFormat("M/d");
+			return formatDate(to, "" + date);
+		}
+	};
 
 	@Override
 	public String toString() {
@@ -143,10 +145,10 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 			sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
 					formatDate(outputFormat.get(), "" + entry.getKey()),
 					summary.getN(),
-					Double.valueOf(df.format(summary.getMean())),
-					Double.valueOf(df.format(summary.getStandardDeviation())),
-					Double.valueOf(df.format(summary.getMax())),
-					Double.valueOf(df.format(summary.getMin()))));
+					df.format(summary.getMean()),
+					df.format(summary.getStandardDeviation()),
+					df.format(summary.getMax()),
+					df.format(summary.getMin())));
 		}
 	}
 
