@@ -3,10 +3,8 @@ package org.logparser.io;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,7 +63,7 @@ public class GoogleChartView {
 		write(urls, "png", "");
 	}
 
-	public void write(final Map<String, String> strings, final String format, final  String prefix) {
+	public void write(final Map<String, String> strings, final String format, final String prefix) {
 		Map<String, URL> urls = Maps.transformValues(strings, makeUrl);
 		for (Entry<String, URL> url : urls.entrySet()) {
 			try {
@@ -78,65 +76,91 @@ public class GoogleChartView {
 			}
 		}
 	}
-	
-	// TODO Oi. How did you get so big and clumsy?
-	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Map<String, TimeStats<LogEntry>> alerts) {
-		Map<String, String> urls = new HashMap<String, String>();
-		Map<String, String> paramsCopy = new HashMap<String, String>(params);
-		String marker = paramsCopy.remove("chm");
-		String statsMarker = marker;
 
+	private Map<String, String> createChartUrl(
+			final String title,
+			final TimeStats<LogEntry> timeStats,
+			final TimeStats<LogEntry> alerts,
+			final Function<Integer, String> transform, 
+			final String defaultMarker) {
+		
+		Map<String, String> paramsCopy = new HashMap<String, String>(params);
+		SummaryStatistics stats = new SummaryStatistics();
+		List<String> means = new ArrayList<String>();
+		List<String> labels = new ArrayList<String>();
+		paramsCopy.put("chm", defaultMarker);
+		int index = 0;
+		for (Entry<Integer, StatisticalSummary> entries : timeStats.getTimeStats().entrySet()) {
+			means.add(df.format(entries.getValue().getMean()));
+			labels.add(transform.apply(entries.getKey()));
+			stats.addValue(Double.valueOf(df.format(entries.getValue().getMean())));
+
+			if (alerts != null && alerts.getTimeStats().containsKey(entries.getKey())) {
+				String marker = paramsCopy.get("chm");
+				paramsCopy.put("chm", String.format("%s|a,00E741,0,%s,18,-1", marker, index));
+			}
+			index++;
+		}
+		long upperbound = Math.round(stats.getMax() + stats.getMin());
+		paramsCopy.put("chxl", String.format("0:|%s|2:|min|avg|max", Joiner.on("|").join(labels)));
+		paramsCopy.put("chxp", String.format("2,%s,%s,%s", stats.getMin(), stats.getMean(), stats.getMax()));
+		paramsCopy.put("chds", String.format("0,%s", upperbound));
+		paramsCopy.put("chxr", String.format("1,0,%s|2,0,%s", upperbound, upperbound));
+		paramsCopy.put("chd", String.format("t:%s", Joiner.on(",").join(means)));
+
+		return paramsCopy;
+	}
+
+	public Map<String, String> createChartUrl(
+			final String title,
+			final TimeStats<LogEntry> timeStats,
+			final Function<Integer, String> transform) {
+		
+		Map<String, String> params = createChartUrl(title, timeStats, null, transform, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
+		Map<String, String> urls = new HashMap<String, String>();
+		urls.put(title, makeUrlString(title, params));
+		return urls;
+	}
+
+	public Map<String, String> createChartUrls(
+			final DayStats<LogEntry> dayStats,
+			final Map<String, TimeStats<LogEntry>> alerts,
+			final Function<Integer, String> transform) {
+		
+		return createChartUrls(dayStats, alerts, transform, params.get("chm"));
+	}
+
+	public Map<String, String> createChartUrls(
+			final DayStats<LogEntry> dayStats,
+			final Map<String, TimeStats<LogEntry>> alerts,
+			final Function<Integer, String> transform,
+			final String markerOverride) {
+		
+		Map<String, String> urls = new HashMap<String, String>();
+
+		String key = null;
 		for (Entry<String, TimeStats<LogEntry>> entries : dayStats.getDayStats().entrySet()) {
 
-			StringBuilder url = new StringBuilder(baseUri);
-			List<Double> means = new ArrayList<Double>();
-			List<String> labels = new ArrayList<String>();
-			url.append("chtt=");
-			url.append(entries.getKey());
-			
-			SummaryStatistics stats = new SummaryStatistics();
-			int index = 0;
-			for (Entry<Integer, StatisticalSummary> timeStats : entries.getValue().getTimeStats().entrySet()) {
-				means.add(Double.valueOf(df.format(timeStats.getValue().getMean())));
-				try {
-					labels.add(URLEncoder.encode(dayStats.getFormattedLabel(timeStats.getKey()), "UTF-8"));
-				} catch (UnsupportedEncodingException uee) {
-				}
-				stats.addValue(Double.valueOf(df.format(timeStats.getValue().getMean())));
-				
-				if (alerts.containsKey(entries.getKey())) {
-					TimeStats<LogEntry> alertStats = alerts.get(entries.getKey());
-					if (alertStats.getTimeStats().containsKey(timeStats.getKey())) {
-						statsMarker = String.format("%s|a,00E741,0,%s,18,-1", statsMarker, index);
-					}
-				}
-				index++;
-			}
-			url.append("&chm=");
-			try {
-				url.append(URLEncoder.encode(statsMarker.equals(marker)?marker:statsMarker, "UTF-8"));
-			} catch (UnsupportedEncodingException uee) {
-			}
-			statsMarker = marker;
-			
-			Map<String, String> encodedParams = chartParams.urlEncodeValues(paramsCopy);
-			for (Entry<String, String> entry : encodedParams.entrySet()) {
-				url.append("&");
-				url.append(entry.getKey());
-				url.append("=");
-				url.append(entry.getValue());
-			}
-
-			long upperbound = Math.round(stats.getMax() + stats.getMin());
-			url.append("&chxl=0:|").append(Joiner.on("|").join(labels)).append("|2:|min|avg|max");
-			url.append(String.format("&chxp=2,%s,%s,%s", stats.getMin(), stats.getMean(), stats.getMax()));
-			url.append(String.format("&chds=0,%s&chxr=1,0,%s|2,0,%s", upperbound, upperbound, upperbound));
-			url.append("&chd=t:").append(Joiner.on(",").join(means));
-
-			LOGGER.info(String.format("%s", url.toString()));
-			urls.put(entries.getKey(), url.toString());
+			key = entries.getKey();
+			Map<String, String> url = createChartUrl(key, entries.getValue(), alerts != null ? alerts.get(key) : null, transform, markerOverride);
+			urls.put(key, makeUrlString(key, url));
 		}
 
 		return urls;
+	}
+
+	private String makeUrlString(final String title, final Map<String, String> keyValues) {
+		StringBuilder url = new StringBuilder(baseUri);
+		url.append("chtt=");
+		url.append(chartParams.encodeString.apply(title));
+		Map<String, String> encodedParams = chartParams.urlEncodeValues(keyValues);
+		for (Entry<String, String> entry : encodedParams.entrySet()) {
+			url.append("&");
+			url.append(entry.getKey());
+			url.append("=");
+			url.append(entry.getValue());
+		}
+		LOGGER.info(String.format("%s", url.toString()));
+		return url.toString();
 	}
 }

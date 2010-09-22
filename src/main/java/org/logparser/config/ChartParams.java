@@ -52,7 +52,7 @@ public final class ChartParams {
 		return Maps.transformValues(toEncode, encodeString);
 	}
 
-	private final Function<String, String> encodeString = new Function<String, String>() {
+	public final Function<String, String> encodeString = new Function<String, String>() {
 		public String apply(final String toEncode) {
 			try {
 				return URLEncoder.encode(toEncode, ENCODING_SCHEME);
