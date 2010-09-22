@@ -101,6 +101,10 @@ public class Config {
 		if (logFiles == null) {
 			throw new IllegalArgumentException("'logFiles' property is required. Check configuration file.");
 		}
+		// TODO move sampler onto its own params class
+		if (samplerConfig != null && samplerConfig.value < 0) {
+			throw new IllegalArgumentException("'value' property of sampler must be a positive integer. Check configuration file.");
+		}
 	}
 
 	@Override
@@ -108,7 +112,7 @@ public class Config {
 		return ReflectionToStringBuilder.toString(this);
 	}
 
-	// TODO Replace tagged class w/ class hierarchy
+	// TODO Replace tagged class w/ class hierarchy?
 	public static class SamplerConfig {
 		public enum SampleBy {
 			TIME, FREQUENCY
