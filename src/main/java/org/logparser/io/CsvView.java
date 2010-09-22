@@ -27,7 +27,7 @@ public class CsvView {
 	public CsvView() {
 	}
 
-	public <T> void write(final String path, final String filename, final ICsvSerializable<T>... csvSerializables) {
+	public void write(final String path, final String filename, final ICsvSerializable<?>... csvSerializables) {
 		Preconditions.checkNotNull(path);
 		Preconditions.checkNotNull(filename);
 		Preconditions.checkNotNull(csvSerializables);
@@ -35,7 +35,7 @@ public class CsvView {
 		write(path, filename, Arrays.asList(csvSerializables));
 	}
 
-	private <T> void write(final String path, final String filename, final List<ICsvSerializable<T>> csvSerializables) {
+	private void write(final String path, final String filename, final List<ICsvSerializable<?>> csvSerializables) {
 		String filepath = String.format("%s%s%s.csv", path, FILE_SEPARATOR, filename);
 
 		LOGGER.info(String.format("Writing CSV file '%s'", filepath));
@@ -43,7 +43,7 @@ public class CsvView {
 		BufferedWriter out = null;
 		try {
 			out = new BufferedWriter(new FileWriter(filepath));
-			for (ICsvSerializable<T> csvSerializable : csvSerializables) {
+			for (ICsvSerializable<?> csvSerializable : csvSerializables) {
 				out.write(csvSerializable.toCsvString());
 				out.write(LINE_SEPARATOR);
 			}
