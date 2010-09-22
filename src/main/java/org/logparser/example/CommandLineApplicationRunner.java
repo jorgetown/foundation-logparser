@@ -143,7 +143,7 @@ public class CommandLineApplicationRunner {
 					GoogleChartView gcv = new GoogleChartView(config.getChartParams());
 					Map<String, String> urls = gcv.createChartUrls(dayStats, filtered, dayStats.formatToShortDate);
 					gcv.write(urls, "png", "daily_");
-					urls = gcv.createChartUrls(weekStats, null, weekStats.formatToDayOfWeek, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
+					urls = gcv.createChartUrls(weekStats, weekStats.formatToDayOfWeek);
 					gcv.write(urls, "png", "weekly_");
 					urls = gcv.createChartUrl("aggregate", weekStats.getAggregatedStats(), weekStats.formatToDayOfWeek);
 					gcv.write(urls, "png", "weekly_");

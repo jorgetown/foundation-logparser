@@ -111,26 +111,22 @@ public class GoogleChartView {
 		return paramsCopy;
 	}
 
-	public Map<String, String> createChartUrl(
-			final String title,
-			final TimeStats<LogEntry> timeStats,
-			final Function<Integer, String> transform) {
-		
+	public Map<String, String> createChartUrl(final String title, final TimeStats<LogEntry> timeStats, final Function<Integer, String> transform) {
 		Map<String, String> params = createChartUrl(title, timeStats, null, transform, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
 		Map<String, String> urls = new HashMap<String, String>();
 		urls.put(title, makeUrlString(title, params));
 		return urls;
 	}
 
-	public Map<String, String> createChartUrls(
-			final DayStats<LogEntry> dayStats,
-			final Map<String, TimeStats<LogEntry>> alerts,
-			final Function<Integer, String> transform) {
-		
+	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Map<String, TimeStats<LogEntry>> alerts, final Function<Integer, String> transform) {
 		return createChartUrls(dayStats, alerts, transform, params.get("chm"));
 	}
+	
+	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Function<Integer, String> transform) {
+		return createChartUrls(dayStats, null, transform, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
+	}
 
-	public Map<String, String> createChartUrls(
+	private Map<String, String> createChartUrls(
 			final DayStats<LogEntry> dayStats,
 			final Map<String, TimeStats<LogEntry>> alerts,
 			final Function<Integer, String> transform,
