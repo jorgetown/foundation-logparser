@@ -77,22 +77,17 @@ public class GoogleChartView {
 		}
 	}
 
-	private Map<String, String> createChartUrl(
-			final String title,
-			final TimeStats<LogEntry> timeStats,
-			final TimeStats<LogEntry> alerts,
-			final Function<Integer, String> transform, 
-			final String defaultMarker) {
+	private Map<String, String> setupChartParams(final TimeStats<LogEntry> timeStats, final TimeStats<LogEntry> alerts, final Function<Integer, String> functor, final String markerOverride) {
 		
 		Map<String, String> paramsCopy = new HashMap<String, String>(params);
 		SummaryStatistics stats = new SummaryStatistics();
 		List<String> means = new ArrayList<String>();
 		List<String> labels = new ArrayList<String>();
-		paramsCopy.put("chm", defaultMarker);
+		paramsCopy.put("chm", markerOverride);
 		int index = 0;
 		for (Entry<Integer, StatisticalSummary> entries : timeStats.getTimeStats().entrySet()) {
 			means.add(df.format(entries.getValue().getMean()));
-			labels.add(transform.apply(entries.getKey()));
+			labels.add(functor.apply(entries.getKey()));
 			stats.addValue(Double.valueOf(df.format(entries.getValue().getMean())));
 
 			if (alerts != null && alerts.getTimeStats().containsKey(entries.getKey())) {
@@ -111,35 +106,34 @@ public class GoogleChartView {
 		return paramsCopy;
 	}
 
-	public Map<String, String> createChartUrl(final String title, final TimeStats<LogEntry> timeStats, final Function<Integer, String> transform) {
-		Map<String, String> params = createChartUrl(title, timeStats, null, transform, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
+	public Map<String, String> createChartUrl(final String title, final TimeStats<LogEntry> timeStats, final Function<Integer, String> functor) {
+		Map<String, String> params = setupChartParams(timeStats, null, functor, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
 		Map<String, String> urls = new HashMap<String, String>();
 		urls.put(title, makeUrlString(title, params));
 		return urls;
 	}
 
-	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Map<String, TimeStats<LogEntry>> alerts, final Function<Integer, String> transform) {
-		return createChartUrls(dayStats, alerts, transform, params.get("chm"));
+	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Map<String, TimeStats<LogEntry>> alerts, final Function<Integer, String> functor) {
+		return createChartUrls(dayStats, alerts, functor, params.get("chm"));
 	}
 	
-	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Function<Integer, String> transform) {
-		return createChartUrls(dayStats, null, transform, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
+	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Function<Integer, String> functor) {
+		return createChartUrls(dayStats, null, functor, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
 	}
 
 	private Map<String, String> createChartUrls(
 			final DayStats<LogEntry> dayStats,
 			final Map<String, TimeStats<LogEntry>> alerts,
-			final Function<Integer, String> transform,
+			final Function<Integer, String> functor,
 			final String markerOverride) {
 		
 		Map<String, String> urls = new HashMap<String, String>();
 
 		String key = null;
 		for (Entry<String, TimeStats<LogEntry>> entries : dayStats.getDayStats().entrySet()) {
-
 			key = entries.getKey();
-			Map<String, String> url = createChartUrl(key, entries.getValue(), alerts != null ? alerts.get(key) : null, transform, markerOverride);
-			urls.put(key, makeUrlString(key, url));
+			Map<String, String> chartParams = setupChartParams(entries.getValue(), alerts != null ? alerts.get(key) : null, functor, markerOverride);
+			urls.put(key, makeUrlString(key, chartParams));
 		}
 
 		return urls;
