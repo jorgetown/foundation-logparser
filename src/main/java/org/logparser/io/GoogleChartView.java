@@ -1,5 +1,8 @@
 package org.logparser.io;
 
+import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
+import static org.logparser.Constants.FILE_SEPARATOR;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +29,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 /**
@@ -40,13 +44,15 @@ public class GoogleChartView {
 	private final Map<String, String> params;
 	private final ChartParams chartParams;
 	private final DecimalFormat df;
+	private final String outputDir;
 
-	public GoogleChartView(final ChartParams chartParams) {
+	public GoogleChartView(final ChartParams chartParams, final String outputDir) {
 		Preconditions.checkNotNull(chartParams, "'chartParams' argument cannot be null.");
 		this.chartParams = chartParams;
 		this.baseUri = chartParams.getBaseUri();
 		this.params = chartParams.getParams();
 		df = new DecimalFormat("#.#");
+		this.outputDir = Strings.isNullOrEmpty(outputDir) ? DEFAULT_OUTPUT_DIR : outputDir;
 	}
 
 	private final Function<String, URL> makeUrl = new Function<String, URL>() {
@@ -68,7 +74,7 @@ public class GoogleChartView {
 		for (Entry<String, URL> url : urls.entrySet()) {
 			try {
 				BufferedImage image = ImageIO.read(url.getValue());
-				File outfile = new File(String.format("%s%s.%s", prefix, CharMatcher.anyOf("<>:\"\\/|?*").removeFrom(url.getKey()), format));
+				File outfile = new File(String.format("%s%s%s%s.%s", outputDir, FILE_SEPARATOR, prefix, CharMatcher.anyOf("<>:\"\\/|?*").removeFrom(url.getKey()), format));
 				ImageIO.write(image, format, outfile);
 				LOGGER.info(String.format("Writing image chart to %s", outfile));
 			} catch (IOException ioe) {
@@ -78,7 +84,6 @@ public class GoogleChartView {
 	}
 
 	private Map<String, String> setupChartParams(final TimeStats<LogEntry> timeStats, final TimeStats<LogEntry> alerts, final Function<Integer, String> functor, final String markerOverride) {
-		
 		Map<String, String> paramsCopy = new HashMap<String, String>(params);
 		SummaryStatistics stats = new SummaryStatistics();
 		List<String> means = new ArrayList<String>();
@@ -92,7 +97,7 @@ public class GoogleChartView {
 
 			if (alerts != null && alerts.getTimeStats().containsKey(entries.getKey())) {
 				String marker = paramsCopy.get("chm");
-				paramsCopy.put("chm", String.format("%s|a,00E741,0,%s,18,-1", marker, index));
+				paramsCopy.put("chm", String.format("%s|a,00E741,0,%s,12,-1", marker, index));
 			}
 			index++;
 		}
@@ -116,17 +121,12 @@ public class GoogleChartView {
 	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Map<String, TimeStats<LogEntry>> alerts, final Function<Integer, String> functor) {
 		return createChartUrls(dayStats, alerts, functor, params.get("chm"));
 	}
-	
+
 	public Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Function<Integer, String> functor) {
 		return createChartUrls(dayStats, null, functor, "D,FF0000,0,-1,1|N,FF0000,0,-1,9");
 	}
 
-	private Map<String, String> createChartUrls(
-			final DayStats<LogEntry> dayStats,
-			final Map<String, TimeStats<LogEntry>> alerts,
-			final Function<Integer, String> functor,
-			final String markerOverride) {
-		
+	private Map<String, String> createChartUrls(final DayStats<LogEntry> dayStats, final Map<String, TimeStats<LogEntry>> alerts, final Function<Integer, String> functor, final String markerOverride) {
 		Map<String, String> urls = new HashMap<String, String>();
 
 		String key = null;

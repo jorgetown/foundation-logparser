@@ -97,7 +97,6 @@ public class CommandLineApplicationRunner {
 			DecimalFormat df = new DecimalFormat("#.##");
 
 			String filepath;
-			String path = null;
 			String filename = null;
 			int totalEntries = 0;
 			int filteredEntries = 0;
@@ -106,7 +105,6 @@ public class CommandLineApplicationRunner {
 			for (File f : files) {
 				filepath = f.getAbsolutePath();
 				filename = f.getName();
-				path = f.getParent();
 
 				long start = System.nanoTime();
 				lineByLineParser.filter(filepath);
@@ -116,15 +114,16 @@ public class CommandLineApplicationRunner {
 				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
 				previousFiltered = filteredEntries;
 			}
-
+			
 			LOGGER.info(LINE_SEPARATOR + logSnapshot.toString() + LINE_SEPARATOR);
 
-			if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(filename)) {
+			String outputDir = logfiles.getOutputDir();
+			if (StringUtils.isNotBlank(filename)) {
 				CsvView csvView = new CsvView();
-				csvView.write(path, filename, logSnapshot, dayStats, weekStats);
+				csvView.write(outputDir, filename, logSnapshot, dayStats, weekStats);
 				if (config.isFilteredEntriesStored()) {
 					ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
-					chartView.write(path, filename);
+					chartView.write(outputDir, filename);					
 				}
 			}
 
@@ -137,12 +136,12 @@ public class CommandLineApplicationRunner {
 					if (predicate != null) {
 						LOGGER.info(String.format("Filtering by %s %s %s", statsParams.getPredicateValue(), statsParams.getPredicateType().toString(), LINE_SEPARATOR));
 						filtered = dayStats.filter(predicate);
-						LOGGER.info(dayStats.toString(filtered));
+						LOGGER.info(dayStats.toString(filtered));				
 					}
 				}
 				ChartParams chartParams = config.getChartParams();
 				if (chartParams != null) {
-					GoogleChartView gcv = new GoogleChartView(config.getChartParams());
+					GoogleChartView gcv = new GoogleChartView(config.getChartParams(), outputDir);
 					Map<String, String> urls = gcv.createChartUrls(dayStats, filtered, dayStats.formatToShortDate);
 					gcv.write(urls, "png", "daily_");
 					urls = gcv.createChartUrls(weekStats, weekStats.formatToDayOfWeek);
@@ -154,7 +153,7 @@ public class CommandLineApplicationRunner {
 		}
 	}
 
-	// TODO this should be responsibility of 'sampler params': return given filter decorated with a sampler if one is given, or return given filter
+	// TODO this should be responsibility of 'sampler params': return given filter decorated with a sampler if one is given, or return given filter 
 	private static ILogEntryFilter<LogEntry> getSamplerIfAvailable(final Config config, final LogEntryFilter filter) {
 		ILogEntryFilter<LogEntry> sampler = null;
 		if (config.getSampler() != null) {
