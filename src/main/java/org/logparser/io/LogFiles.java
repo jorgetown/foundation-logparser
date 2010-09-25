@@ -88,7 +88,7 @@ public final class LogFiles {
 				}
 			}
 		}
-		LOGGER.info(String.format("Extracted log files matching pattern '%s' from base dir(s) '%s'", filenamePattern.pattern(), Arrays.toString(inputDirs)));
+		LOGGER.info(String.format("Extracted log files matching pattern '%s' from input dir(s) '%s'", filenamePattern.pattern(), Arrays.toString(inputDirs)));
 		return listOfFiles.toArray(new File[0]);
 	}
 }
