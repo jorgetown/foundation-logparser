@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
 
 import java.io.File;
 import java.util.Map;
@@ -53,7 +54,7 @@ public class DayStatsIntegrationTest {
 		
 		config = new Config();
 		config.setFriendlyName("Example Log Integration Test");
-		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { "." });
+		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { DEFAULT_OUTPUT_DIR });
 		config.setLogFiles(logfiles);
 		config.setFilterParams(filterParams);
 

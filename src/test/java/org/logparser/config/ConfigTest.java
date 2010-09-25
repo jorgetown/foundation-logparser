@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
 
 import org.junit.After;
 import org.junit.Before;
@@ -18,7 +19,7 @@ import org.logparser.time.InfiniteTimeInterval;
  * 
  */
 public class ConfigTest {
-	private static final String[] BASE_DIRS = new String[] { "." };
+	private static final String[] BASE_DIRS = new String[] { DEFAULT_OUTPUT_DIR };
 	private static final String FILENAME_PATTERN = ".*.log";
 	private Config underTest;
 	private FilterParams filterParams;
@@ -43,7 +44,7 @@ public class ConfigTest {
 		underTest.validate();
 		assertThat(underTest.getFilterParams(), is(notNullValue()));
 		assertThat(underTest.getLogFiles(), is(notNullValue()));
-		assertThat(underTest.getLogFiles().getBaseDirs(), is(equalTo(BASE_DIRS)));
+		assertThat(underTest.getLogFiles().getInputDirs(), is(equalTo(BASE_DIRS)));
 		assertThat(underTest.getLogFiles().getFilenamePattern().pattern(), is(equalTo(FILENAME_PATTERN)));
 	}
 
