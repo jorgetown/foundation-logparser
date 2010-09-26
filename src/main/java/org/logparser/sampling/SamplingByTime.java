@@ -38,9 +38,8 @@ public final class SamplingByTime<E extends ITimestampedEntry> implements ILogEn
 	}
 
 	public SamplingByTime(final ILogEntryFilter<E> filter, final int time, final TimeUnit timeUnit) {
-		Preconditions.checkNotNull(filter);
 		Preconditions.checkNotNull(timeUnit);
-		this.filter = filter;
+		this.filter = Preconditions.checkNotNull(filter);
 		this.timeInMillis = timeUnit.toMillis(time);
 		this.sampleTable = new HashMap<String, E>();
 	}

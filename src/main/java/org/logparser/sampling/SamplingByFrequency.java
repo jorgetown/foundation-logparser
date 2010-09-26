@@ -33,8 +33,7 @@ public final class SamplingByFrequency<E extends ITimestampedEntry> implements I
 	private final Map<String, Integer> sampleTable;
 
 	public SamplingByFrequency(final ILogEntryFilter<E> filter, final int interval) {
-		Preconditions.checkNotNull(filter);
-		this.filter = filter;
+		this.filter = Preconditions.checkNotNull(filter);
 		this.samplingInterval = interval;
 		this.sampleTable = new HashMap<String, Integer>();
 	}

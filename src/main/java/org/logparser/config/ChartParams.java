@@ -35,9 +35,8 @@ public final class ChartParams {
 		if (Strings.isNullOrEmpty(baseUri)) {
 			throw new IllegalArgumentException("'baseUri' argument is required.");
 		}
-		Preconditions.checkNotNull(params, "'params' argument cannot be null.");
 		this.baseUri = baseUri;
-		this.params = params;
+		this.params = Preconditions.checkNotNull(params, "'params' argument cannot be null.");
 	}
 
 	public String getBaseUri() {

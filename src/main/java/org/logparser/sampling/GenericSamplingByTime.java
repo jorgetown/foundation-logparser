@@ -34,10 +34,8 @@ public final class GenericSamplingByTime<E extends ITimestampedEntry> implements
 	private final Map<String, E> sampleTable;
 
 	public GenericSamplingByTime(final ILogEntryFilter<E> filter, final TimeComparator<E> timeComparator) {
-		Preconditions.checkNotNull(filter);
-		Preconditions.checkNotNull(timeComparator);
-		this.filter = filter;
-		this.timeComparator = timeComparator;
+		this.filter = Preconditions.checkNotNull(filter);
+		this.timeComparator = Preconditions.checkNotNull(timeComparator);
 		this.sampleTable = new HashMap<String, E>();
 	}
 

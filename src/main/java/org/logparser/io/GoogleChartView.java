@@ -47,8 +47,7 @@ public class GoogleChartView {
 	private final String outputDir;
 
 	public GoogleChartView(final ChartParams chartParams, final String outputDir) {
-		Preconditions.checkNotNull(chartParams, "'chartParams' argument cannot be null.");
-		this.chartParams = chartParams;
+		this.chartParams = Preconditions.checkNotNull(chartParams, "'chartParams' argument cannot be null.");
 		this.baseUri = chartParams.getBaseUri();
 		this.params = chartParams.getParams();
 		df = new DecimalFormat("#.#");

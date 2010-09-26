@@ -43,14 +43,11 @@ public final class StatsParams {
 
 	@JsonCreator
 	public StatsParams(@JsonProperty("predicateType") final PredicateType predicateType, @JsonProperty("predicateValue") final double predicateValue, @JsonProperty("groupBy") final GroupBy groupBy) {
-		Preconditions.checkNotNull(predicateType, "'predicateType' argument cannot be null.");
 		Preconditions.checkArgument(predicateValue > 0, "Predicate 'value' argument must be a positive number.");
-		Preconditions.checkNotNull(groupBy, "'groupBy' argument cannot be null.");
-		
-		this.predicateType = predicateType;
+		this.predicateType = Preconditions.checkNotNull(predicateType, "'predicateType' argument cannot be null.");
 		this.predicateValue = predicateValue;
-		predicate = predicateType.equals(PredicateType.PERCENTAGE) ? new PercentagePredicate(predicateValue) : new StandardDeviationPredicate(predicateValue);
-		this.groupBy = groupBy;
+		this.groupBy = Preconditions.checkNotNull(groupBy, "'groupBy' argument cannot be null.");
+		this.predicate = predicateType.equals(PredicateType.PERCENTAGE) ? new PercentagePredicate(predicateValue) : new StandardDeviationPredicate(predicateValue);
 	}
 
 	public Predicate<PredicateArguments> getPredicate() {

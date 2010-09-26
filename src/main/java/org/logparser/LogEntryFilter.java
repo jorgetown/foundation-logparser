@@ -36,20 +36,16 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	public LogEntryFilter(final FilterParams filterParams) {
 		Preconditions.checkNotNull(filterParams);
 		Preconditions.checkNotNull(filterParams.getTimestampFormat());
-		Preconditions.checkNotNull(filterParams.getTimestampPattern());
-		Preconditions.checkNotNull(filterParams.getActionPattern());
-		Preconditions.checkNotNull(filterParams.getDurationPattern());
-		Preconditions.checkNotNull(filterParams.getFilterPattern());
 		this.dateFormatter = new ThreadLocal<DateFormat>() {
 			@Override
 			protected DateFormat initialValue() {
 				return new SimpleDateFormat(filterParams.getTimestampFormat());
 			}
 		};
-		this.timestampPattern = filterParams.getTimestampPattern();
-		this.actionPattern = filterParams.getActionPattern();
-		this.durationPattern = filterParams.getDurationPattern();
-		this.filterPattern = filterParams.getFilterPattern();
+		this.timestampPattern = Preconditions.checkNotNull(filterParams.getTimestampPattern());
+		this.actionPattern = Preconditions.checkNotNull(filterParams.getActionPattern());
+		this.durationPattern = Preconditions.checkNotNull(filterParams.getDurationPattern());
+		this.filterPattern = Preconditions.checkNotNull(filterParams.getFilterPattern());
 		this.timeInterval = filterParams.getTimeInterval();
 	}
 

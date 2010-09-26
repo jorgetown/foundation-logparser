@@ -42,8 +42,7 @@ public class ChartView<E extends ITimestampedEntry> {
 	}
 
 	public ChartView(final LogSnapshot<E> logSnapshot, final int x, final int y) {
-		Preconditions.checkNotNull(logSnapshot);
-		this.logSnapshot = logSnapshot;
+		this.logSnapshot = Preconditions.checkNotNull(logSnapshot);
 		this.x = x;
 		this.y = y;
 		this.xAxisLegend = String.format("%s entries", logSnapshot.getTotalEntries());
