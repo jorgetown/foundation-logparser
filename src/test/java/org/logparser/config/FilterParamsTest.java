@@ -26,6 +26,7 @@ public class FilterParamsTest {
 	private static final String DURATION_PATTERN = "(\\d+)$";
 	private static final String FILTER_PATTERN = ".*save.do$";
 	private ITimeInterval timeInterval = new InfiniteTimeInterval();
+	private ITimeInterval dateInterval = new InfiniteTimeInterval();
 	private FilterParams underTest;
 
 	@Before
@@ -37,14 +38,15 @@ public class FilterParamsTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN, 
 				FILTER_PATTERN,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 	}
 
 	@After
 	public void tearDown() {
 		timeInterval = null;
 		underTest = null;
-		
+
 	}
 
 	@Test
@@ -64,7 +66,8 @@ public class FilterParamsTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN, 
 				FILTER_PATTERN,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -76,7 +79,8 @@ public class FilterParamsTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN, 
 				FILTER_PATTERN,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -88,7 +92,8 @@ public class FilterParamsTest {
 				null, 
 				DURATION_PATTERN, 
 				FILTER_PATTERN,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -100,7 +105,8 @@ public class FilterParamsTest {
 				ACTION_PATTERN, 
 				null, 
 				FILTER_PATTERN,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 	}
 
 	@Test
@@ -112,7 +118,8 @@ public class FilterParamsTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN, 
 				null,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(FilterParams.DEFAULT_FILTER_PATTERN)));
 	}
 
@@ -126,11 +133,12 @@ public class FilterParamsTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN, 
 				filterPatternOverride,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 
 		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(filterPatternOverride)));
 	}
-	
+
 	@Test
 	public void testOptionalTimeIntervalHasDefaultValue() {
 		underTest = new FilterParams(
@@ -140,8 +148,24 @@ public class FilterParamsTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN, 
 				FILTER_PATTERN,
-				null);
+				null,
+				dateInterval);
 		assertThat(underTest.getTimeInterval(), is(notNullValue()));
 		assertThat(underTest.getTimeInterval(), is(instanceOf(ITimeInterval.class)));
+	}
+	
+	@Test
+	public void testOptionalDateIntervalHasDefaultValue() {
+		underTest = new FilterParams(
+				SAMPLE_LOG_ENTRY, 
+				TIMESTAMP_PATTERN,
+				TIMESTAMP_FORMAT, 
+				ACTION_PATTERN, 
+				DURATION_PATTERN, 
+				FILTER_PATTERN,
+				timeInterval,
+				null);
+		assertThat(underTest.getDateInterval(), is(notNullValue()));
+		assertThat(underTest.getDateInterval(), is(instanceOf(ITimeInterval.class)));
 	}
 }

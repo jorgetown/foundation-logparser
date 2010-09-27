@@ -27,6 +27,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	private final Pattern durationPattern;
 	private final Pattern filterPattern;
 	private final ITimeInterval timeInterval;
+	private final ITimeInterval dateInterval;
 
 	/**
 	 * The date format to expect from the log entries to be filtered.
@@ -47,13 +48,14 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 		this.durationPattern = Preconditions.checkNotNull(filterParams.getDurationPattern());
 		this.filterPattern = Preconditions.checkNotNull(filterParams.getFilterPattern());
 		this.timeInterval = filterParams.getTimeInterval();
+		this.dateInterval = filterParams.getDateInterval();
 	}
 
 	public LogEntry parse(final String text) {
 		Matcher m = timestampPattern.matcher(text);
 		if (m.find()) {
 			Date date = getDateFromString(m.group(1));
-			if (timeInterval.isBetweenInstants(date)) {
+			if (timeInterval.isBetweenInstants(date) && dateInterval.isBetweenInstants(date)) {
 				m = actionPattern.matcher(text);
 				if (m.find()) {
 					String action = m.group(1);
@@ -102,7 +104,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	public Pattern getFilterPattern() {
 		return filterPattern;
 	}
-	
+
 	public String getTimestampFormat() {
 		return dateFormatter.get().toString();
 	}

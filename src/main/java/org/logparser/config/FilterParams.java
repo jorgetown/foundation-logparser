@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.logparser.ILogEntryFilter;
+import org.logparser.time.DateInterval;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
 import org.logparser.time.TimeInterval;
@@ -31,6 +32,7 @@ public final class FilterParams {
 	private final Pattern durationPattern;
 	private final Pattern filterPattern;
 	private final ITimeInterval timeInterval;
+	private final ITimeInterval dateInterval;
 
 	// Ugh. Wanted a builder here but that it play nice with Jackson's JSON mapping;
 	// Tolerable because it's handled by Jackson.
@@ -41,7 +43,8 @@ public final class FilterParams {
 			@JsonProperty("actionPattern") final String actionPattern,
 			@JsonProperty("durationPattern") final String durationPattern,
 			@JsonProperty("filterPattern") final String filterPattern,
-			@JsonProperty("timeInterval") @JsonDeserialize(as=TimeInterval.class) final ITimeInterval timeInterval) {
+			@JsonProperty("timeInterval") @JsonDeserialize(as=TimeInterval.class) final ITimeInterval timeInterval,
+			@JsonProperty("dateInterval") @JsonDeserialize(as=DateInterval.class) final ITimeInterval dateInterval) {
 
 		if (Strings.isNullOrEmpty(timestampPattern)) {
 			throw new IllegalArgumentException("'timestampPattern' property is required. Check configuration file.");
@@ -61,6 +64,7 @@ public final class FilterParams {
 		this.filterPattern = Strings.isNullOrEmpty(filterPattern) ? Pattern.compile(DEFAULT_FILTER_PATTERN) : Pattern.compile(filterPattern);
 		this.timestampFormat = timestampFormat;
 		this.timeInterval = timeInterval != null ? timeInterval : new InfiniteTimeInterval();
+		this.dateInterval = dateInterval != null ? dateInterval : new InfiniteTimeInterval();
 		this.sampleEntry = Strings.nullToEmpty(sampleEntry);
 	}
 
@@ -90,6 +94,10 @@ public final class FilterParams {
 
 	public ITimeInterval getTimeInterval() {
 		return timeInterval;
+	}
+	
+	public ITimeInterval getDateInterval() {
+		return dateInterval;
 	}
 
 	@Override

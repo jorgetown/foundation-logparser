@@ -37,6 +37,7 @@ public class LogEntryFilterIntegrationTest {
 		String durationPattern = "(\\d+)$";
 		String filterPattern = ".*save.do$";
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
+		ITimeInterval dateInterval = new InfiniteTimeInterval();
 		filterParams = new FilterParams(
 				sampleEntry, 
 				timestampPattern,
@@ -44,7 +45,8 @@ public class LogEntryFilterIntegrationTest {
 				actionPattern, 
 				durationPattern, 
 				filterPattern,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 
 		config = new Config();
 		config.setFriendlyName("Example Log Integration Test");

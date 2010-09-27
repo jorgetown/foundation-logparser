@@ -26,6 +26,7 @@ public class LogEntryFilterTest {
 	private static final String DURATION_PATTERN = "HTTP.*\\s((\\d)(.*))$";
 	private static final String FILTER_PATTERN = ".*.html";
 	private ITimeInterval timeInterval = new InfiniteTimeInterval();
+	private ITimeInterval dateInterval = new InfiniteTimeInterval();
 
 	private LogEntryFilter underTest;
 	private FilterParams filterParams;
@@ -39,7 +40,8 @@ public class LogEntryFilterTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN,
 				FILTER_PATTERN, 
-				timeInterval);
+				timeInterval,
+				dateInterval);
 
 		underTest = new LogEntryFilter(filterParams);
 	}
@@ -91,7 +93,8 @@ public class LogEntryFilterTest {
 				ACTION_PATTERN, 
 				"^NOTPRESENT",
 				FILTER_PATTERN, 
-				timeInterval);
+				timeInterval,
+				dateInterval);
 
 		underTest = new LogEntryFilter(filterParams);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
@@ -108,7 +111,8 @@ public class LogEntryFilterTest {
 				"^NO_THERE", 
 				DURATION_PATTERN, 
 				FILTER_PATTERN,
-				timeInterval);
+				timeInterval,
+				dateInterval);
 
 		underTest = new LogEntryFilter(filterParams);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
@@ -125,7 +129,8 @@ public class LogEntryFilterTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN,
 				FILTER_PATTERN, 
-				timeInterval);
+				timeInterval,
+				dateInterval);
 
 		underTest = new LogEntryFilter(filterParams);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
@@ -142,7 +147,8 @@ public class LogEntryFilterTest {
 				ACTION_PATTERN, 
 				DURATION_PATTERN,
 				FILTER_PATTERN, 
-				timeInterval);
+				timeInterval,
+				dateInterval);
 
 		underTest = new LogEntryFilter(filterParams);
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);

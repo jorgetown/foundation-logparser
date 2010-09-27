@@ -26,7 +26,7 @@ public class ConfigTest {
 
 	@Before
 	public void setUp() {
-		filterParams = new FilterParams(".*", ".*", ".*", ".*", ".*", ".*", new InfiniteTimeInterval());
+		filterParams = new FilterParams(".*", ".*", ".*", ".*", ".*", ".*", new InfiniteTimeInterval(), new InfiniteTimeInterval());
 
 		underTest = new Config();
 		underTest.setFriendlyName("Test Log");

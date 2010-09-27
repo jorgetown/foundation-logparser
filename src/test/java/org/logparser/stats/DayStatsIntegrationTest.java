@@ -43,6 +43,7 @@ public class DayStatsIntegrationTest {
 		String durationPattern = "(\\d+)$";
 		String filterPattern = ".*save.do$";
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
+		ITimeInterval dateInterval = new InfiniteTimeInterval();
 		filterParams = new FilterParams(
 				sampleEntry, 
 				timestampPattern,
@@ -50,8 +51,9 @@ public class DayStatsIntegrationTest {
 				actionPattern, 
 				durationPattern, 
 				filterPattern,
-				timeInterval);
-		
+				timeInterval,
+				dateInterval);
+
 		config = new Config();
 		config.setFriendlyName("Example Log Integration Test");
 		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { DEFAULT_OUTPUT_DIR });
@@ -87,7 +89,7 @@ public class DayStatsIntegrationTest {
 			lineByLineParser.filter(filepath);
 		}
 		Map<String, TimeStats<LogEntry>> stats = dayStats.getDayStats();
-		
+
 		System.out.println("\n" + dayStats.toString());
 
 		assertThat(stats.keySet(), hasItem("/save.do"));
