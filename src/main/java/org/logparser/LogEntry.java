@@ -32,7 +32,7 @@ public final class LogEntry implements Serializable, ITimestampedEntry, ICsvSeri
 	private final String action;
 	private final double duration;
 	private volatile int hashCode;
-	private static ObjectMapper mapper = new ObjectMapper();
+	private static final ObjectMapper mapper = new ObjectMapper();
 
 	@JsonCreator
 	public LogEntry(@JsonProperty("timestamp") final long timestamp, @JsonProperty("action") final String action, @JsonProperty("duration") final double duration) {
@@ -85,11 +85,11 @@ public final class LogEntry implements Serializable, ITimestampedEntry, ICsvSeri
 	}
 
 	public String toCsvString() {
-		return String.format("%s, %s, %s", timestamp, StringEscapeUtils.escapeCsv(action), duration);
+		return String.format("%s, %s, %s", timestamp, StringEscapeUtils.escapeCsv(action), StringEscapeUtils.escapeCsv(String.valueOf(duration)));
 	}
 
 	public LogEntry fromCsvString(final String csvString) {
-		Preconditions.checkNotNull(csvString);
+		Preconditions.checkNotNull(csvString, "'csvString' argument cannot be null.");
 		String[] fields = csvString.split(CSV_VALUE_SEPARATOR);
 		if (fields.length == 3) {
 			return new LogEntry(Long.parseLong(fields[0].trim()), StringEscapeUtils.unescapeCsv(fields[1].trim()), Double.parseDouble(fields[2].trim()));
@@ -109,7 +109,7 @@ public final class LogEntry implements Serializable, ITimestampedEntry, ICsvSeri
 	}
 
 	public LogEntry fromJsonString(final String jsonString) {
-		Preconditions.checkNotNull(jsonString);
+		Preconditions.checkNotNull(jsonString, "'jsonString' argument cannot be null.");
 		LogEntry entry = null;
 		try {
 			entry = mapper.readValue(jsonString, LogEntry.class);

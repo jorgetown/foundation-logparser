@@ -10,21 +10,21 @@ public interface ITimestampedEntry {
 	/**
 	 * The timestamp of the log entry.
 	 * 
-	 * @return the timestamp as a {@code long} value.
+	 * @return {@code long} representing the timestamp of the log entry.
 	 */
 	public long getTimestamp();
 
 	/**
 	 * The log action being measured.
 	 * 
-	 * @return a {@link String} representing the action being timed.
+	 * @return {@link String} representing the action being timed.
 	 */
 	public String getAction();
 
 	/**
 	 * The time taken by the log action being measured.
 	 * 
-	 * @return a {@code Number} representing the duration of the action.
+	 * @return {@code double} representing the duration of the action.
 	 */
 	public double getDuration();
 }
