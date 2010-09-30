@@ -18,6 +18,7 @@ import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
 import org.logparser.config.Config;
 import org.logparser.config.FilterProvider;
+import org.logparser.config.LogFilesProvider;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
 import org.logparser.time.ITimeInterval;
@@ -56,8 +57,12 @@ public class DayStatsIntegrationTest {
 
 		config = new Config();
 		config.setFriendlyName("Example Log Integration Test");
-		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { DEFAULT_OUTPUT_DIR });
-		config.setLogFiles(logfiles);
+		LogFilesProvider logFilesProvider = new LogFilesProvider(
+				"EXAMPLE_log_(.+)-15.log",
+				new String[] { DEFAULT_OUTPUT_DIR },
+				DEFAULT_OUTPUT_DIR,
+				null);
+		config.setLogFilesProvider(logFilesProvider);
 		config.setFilterProvider(filterProvider);
 
 		underTest = filterProvider.build();
@@ -73,7 +78,7 @@ public class DayStatsIntegrationTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDayStatsSummaryStatisticsAreCalculatedCorrectly() {
-		LogFiles logfiles = config.getLogFiles();
+		LogFiles logfiles = config.getLogFilesProvider().build();
 		File[] files = logfiles.list();
 
 		LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);

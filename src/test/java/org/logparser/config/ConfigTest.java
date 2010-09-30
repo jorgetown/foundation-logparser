@@ -9,7 +9,6 @@ import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.logparser.io.LogFiles;
 import org.logparser.time.InfiniteTimeInterval;
 
 /**
@@ -19,18 +18,18 @@ import org.logparser.time.InfiniteTimeInterval;
  * 
  */
 public class ConfigTest {
-	private static final String[] BASE_DIRS = new String[] { DEFAULT_OUTPUT_DIR };
 	private static final String FILENAME_PATTERN = ".*.log";
+	private static final String[] INPUT_DIRS = new String[] { DEFAULT_OUTPUT_DIR };
 	private Config underTest;
-	private FilterProvider filterProvider;
 
 	@Before
 	public void setUp() {
-		filterProvider = new FilterProvider(".*", ".*", ".*", ".*", ".*", ".*", new InfiniteTimeInterval(), new InfiniteTimeInterval());
+		FilterProvider filterProvider = new FilterProvider(".*", ".*", ".*", ".*", ".*", ".*", new InfiniteTimeInterval(), new InfiniteTimeInterval());
+		LogFilesProvider logFilesProvider = new LogFilesProvider(FILENAME_PATTERN, INPUT_DIRS, DEFAULT_OUTPUT_DIR, null);
 
 		underTest = new Config();
 		underTest.setFriendlyName("Test Log");
-		underTest.setLogFiles(new LogFiles(FILENAME_PATTERN, BASE_DIRS));
+		underTest.setLogFilesProvider(logFilesProvider);
 		underTest.setFilterProvider(filterProvider);
 	}
 
@@ -43,17 +42,7 @@ public class ConfigTest {
 	public void testValidationGuaranteesPresenceOfRequiredProperties() {
 		underTest.validate();
 		assertThat(underTest.getFilterProvider(), is(notNullValue()));
-		assertThat(underTest.getLogFiles(), is(notNullValue()));
-		assertThat(underTest.getLogFiles().getInputDirs(), is(equalTo(BASE_DIRS)));
-		assertThat(underTest.getLogFiles().getFilenamePattern().pattern(), is(equalTo(FILENAME_PATTERN)));
-	}
-
-	@Test
-	public void testOverrideOfFilenamePatternPropertyReturnsTheOverride() {
-		underTest = new Config();
-		LogFiles logFiles = new LogFiles(".*.extension", null);
-		underTest.setLogFiles(logFiles);
-		assertThat(underTest.getLogFiles().getFilenamePattern().pattern(), is(equalTo(".*.extension")));
+		assertThat(underTest.getLogFilesProvider(), is(notNullValue()));
 	}
 
 	@Test

@@ -4,13 +4,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.logparser.ILogFilter;
-import org.logparser.io.LogFiles;
 
 /**
  * Represents {@link ILogFilter} configuration obtained from the JSON file.
  * Contains configuration parameters for the participants.
  * 
- * @author jorge.decastro
+ * @author jorge.decastro 
  * TODO split it, as it became the 'The Bloated One'
  */
 public class Config {
@@ -22,7 +21,7 @@ public class Config {
 	private ChartParams chartParams;
 	private SamplerConfig samplerConfig;
 	private String decimalFormat;
-	private LogFiles logFiles;
+	private LogFilesProvider logFilesProvider;
 	private boolean filteredEntriesStored;
 
 	public Config() {
@@ -62,12 +61,12 @@ public class Config {
 		this.samplerConfig = samplerConfig;
 	}
 
-	public LogFiles getLogFiles() {
-		return logFiles;
+	public LogFilesProvider getLogFilesProvider() {
+		return logFilesProvider;
 	}
 
-	public void setLogFiles(final LogFiles logFiles) {
-		this.logFiles = logFiles;
+	public void setLogFilesProvider(final LogFilesProvider logFiles) {
+		this.logFilesProvider = logFiles;
 	}
 
 	public String getDecimalFormat() {
@@ -98,10 +97,10 @@ public class Config {
 		if (filterProvider == null) {
 			throw new IllegalArgumentException("'filterProvider' property is required. Check configuration file.");
 		}
-		if (logFiles == null) {
-			throw new IllegalArgumentException("'logFiles' property is required. Check configuration file.");
+		if (logFilesProvider == null) {
+			throw new IllegalArgumentException("'logFilesProvider' property is required. Check configuration file.");
 		}
-		// TODO move sampler onto its own params class
+		// TODO move sampler onto its own provider class
 		if (samplerConfig != null && samplerConfig.value < 0) {
 			throw new IllegalArgumentException("'value' property of sampler must be a positive integer. Check configuration file.");
 		}
@@ -112,7 +111,7 @@ public class Config {
 		return ReflectionToStringBuilder.toString(this);
 	}
 
-	// TODO Replace tagged class w/ class hierarchy?
+	// TODO clean-up & make consistent
 	public static class SamplerConfig {
 		public enum SampleBy {
 			TIME, FREQUENCY

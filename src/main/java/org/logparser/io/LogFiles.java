@@ -10,12 +10,9 @@ import java.util.regex.Pattern;
 
 import net.jcip.annotations.Immutable;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
@@ -27,46 +24,35 @@ import com.google.common.base.Strings;
  */
 @Immutable
 public final class LogFiles {
-	private static final Logger LOGGER = Logger.getLogger(LogFiles.class.getName());
-	
+	private static final Logger LOGGER = Logger.getLogger(LogFiles.class);
+	public static final String DEFAULT_FILENAME_PATTERN = ".*";
+
 	private final Pattern filenamePattern;
 	private final String[] inputDirs;
 	private final String outputDir;
+	private final IPreProcessor preProcessor;
 
-	public LogFiles(final String filenamePattern, final String[] inputDirs) {
-		this(filenamePattern, inputDirs, DEFAULT_OUTPUT_DIR);
-	}
-
-	@JsonCreator
-	public LogFiles(@JsonProperty("filenamePattern") final String filenamePattern, @JsonProperty("inputDirs") final String[] inputDirs, @JsonProperty("outputDir") final String outputDir) {
-		if (StringUtils.isBlank(filenamePattern)) {
-			throw new IllegalArgumentException("'filenamePattern' argument is required.");
-		}
-		this.filenamePattern = Pattern.compile(filenamePattern);
-		this.inputDirs = ArrayUtils.isEmpty(inputDirs) ? new String[] { DEFAULT_OUTPUT_DIR } : inputDirs;
-		this.outputDir = Strings.isNullOrEmpty(outputDir) ? DEFAULT_OUTPUT_DIR : outputDir;
-		if (!this.outputDir.equals(DEFAULT_OUTPUT_DIR)) {
-			File f = new File(outputDir);
-			boolean createdDirSuccessfully = false;
-			if (!(f.exists() && f.isDirectory())) {
-				createdDirSuccessfully = f.mkdirs();
-				if (!createdDirSuccessfully) {
-					throw new IllegalArgumentException(String.format("Unable to make 'outputDir' dir at '%s'.", f.getAbsolutePath()));
-				}
-			}
-		}
-	}
-
-	public String[] getInputDirs() {
-		return inputDirs;
+	private LogFiles(final Builder builder) {
+		filenamePattern = builder.filenamePattern;
+		inputDirs = builder.inputDirs;
+		outputDir = builder.outputDir;
+		preProcessor = builder.preProcessor;
 	}
 
 	public Pattern getFilenamePattern() {
 		return filenamePattern;
 	}
 
+	public String[] getInputDirs() {
+		return inputDirs;
+	}
+
 	public String getOutputDir() {
 		return outputDir;
+	}
+
+	public IPreProcessor getPreProcessor() {
+		return preProcessor;
 	}
 
 	public File[] list() {
@@ -89,6 +75,58 @@ public final class LogFiles {
 			}
 		}
 		LOGGER.info(String.format("Extracted log files matching pattern '%s' from input dir(s) '%s'", filenamePattern.pattern(), Arrays.toString(inputDirs)));
-		return listOfFiles.toArray(new File[0]);
+		listOfFiles = preProcessor.apply(listOfFiles);
+		File[] files = listOfFiles.toArray(new File[0]);
+		LOGGER.info(String.format("Pre-processing applied; returning log files '%s'", Arrays.toString(files)));
+		return files;
+	}
+
+	public static class Builder {
+		// required parameters
+		// optional parameters
+		private Pattern filenamePattern = Pattern.compile(DEFAULT_FILENAME_PATTERN);
+		private String[] inputDirs = new String[] { DEFAULT_OUTPUT_DIR };
+		private String outputDir = DEFAULT_OUTPUT_DIR;
+		private IPreProcessor preProcessor = new IdentityPreProcessor();
+
+		public Builder() {
+		}
+
+		public Builder filenamePattern(final String filenamePattern) {
+			if (Strings.isNullOrEmpty(filenamePattern)) {
+				throw new IllegalArgumentException("'filenamePattern' argument is required.");
+			}
+			this.filenamePattern = Pattern.compile(filenamePattern);
+			return this;
+		}
+
+		public Builder inputDirs(final String[] inputDirs) {
+			this.inputDirs = Preconditions.checkNotNull(inputDirs, "'inputDirs' argument cannot be null.");
+			return this;
+		}
+
+		public Builder outputDir(final String outputDir) {
+			this.outputDir = Preconditions.checkNotNull(outputDir, "'outputDir' argument cannot be null.");
+			if (!this.outputDir.equals(DEFAULT_OUTPUT_DIR)) {
+				File f = new File(outputDir);
+				boolean createdDirSuccessfully = false;
+				if (!(f.exists() && f.isDirectory())) {
+					createdDirSuccessfully = f.mkdirs();
+					if (!createdDirSuccessfully) {
+						throw new IllegalArgumentException(String.format("Unable to make 'outputDir' dir at '%s'.", f.getAbsolutePath()));
+					}
+				}
+			}
+			return this;
+		}
+
+		public Builder preProcessor(final IPreProcessor preProcessor) {
+			this.preProcessor = Preconditions.checkNotNull(preProcessor, "'preProcessor' argument cannot be null.");
+			return this;
+		}
+
+		public LogFiles build() {
+			return new LogFiles(this);
+		}
 	}
 }

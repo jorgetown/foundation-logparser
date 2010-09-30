@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.logparser.config.Config;
 import org.logparser.config.FilterProvider;
+import org.logparser.config.LogFilesProvider;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
 import org.logparser.time.ITimeInterval;
@@ -50,8 +51,12 @@ public class LogEntryFilterIntegrationTest {
 
 		config = new Config();
 		config.setFriendlyName("Example Log Integration Test");
-		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { DEFAULT_OUTPUT_DIR });
-		config.setLogFiles(logfiles);
+		LogFilesProvider logFilesProvider = new LogFilesProvider(
+				"EXAMPLE_log_(.+)-15.log",
+				new String[] { DEFAULT_OUTPUT_DIR },
+				DEFAULT_OUTPUT_DIR,
+				null);
+		config.setLogFilesProvider(logFilesProvider);
 		config.setFilterProvider(filterProvider);
 
 		underTest = filterProvider.build();
@@ -76,7 +81,7 @@ public class LogEntryFilterIntegrationTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testLogFilterParsesAndFiltersLogEntries() {
-		LogFiles logfiles = config.getLogFiles();
+		LogFiles logfiles = config.getLogFilesProvider().build();
 		File[] files = logfiles.list();
 
 		LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);

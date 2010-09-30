@@ -34,7 +34,7 @@
 			}
 		},
 		"filteredEntriesStored" : "true",
-		"logFiles" : {
+		"logFilesProvider" : {
 			"filenamePattern" : "^EXAMPLE(.+)-12-\\d{2}.log$",
 			"inputDirs" : ["."],
 			"outputDir" : "data"
@@ -76,9 +76,10 @@
 			}
 		},  
 		"filteredEntriesStored" : "true",
-		"logFiles" : {
+		"logFilesProvider" : {
 			"filenamePattern" : "EXAMPLE_2_cms.log",
-			"inputDirs" : ["."]
+			"inputDirs" : ["."],
+			"outputDir" : "data"
 		}
 	}    
 }

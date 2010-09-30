@@ -72,7 +72,7 @@ public class CommandLineApplicationRunner {
 		Config config = getConfig(cla);
 
 		if (config != null) {
-			LogFiles logfiles = config.getLogFiles();
+			LogFiles logfiles = config.getLogFilesProvider().build();
 			File[] files = logfiles.list();
 
 			LogEntryFilter filter = config.getFilterProvider().build();
