@@ -9,52 +9,54 @@ import java.util.regex.Pattern;
 
 import net.jcip.annotations.Immutable;
 
-import org.logparser.config.FilterParams;
 import org.logparser.time.ITimeInterval;
+import org.logparser.time.InfiniteTimeInterval;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 
 /**
- * Log entry filter implementation to parse log entries.
+ * Responsible for parsing log entry strings and returning corresponding
+ * {@link LogEntry}s.
  * 
  * @author jorge.decastro
  * 
  */
 @Immutable
 public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
+	public static final String DEFAULT_FILTER_PATTERN = ".*";
 	private final Pattern timestampPattern;
+	private final String timestampFormat;
 	private final Pattern actionPattern;
 	private final Pattern durationPattern;
 	private final Pattern filterPattern;
 	private final ITimeInterval timeInterval;
 	private final ITimeInterval dateInterval;
-
 	/**
 	 * The date format to expect from the log entries to be filtered.
 	 */
 	private final ThreadLocal<DateFormat> dateFormatter;
 
-	public LogEntryFilter(final FilterParams filterParams) {
-		Preconditions.checkNotNull(filterParams);
-		Preconditions.checkNotNull(filterParams.getTimestampFormat());
-		this.dateFormatter = new ThreadLocal<DateFormat>() {
+	private LogEntryFilter(final Builder builder) {
+		timestampPattern = builder.timestampPattern;
+		timestampFormat = builder.timestampFormat;
+		dateFormatter = new ThreadLocal<DateFormat>() {
 			@Override
 			protected DateFormat initialValue() {
-				return new SimpleDateFormat(filterParams.getTimestampFormat());
+				return new SimpleDateFormat(timestampFormat);
 			}
 		};
-		this.timestampPattern = Preconditions.checkNotNull(filterParams.getTimestampPattern());
-		this.actionPattern = Preconditions.checkNotNull(filterParams.getActionPattern());
-		this.durationPattern = Preconditions.checkNotNull(filterParams.getDurationPattern());
-		this.filterPattern = Preconditions.checkNotNull(filterParams.getFilterPattern());
-		this.timeInterval = filterParams.getTimeInterval();
-		this.dateInterval = filterParams.getDateInterval();
+		actionPattern = builder.actionPattern;
+		durationPattern = builder.durationPattern;
+		filterPattern = builder.filterPattern;
+		timeInterval = builder.timeInterval;
+		dateInterval = builder.dateInterval;
 	}
 
 	public LogEntry parse(final String text) {
 		Matcher m = timestampPattern.matcher(text);
 		if (m.find()) {
-			Date date = getDateFromString(m.group(1));
+			Date date = getDateFromString.apply(m.group(1));
 			if (timeInterval.isBetweenInstants(date) && dateInterval.isBetweenInstants(date)) {
 				m = actionPattern.matcher(text);
 				if (m.find()) {
@@ -73,24 +75,28 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 		return null;
 	}
 
-	private Date getDateFromString(final String dateTime) {
-		Date date;
-		try {
-			date = dateFormatter.get().parse(dateTime);
-		} catch (ParseException pe) {
-			// If the date format is wrong, fail quickly
-			throw new IllegalArgumentException(
-					String.format("Check timestamp regex '%s' or timestamp format '%s'; unable to parse '%s'", getTimestampPattern(), getTimestampFormat(), dateTime), pe);
+	/**
+	 * Returns the {@link Date} corresponding to the given {@link String},
+	 * formatted by this {@link LogEntryFilter#getTimestampFormat()}.
+	 */
+	public Function<String, Date> getDateFromString = new Function<String, Date>() {
+		public Date apply(final String date) {
+			try {
+				return dateFormatter.get().parse(date);
+			} catch (ParseException pe) {
+				// If the date format is wrong, fail quickly
+				throw new IllegalArgumentException(
+						String.format("Check timestamp regex '%s' or timestamp format '%s'; unable to parse '%s'", getTimestampPattern().pattern(), getTimestampFormat(), date), pe);
+			}
 		}
-		return date;
-	}
+	};
 
 	public Pattern getTimestampPattern() {
 		return timestampPattern;
 	}
 
-	public DateFormat getDateFormatter() {
-		return dateFormatter.get();
+	public String getTimestampFormat() {
+		return timestampFormat;
 	}
 
 	public Pattern getActionPattern() {
@@ -105,11 +111,49 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 		return filterPattern;
 	}
 
-	public String getTimestampFormat() {
-		return dateFormatter.get().toString();
-	}
-
 	public ITimeInterval getTimeInterval() {
 		return timeInterval;
+	}
+
+	public ITimeInterval getDateInterval() {
+		return dateInterval;
+	}
+
+	public static class Builder {
+		// required parameters
+		private final Pattern timestampPattern;
+		private final String timestampFormat;
+		private final Pattern actionPattern;
+		private final Pattern durationPattern;
+		// optional parameters
+		private Pattern filterPattern = Pattern.compile(DEFAULT_FILTER_PATTERN);
+		private ITimeInterval timeInterval = new InfiniteTimeInterval();
+		private ITimeInterval dateInterval = new InfiniteTimeInterval();
+
+		public Builder(final Pattern timestampPattern, final String timestampFormat, final Pattern actionPattern, final Pattern durationPattern) {
+			this.timestampPattern = Preconditions.checkNotNull(timestampPattern, "'timestampPattern' argument cannot be null.");
+			this.timestampFormat = Preconditions.checkNotNull(timestampFormat, "'timestampFormat' argument cannot be null.");
+			this.actionPattern = Preconditions.checkNotNull(actionPattern, "'actionPattern' argument cannot be null.");
+			this.durationPattern = Preconditions.checkNotNull(durationPattern, "'durationPattern' argument cannot be null.");
+		}
+
+		public Builder filterPattern(final Pattern filterPattern) {
+			this.filterPattern = Preconditions.checkNotNull(filterPattern, "'filterPattern' argument cannot be null.");
+			return this;
+		}
+
+		public Builder timeInterval(final ITimeInterval timeInterval) {
+			this.timeInterval = Preconditions.checkNotNull(timeInterval, "'timeInterval' argument cannot be null.");
+			return this;
+		}
+
+		public Builder dateInterval(final ITimeInterval dateInterval) {
+			this.dateInterval = Preconditions.checkNotNull(dateInterval, "'dateInterval' argument cannot be null.");
+			return this;
+		}
+
+		public LogEntryFilter build() {
+			return new LogEntryFilter(this);
+		}
 	}
 }

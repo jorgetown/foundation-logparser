@@ -2,9 +2,7 @@ package org.logparser.config;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 
 import org.junit.After;
 import org.junit.Before;
@@ -45,29 +43,17 @@ public class FilterParamsTest {
 	@After
 	public void tearDown() {
 		timeInterval = null;
+		dateInterval = null;
 		underTest = null;
 
 	}
 
 	@Test
-	public void testPresenceOfRequiredProperties() {
+	public void testPresenceOfRequiredParameters() {
 		assertThat(underTest.getTimestampFormat(), is(equalTo(TIMESTAMP_FORMAT)));
-		assertThat(underTest.getTimestampPattern().pattern(), is(equalTo(TIMESTAMP_PATTERN)));
-		assertThat(underTest.getActionPattern().pattern(), is(equalTo(ACTION_PATTERN)));
-		assertThat(underTest.getDurationPattern().pattern(), is(equalTo(DURATION_PATTERN)));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testCreationFailsIfRequiredTimestampFormatIsNull() {
-		underTest = new FilterParams(
-				SAMPLE_LOG_ENTRY, 
-				TIMESTAMP_PATTERN,
-				null, 
-				ACTION_PATTERN, 
-				DURATION_PATTERN, 
-				FILTER_PATTERN,
-				timeInterval,
-				dateInterval);
+		assertThat(underTest.getTimestampPattern(), is(equalTo(TIMESTAMP_PATTERN)));
+		assertThat(underTest.getActionPattern(), is(equalTo(ACTION_PATTERN)));
+		assertThat(underTest.getDurationPattern(), is(equalTo(DURATION_PATTERN)));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -76,6 +62,19 @@ public class FilterParamsTest {
 				SAMPLE_LOG_ENTRY, 
 				null,
 				TIMESTAMP_FORMAT, 
+				ACTION_PATTERN, 
+				DURATION_PATTERN, 
+				FILTER_PATTERN,
+				timeInterval,
+				dateInterval);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreationFailsIfRequiredTimestampFormatIsNull() {
+		underTest = new FilterParams(
+				SAMPLE_LOG_ENTRY, 
+				TIMESTAMP_PATTERN,
+				null, 
 				ACTION_PATTERN, 
 				DURATION_PATTERN, 
 				FILTER_PATTERN,
@@ -110,20 +109,6 @@ public class FilterParamsTest {
 	}
 
 	@Test
-	public void testOptionalFilterPatternHasDefaultValue() {
-		underTest = new FilterParams(
-				SAMPLE_LOG_ENTRY, 
-				TIMESTAMP_PATTERN,
-				TIMESTAMP_FORMAT, 
-				ACTION_PATTERN, 
-				DURATION_PATTERN, 
-				null,
-				timeInterval,
-				dateInterval);
-		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(FilterParams.DEFAULT_FILTER_PATTERN)));
-	}
-
-	@Test
 	public void testOverrideOfOptionalFilterPatternReturnsTheOverride() {
 		String filterPatternOverride = ".*.action";
 		underTest = new FilterParams(
@@ -136,36 +121,6 @@ public class FilterParamsTest {
 				timeInterval,
 				dateInterval);
 
-		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(filterPatternOverride)));
-	}
-
-	@Test
-	public void testOptionalTimeIntervalHasDefaultValue() {
-		underTest = new FilterParams(
-				SAMPLE_LOG_ENTRY, 
-				TIMESTAMP_PATTERN,
-				TIMESTAMP_FORMAT, 
-				ACTION_PATTERN, 
-				DURATION_PATTERN, 
-				FILTER_PATTERN,
-				null,
-				dateInterval);
-		assertThat(underTest.getTimeInterval(), is(notNullValue()));
-		assertThat(underTest.getTimeInterval(), is(instanceOf(ITimeInterval.class)));
-	}
-	
-	@Test
-	public void testOptionalDateIntervalHasDefaultValue() {
-		underTest = new FilterParams(
-				SAMPLE_LOG_ENTRY, 
-				TIMESTAMP_PATTERN,
-				TIMESTAMP_FORMAT, 
-				ACTION_PATTERN, 
-				DURATION_PATTERN, 
-				FILTER_PATTERN,
-				timeInterval,
-				null);
-		assertThat(underTest.getDateInterval(), is(notNullValue()));
-		assertThat(underTest.getDateInterval(), is(instanceOf(ITimeInterval.class)));
+		assertThat(underTest.getFilterPattern(), is(equalTo(filterPatternOverride)));
 	}
 }

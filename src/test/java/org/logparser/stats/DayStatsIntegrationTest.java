@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
+import org.logparser.LogEntryFilterFactory;
 import org.logparser.LogSnapshot;
 import org.logparser.config.Config;
 import org.logparser.config.FilterParams;
@@ -30,28 +31,28 @@ import org.logparser.time.InfiniteTimeInterval;
  * 
  */
 public class DayStatsIntegrationTest {
-	private Config config;
-	private LogEntryFilter underTest;
+	private static final String SAMPLE_ENTRY = "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14";
+	private static final String TIMESTAMP_PATTERN = "\\[((.*?))\\]";
+	private static final String TIMESTAMP_FORMAT = "dd/MMM/yyyy:HH:mm:ss";
+	private static final String ACTION_PATTERN = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
+	private static final String DURATION_PATTERN = "(\\d+)$";
+	private static final String FILTER_PATTERN = ".*save.do$";
+	private Config config; // TODO remove config dependency
 	private FilterParams filterParams;
+	private LogEntryFilter underTest;
 
 	@Before
 	public void setup() {
-		String sampleEntry = "10.117.101.80 - - [15/Dec/2008:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14";
-		String timestampPattern = "\\[((.*?))\\]";
-		String timestampFormat = "dd/MMM/yyyy:HH:mm:ss";
-		String actionPattern = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
-		String durationPattern = "(\\d+)$";
-		String filterPattern = ".*save.do$";
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
 		ITimeInterval dateInterval = new InfiniteTimeInterval();
 		filterParams = new FilterParams(
-				sampleEntry, 
-				timestampPattern,
-				timestampFormat, 
-				actionPattern, 
-				durationPattern, 
-				filterPattern,
-				timeInterval,
+				SAMPLE_ENTRY, 
+				TIMESTAMP_PATTERN,
+				TIMESTAMP_FORMAT, 
+				ACTION_PATTERN, 
+				DURATION_PATTERN,
+				FILTER_PATTERN, 
+				timeInterval, 
 				dateInterval);
 
 		config = new Config();
@@ -60,7 +61,8 @@ public class DayStatsIntegrationTest {
 		config.setLogFiles(logfiles);
 		config.setFilterParams(filterParams);
 
-		underTest = new LogEntryFilter(filterParams);
+		LogEntryFilterFactory filterFactory = new LogEntryFilterFactory(filterParams);
+		underTest = filterFactory.build();
 	}
 
 	@After

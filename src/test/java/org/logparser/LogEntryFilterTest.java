@@ -2,16 +2,17 @@ package org.logparser;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.util.regex.Pattern;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.logparser.config.FilterParams;
 import org.logparser.time.ITimeInterval;
-import org.logparser.time.InfiniteTimeInterval;
 
 /**
  * Unit tests for the {@link LogEntryFilter}.
@@ -20,119 +21,119 @@ import org.logparser.time.InfiniteTimeInterval;
  */
 public class LogEntryFilterTest {
 	private static final String SAMPLE_LOG_MESSAGE = "[15/Dec/2009:00:00:15 +0000] GET /path/something.html?event=execute&eventId=37087422 HTTP/1.1 200 14 300";
-	private static final String TIMESTAMP_PATTERN = "\\[((.*?))\\]";
+	private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("\\[((.*?))\\]");
 	private static final String TIMESTAMP_FORMAT = "dd/MMM/yyyy:HH:mm:ss";
-	private static final String ACTION_PATTERN = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
-	private static final String DURATION_PATTERN = "HTTP.*\\s((\\d)(.*))$";
-	private static final String FILTER_PATTERN = ".*.html";
-	private ITimeInterval timeInterval = new InfiniteTimeInterval();
-	private ITimeInterval dateInterval = new InfiniteTimeInterval();
+	private static final Pattern ACTION_PATTERN = Pattern.compile("(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))");
+	private static final Pattern DURATION_PATTERN = Pattern.compile("HTTP.*\\s((\\d)(.*))$");
+	private static final Pattern FILTER_PATTERN = Pattern.compile(".*.html");
 
 	private LogEntryFilter underTest;
-	private FilterParams filterParams;
 
 	@Before
 	public void setUp() {
-		filterParams = new FilterParams(
-				SAMPLE_LOG_MESSAGE, 
-				TIMESTAMP_PATTERN,
-				TIMESTAMP_FORMAT, 
-				ACTION_PATTERN, 
-				DURATION_PATTERN,
-				FILTER_PATTERN, 
-				timeInterval,
-				dateInterval);
-
-		underTest = new LogEntryFilter(filterParams);
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, ACTION_PATTERN, DURATION_PATTERN).build();
 	}
 
 	@After
 	public void tearDown() {
-		timeInterval = null;
-		filterParams = null;
 		underTest = null;
 	}
 
 	@Test
-	public void testActionPatternAgainstThatOfGivenParams() {
-		assertThat(underTest.getActionPattern(), is(equalTo(filterParams.getActionPattern())));
+	public void testRequiredTimestampPattern() {
+		assertThat(underTest.getTimestampPattern(), is(equalTo(TIMESTAMP_PATTERN)));
+	}
+	
+	@Test
+	public void testRequiredTimestampFormat() {
+		assertThat(underTest.getTimestampFormat(), is(equalTo(TIMESTAMP_FORMAT)));
+	}
+	
+	@Test
+	public void testRequiredActionPattern() {
+		assertThat(underTest.getActionPattern(), is(equalTo(ACTION_PATTERN)));
 	}
 
 	@Test
-	public void testDurationPatternAgainstThatOfGivenParams() {
-		assertThat(underTest.getDurationPattern(), is(equalTo(filterParams.getDurationPattern())));
+	public void testRequiredDurationPattern() {
+		assertThat(underTest.getDurationPattern(), is(equalTo(DURATION_PATTERN)));
 	}
 
 	@Test
-	public void testFilterPatternGiveAgainstThatOfGivenParams() {
-		assertThat(underTest.getFilterPattern(), is(equalTo(filterParams.getFilterPattern())));
+	public void testOptionalFilterPatternHasDefaultValue() {
+		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(LogEntryFilter.DEFAULT_FILTER_PATTERN)));
 	}
-
+	
 	@Test
-	public void testTimestampPatternAgainstThatOfGivenParams() {
-		assertThat(underTest.getTimestampPattern(), is(equalTo(filterParams.getTimestampPattern())));
+	public void testOverridingOptionFilterPatternReturnsTheOverride() {
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, ACTION_PATTERN, DURATION_PATTERN).filterPattern(FILTER_PATTERN).build();
+		assertThat(underTest.getFilterPattern(), is(notNullValue()));
+		assertThat(underTest.getFilterPattern(), is(equalTo(FILTER_PATTERN)));
+	}
+	
+	@Test
+	public void testOptionalTimeIntervalHasDefaultValue() {
+		assertThat(underTest.getTimeInterval(), is(notNullValue()));
+		assertThat(underTest.getTimeInterval(), is(instanceOf(ITimeInterval.class)));
+	}
+	
+	@Test
+	public void testOptionalDateIntervalHasDefaultValue() {
+		assertThat(underTest.getDateInterval(), is(notNullValue()));
+		assertThat(underTest.getDateInterval(), is(instanceOf(ITimeInterval.class)));
 	}
 
 	@Test(expected = NullPointerException.class)
-	public void testFilterFailsCreationIfNullConfigArgument() {
-		underTest = new LogEntryFilter(null);
+	public void testFilterFailsCreationIfNullRequiredTimestampPatternArgumentIsGiven() {
+		underTest = new LogEntryFilter.Builder(null, TIMESTAMP_FORMAT, ACTION_PATTERN, DURATION_PATTERN).build();
+		assertThat(underTest, is(nullValue()));
+	}
+	
+	@Test(expected = NullPointerException.class)
+	public void testFilterFailsCreationIfNullRequiredTimestampFormatArgumentIsGiven() {
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, null, ACTION_PATTERN, DURATION_PATTERN).build();
+		assertThat(underTest, is(nullValue()));
+	}
+	
+	@Test(expected = NullPointerException.class)
+	public void testFilterFailsCreationIfNullRequiredActionPatternArgumentIsGiven() {
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, null, DURATION_PATTERN).build();
+		assertThat(underTest, is(nullValue()));
+	}
+	
+	@Test(expected = NullPointerException.class)
+	public void testFilterFailsCreationIfNullRequiredDurationPatternArgumentIsGiven() {
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, ACTION_PATTERN, null).build();
 		assertThat(underTest, is(nullValue()));
 	}
 
 	@Test
-	public void testFilterIsCreatedIfNotNullConfigArgument() {
+	public void testFilterIsCreatedIfNotNullRequiredArgumentsAreGiven() {
 		assertThat(underTest, is(notNullValue()));
 	}
 
 	@Test
-	public void testMalformedDurationPatternReturnsNullEntry() {
-		filterParams = new FilterParams(
-				SAMPLE_LOG_MESSAGE, 
-				TIMESTAMP_PATTERN,
-				TIMESTAMP_FORMAT, 
-				ACTION_PATTERN, 
-				"^NOTPRESENT",
-				FILTER_PATTERN, 
-				timeInterval,
-				dateInterval);
-
-		underTest = new LogEntryFilter(filterParams);
+	public void testMalformedDurationPatternReturnsNullLogEntry() {
+		Pattern durationPattern = Pattern.compile("^NOTPRESENT");
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, ACTION_PATTERN, durationPattern).build();
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 
 		assertThat(entry, is(nullValue()));
 	}
 
 	@Test
-	public void testMalformedActionPatternReturnsNullEntry() {
-		filterParams = new FilterParams(
-				SAMPLE_LOG_MESSAGE, 
-				TIMESTAMP_PATTERN,
-				TIMESTAMP_FORMAT, 
-				"^NO_THERE", 
-				DURATION_PATTERN, 
-				FILTER_PATTERN,
-				timeInterval,
-				dateInterval);
-
-		underTest = new LogEntryFilter(filterParams);
+	public void testMalformedActionPatternReturnsNullLogEntry() {
+		Pattern actionPattern = Pattern.compile("^NOT_THERE");
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, actionPattern, DURATION_PATTERN).build();
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 
 		assertThat(entry, is(nullValue()));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testMalformedTimestampFormatReturnsNullEntry() {
-		filterParams = new FilterParams(
-				SAMPLE_LOG_MESSAGE, 
-				TIMESTAMP_PATTERN,
-				"MMM/yyyy:HH:mm", 
-				ACTION_PATTERN, 
-				DURATION_PATTERN,
-				FILTER_PATTERN, 
-				timeInterval,
-				dateInterval);
-
-		underTest = new LogEntryFilter(filterParams);
+	public void testMalformedTimestampFormatReturnsNullLogEntry() {
+		String timestampFormat = "MMM/yyyy:HH:mm";
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, timestampFormat, ACTION_PATTERN, DURATION_PATTERN).build();
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 
 		assertThat(entry, is(nullValue()));
@@ -140,38 +141,29 @@ public class LogEntryFilterTest {
 
 	@Test
 	public void testMalformedTimestampPatternReturnsNullEntry() {
-		filterParams = new FilterParams(
-				SAMPLE_LOG_MESSAGE, 
-				"^NOTIMESTAMP",
-				TIMESTAMP_FORMAT, 
-				ACTION_PATTERN, 
-				DURATION_PATTERN,
-				FILTER_PATTERN, 
-				timeInterval,
-				dateInterval);
-
-		underTest = new LogEntryFilter(filterParams);
+		Pattern timestampPattern = Pattern.compile("^NOTIMESTAMP");
+		underTest = new LogEntryFilter.Builder(timestampPattern, TIMESTAMP_FORMAT, ACTION_PATTERN, DURATION_PATTERN).build();
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 
 		assertThat(entry, is(nullValue()));
 	}
-
+	
 	@Test
-	public void testParsableTimestampPatternReturnsEntry() {
+	public void testParsableTimestampPatternReturnsLogEntry() {
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 		assertThat(entry, is(notNullValue()));
 		assertThat(entry.getTimestamp(), is(equalTo(1260835215000L)));
 	}
 
 	@Test
-	public void testParsableActionPatternReturnsEntry() {
+	public void testParsableActionPatternReturnsLogEntry() {
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 		assertThat(entry, is(notNullValue()));
 		assertThat(entry.getAction(), is(equalTo("/path/something.html")));
 	}
 
 	@Test
-	public void testParsableDurationPatternReturnsEntry() {
+	public void testParsableDurationPatternReturnsLogEntry() {
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);
 		assertThat(entry, is(notNullValue()));
 		assertThat(entry.getDuration(), is(equalTo(300D)));
@@ -188,8 +180,8 @@ public class LogEntryFilterTest {
 		LogEntry entry = underTest.parse(LOG_ENTRY);
 
 		assertThat(entry, is(notNullValue()));
-		assertThat(EXPECTED_TIMESTAMP, is(equalTo(underTest.getDateFormatter().format(entry.getTimestamp()))));
-		assertThat(EXPECTED_ACTION, is(equalTo(entry.getAction())));
-		assertThat(EXPECTED_DURATION, is(equalTo(entry.getDuration())));
+		assertThat(entry.getTimestamp(), is(equalTo(underTest.getDateFromString.apply(EXPECTED_TIMESTAMP).getTime())));
+		assertThat(entry.getAction(), is(equalTo(EXPECTED_ACTION)));
+		assertThat(entry.getDuration(), is(equalTo(EXPECTED_DURATION)));
 	}
 }

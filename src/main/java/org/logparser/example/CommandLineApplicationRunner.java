@@ -17,6 +17,7 @@ import org.codehaus.jackson.type.TypeReference;
 import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
+import org.logparser.LogEntryFilterFactory;
 import org.logparser.LogSnapshot;
 import org.logparser.config.ChartParams;
 import org.logparser.config.Config;
@@ -75,7 +76,8 @@ public class CommandLineApplicationRunner {
 			LogFiles logfiles = config.getLogFiles();
 			File[] files = logfiles.list();
 
-			LogEntryFilter filter = new LogEntryFilter(config.getFilterParams());
+			LogEntryFilterFactory logEntryFilterFactory = new LogEntryFilterFactory(config.getFilterParams());
+			LogEntryFilter filter = logEntryFilterFactory.build();
 			// for large log files sampling is preferred/required
 			ILogEntryFilter<LogEntry> sampler = getSamplerIfAvailable(config, filter);
 
