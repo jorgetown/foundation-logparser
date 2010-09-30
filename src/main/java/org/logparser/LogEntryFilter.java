@@ -121,7 +121,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	public ITimeInterval getDateInterval() {
 		return dateInterval;
 	}
-	
+
 	public String getSampleEntry() {
 		return sampleEntry;
 	}
@@ -159,7 +159,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 			this.dateInterval = Preconditions.checkNotNull(dateInterval, "'dateInterval' argument cannot be null.");
 			return this;
 		}
-		
+
 		public Builder sampleEntry(final String sampleEntry) {
 			this.sampleEntry = Strings.nullToEmpty(sampleEntry);
 			return this;

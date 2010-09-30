@@ -11,7 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.logparser.config.Config;
-import org.logparser.config.FilterParams;
+import org.logparser.config.FilterProvider;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
 import org.logparser.time.ITimeInterval;
@@ -31,37 +31,36 @@ public class LogEntryFilterIntegrationTest {
 	private static final String DURATION_PATTERN = "(\\d+)$";
 	private static final String FILTER_PATTERN = ".*save.do$";
 	private Config config; // TODO remove config dependency
-	private FilterParams filterParams;
+	private FilterProvider filterProvider;
 	private LogEntryFilter underTest;
 
 	@Before
 	public void setup() {
 		ITimeInterval timeInterval = new InfiniteTimeInterval();
 		ITimeInterval dateInterval = new InfiniteTimeInterval();
-		filterParams = new FilterParams(
-				SAMPLE_ENTRY, 
+		filterProvider = new FilterProvider(
+				SAMPLE_ENTRY,
 				TIMESTAMP_PATTERN,
-				TIMESTAMP_FORMAT, 
-				ACTION_PATTERN, 
+				TIMESTAMP_FORMAT,
+				ACTION_PATTERN,
 				DURATION_PATTERN,
-				FILTER_PATTERN, 
-				timeInterval, 
+				FILTER_PATTERN,
+				timeInterval,
 				dateInterval);
 
 		config = new Config();
 		config.setFriendlyName("Example Log Integration Test");
 		LogFiles logfiles = new LogFiles("EXAMPLE_log_(.+)-15.log", new String[] { DEFAULT_OUTPUT_DIR });
 		config.setLogFiles(logfiles);
-		config.setFilterParams(filterParams);
+		config.setFilterProvider(filterProvider);
 
-		LogEntryFilterFactory filterFactory = new LogEntryFilterFactory(filterParams);
-		underTest = filterFactory.build();
+		underTest = filterProvider.build();
 	}
 
 	@After
 	public void teardown() {
 		config = null;
-		filterParams = null;
+		filterProvider = null;
 		underTest = null;
 	}
 

@@ -22,16 +22,16 @@ public class ConfigTest {
 	private static final String[] BASE_DIRS = new String[] { DEFAULT_OUTPUT_DIR };
 	private static final String FILENAME_PATTERN = ".*.log";
 	private Config underTest;
-	private FilterParams filterParams;
+	private FilterProvider filterProvider;
 
 	@Before
 	public void setUp() {
-		filterParams = new FilterParams(".*", ".*", ".*", ".*", ".*", ".*", new InfiniteTimeInterval(), new InfiniteTimeInterval());
+		filterProvider = new FilterProvider(".*", ".*", ".*", ".*", ".*", ".*", new InfiniteTimeInterval(), new InfiniteTimeInterval());
 
 		underTest = new Config();
 		underTest.setFriendlyName("Test Log");
 		underTest.setLogFiles(new LogFiles(FILENAME_PATTERN, BASE_DIRS));
-		underTest.setFilterParams(filterParams);
+		underTest.setFilterProvider(filterProvider);
 	}
 
 	@After
@@ -42,7 +42,7 @@ public class ConfigTest {
 	@Test
 	public void testValidationGuaranteesPresenceOfRequiredProperties() {
 		underTest.validate();
-		assertThat(underTest.getFilterParams(), is(notNullValue()));
+		assertThat(underTest.getFilterProvider(), is(notNullValue()));
 		assertThat(underTest.getLogFiles(), is(notNullValue()));
 		assertThat(underTest.getLogFiles().getInputDirs(), is(equalTo(BASE_DIRS)));
 		assertThat(underTest.getLogFiles().getFilenamePattern().pattern(), is(equalTo(FILENAME_PATTERN)));

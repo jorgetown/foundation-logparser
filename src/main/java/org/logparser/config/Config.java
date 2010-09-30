@@ -17,7 +17,7 @@ public class Config {
 	public static final String DEFAULT_DECIMAL_FORMAT = "#.#####";
 
 	private String friendlyName;
-	private FilterParams filterParams;
+	private FilterProvider filterProvider;
 	private StatsParams statsParams;
 	private ChartParams chartParams;
 	private SamplerConfig samplerConfig;
@@ -38,12 +38,12 @@ public class Config {
 		this.friendlyName = name;
 	}
 
-	public FilterParams getFilterParams() {
-		return filterParams;
+	public FilterProvider getFilterProvider() {
+		return filterProvider;
 	}
 
-	public void setFilterParams(final FilterParams filterParams) {
-		this.filterParams = filterParams;
+	public void setFilterProvider(final FilterProvider filterProvider) {
+		this.filterProvider = filterProvider;
 	}
 
 	public StatsParams getStatsParams() {
@@ -95,8 +95,8 @@ public class Config {
 	}
 
 	public void validate() {
-		if (filterParams == null) {
-			throw new IllegalArgumentException("'filterParams' property is required. Check configuration file.");
+		if (filterProvider == null) {
+			throw new IllegalArgumentException("'filterProvider' property is required. Check configuration file.");
 		}
 		if (logFiles == null) {
 			throw new IllegalArgumentException("'logFiles' property is required. Check configuration file.");

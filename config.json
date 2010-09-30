@@ -1,7 +1,7 @@
 {
 	"example" : {
 		"friendlyName" : "Example Log",
-		"filterParams" : {
+		"filterProvider" : {
 			"sampleEntry" : "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14",
 			"timestampPattern" : "\\[((.*?))\\]",
 			"timestampFormat" : "dd/MMM/yyyy:HH:mm:ss",
@@ -33,16 +33,18 @@
 				"chxs" : "2,C2BDDD,10,1,t,C2BDDD"
 			}
 		},
+		"filteredEntriesStored" : "true",
 		"logFiles" : {
 			"filenamePattern" : "^EXAMPLE(.+)-12-\\d{2}.log$",
-			"inputDirs" : ["."]
+			"inputDirs" : ["."],
+			"outputDir" : "data"
 		}
 	},
 	
 	
 	"example2" : {
 		"friendlyName" : "Another Example Log",
-		"filterParams" : {
+		"filterProvider" : {
 			"sampleEntry" : "2010-07-01 22:59:14,014 [http-8080-exec-8] INFO com.web.filter.PerformanceLoggingFilter - /example/cms-event/editorchoice.do 23ms",
 			"timestampPattern" : "^((\\d{4}-\\d{2}-\\d{2}.*)?)\\s\\[",
 			"timestampFormat" : "yyyy-MM-dd HH:mm:ss,SSS",
@@ -73,6 +75,7 @@
 				"chg" : "0,25"
 			}
 		},  
+		"filteredEntriesStored" : "true",
 		"logFiles" : {
 			"filenamePattern" : "EXAMPLE_2_cms.log",
 			"inputDirs" : ["."]
