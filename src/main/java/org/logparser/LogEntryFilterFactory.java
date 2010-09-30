@@ -2,6 +2,8 @@ package org.logparser;
 
 import java.util.regex.Pattern;
 
+import net.jcip.annotations.Immutable;
+
 import org.logparser.config.FilterParams;
 
 import com.google.common.base.Preconditions;
@@ -13,7 +15,8 @@ import com.google.common.base.Strings;
  * @author jorge.decastro
  * 
  */
-public class LogEntryFilterFactory {
+@Immutable
+public final class LogEntryFilterFactory {
 	private final FilterParams filterParams;
 
 	public LogEntryFilterFactory(final FilterParams filterParams) {
