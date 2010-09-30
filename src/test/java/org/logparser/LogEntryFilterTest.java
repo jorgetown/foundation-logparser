@@ -43,12 +43,12 @@ public class LogEntryFilterTest {
 	public void testRequiredTimestampPattern() {
 		assertThat(underTest.getTimestampPattern(), is(equalTo(TIMESTAMP_PATTERN)));
 	}
-	
+
 	@Test
 	public void testRequiredTimestampFormat() {
 		assertThat(underTest.getTimestampFormat(), is(equalTo(TIMESTAMP_FORMAT)));
 	}
-	
+
 	@Test
 	public void testRequiredActionPattern() {
 		assertThat(underTest.getActionPattern(), is(equalTo(ACTION_PATTERN)));
@@ -63,24 +63,37 @@ public class LogEntryFilterTest {
 	public void testOptionalFilterPatternHasDefaultValue() {
 		assertThat(underTest.getFilterPattern().pattern(), is(equalTo(LogEntryFilter.DEFAULT_FILTER_PATTERN)));
 	}
-	
+
 	@Test
-	public void testOverridingOptionFilterPatternReturnsTheOverride() {
+	public void testOverridingOptionalFilterPatternReturnsTheOverride() {
 		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, ACTION_PATTERN, DURATION_PATTERN).filterPattern(FILTER_PATTERN).build();
 		assertThat(underTest.getFilterPattern(), is(notNullValue()));
 		assertThat(underTest.getFilterPattern(), is(equalTo(FILTER_PATTERN)));
 	}
-	
+
 	@Test
 	public void testOptionalTimeIntervalHasDefaultValue() {
 		assertThat(underTest.getTimeInterval(), is(notNullValue()));
 		assertThat(underTest.getTimeInterval(), is(instanceOf(ITimeInterval.class)));
 	}
-	
+
 	@Test
 	public void testOptionalDateIntervalHasDefaultValue() {
 		assertThat(underTest.getDateInterval(), is(notNullValue()));
 		assertThat(underTest.getDateInterval(), is(instanceOf(ITimeInterval.class)));
+	}
+	
+	@Test
+	public void testOptionalSampleEntryHasDefaultValue() {
+		assertThat(underTest.getSampleEntry(), is(notNullValue()));
+		assertThat(underTest.getSampleEntry(), is(equalTo("")));
+	}
+
+	@Test
+	public void testOverridingOptionalSampleEntryReturnsTheOverride() {
+		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, ACTION_PATTERN, DURATION_PATTERN).sampleEntry(SAMPLE_LOG_MESSAGE).build();
+		assertThat(underTest.getSampleEntry(), is(notNullValue()));
+		assertThat(underTest.getSampleEntry(), is(equalTo(SAMPLE_LOG_MESSAGE)));
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -88,19 +101,19 @@ public class LogEntryFilterTest {
 		underTest = new LogEntryFilter.Builder(null, TIMESTAMP_FORMAT, ACTION_PATTERN, DURATION_PATTERN).build();
 		assertThat(underTest, is(nullValue()));
 	}
-	
+
 	@Test(expected = NullPointerException.class)
 	public void testFilterFailsCreationIfNullRequiredTimestampFormatArgumentIsGiven() {
 		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, null, ACTION_PATTERN, DURATION_PATTERN).build();
 		assertThat(underTest, is(nullValue()));
 	}
-	
+
 	@Test(expected = NullPointerException.class)
 	public void testFilterFailsCreationIfNullRequiredActionPatternArgumentIsGiven() {
 		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, null, DURATION_PATTERN).build();
 		assertThat(underTest, is(nullValue()));
 	}
-	
+
 	@Test(expected = NullPointerException.class)
 	public void testFilterFailsCreationIfNullRequiredDurationPatternArgumentIsGiven() {
 		underTest = new LogEntryFilter.Builder(TIMESTAMP_PATTERN, TIMESTAMP_FORMAT, ACTION_PATTERN, null).build();
@@ -147,7 +160,7 @@ public class LogEntryFilterTest {
 
 		assertThat(entry, is(nullValue()));
 	}
-	
+
 	@Test
 	public void testParsableTimestampPatternReturnsLogEntry() {
 		LogEntry entry = underTest.parse(SAMPLE_LOG_MESSAGE);

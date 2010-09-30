@@ -63,7 +63,7 @@ public final class FilterParams {
 		this.timestampFormat = timestampFormat;
 		this.timeInterval = timeInterval;
 		this.dateInterval = dateInterval;
-		this.sampleEntry = Strings.nullToEmpty(sampleEntry);
+		this.sampleEntry = sampleEntry;
 	}
 
 	public String getSampleEntry() {

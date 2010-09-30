@@ -14,6 +14,7 @@ import org.logparser.time.InfiniteTimeInterval;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 /**
  * Responsible for parsing log entry strings and returning corresponding
@@ -32,6 +33,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	private final Pattern filterPattern;
 	private final ITimeInterval timeInterval;
 	private final ITimeInterval dateInterval;
+	private final String sampleEntry;
 	/**
 	 * The date format to expect from the log entries to be filtered.
 	 */
@@ -51,6 +53,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 		filterPattern = builder.filterPattern;
 		timeInterval = builder.timeInterval;
 		dateInterval = builder.dateInterval;
+		sampleEntry = builder.sampleEntry;
 	}
 
 	public LogEntry parse(final String text) {
@@ -118,6 +121,10 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 	public ITimeInterval getDateInterval() {
 		return dateInterval;
 	}
+	
+	public String getSampleEntry() {
+		return sampleEntry;
+	}
 
 	public static class Builder {
 		// required parameters
@@ -129,6 +136,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 		private Pattern filterPattern = Pattern.compile(DEFAULT_FILTER_PATTERN);
 		private ITimeInterval timeInterval = new InfiniteTimeInterval();
 		private ITimeInterval dateInterval = new InfiniteTimeInterval();
+		private String sampleEntry = "";
 
 		public Builder(final Pattern timestampPattern, final String timestampFormat, final Pattern actionPattern, final Pattern durationPattern) {
 			this.timestampPattern = Preconditions.checkNotNull(timestampPattern, "'timestampPattern' argument cannot be null.");
@@ -149,6 +157,11 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 
 		public Builder dateInterval(final ITimeInterval dateInterval) {
 			this.dateInterval = Preconditions.checkNotNull(dateInterval, "'dateInterval' argument cannot be null.");
+			return this;
+		}
+		
+		public Builder sampleEntry(final String sampleEntry) {
+			this.sampleEntry = Strings.nullToEmpty(sampleEntry);
 			return this;
 		}
 
