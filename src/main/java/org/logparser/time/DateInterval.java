@@ -23,9 +23,9 @@ import com.google.common.base.Strings;
  */
 @Immutable
 public final class DateInterval implements ITimeInterval {
-	private static final String DATE_FORMAT = "yyyy/MM/dd";
-	private final Date before;
-	private final Date after;
+	public static final String DATE_FORMAT = "yyyy/MM/dd";
+	private final Date end;
+	private final Date begin;
 
 	private static final ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
 		@Override
@@ -34,30 +34,30 @@ public final class DateInterval implements ITimeInterval {
 		}
 	};
 
-	public DateInterval(final Date after, final Date before) {
-		Preconditions.checkNotNull(after, "'after' argument cannot be null.");
-		Preconditions.checkNotNull(before, "'before' argument cannot be null.");
-		this.after = new Date(after.getTime());
-		this.before = new Date(before.getTime());
+	public DateInterval(final Date begin, final Date end) {
+		Preconditions.checkNotNull(begin, "'begin' argument cannot be null.");
+		Preconditions.checkNotNull(end, "'end' argument cannot be null.");
+		this.begin = new Date(begin.getTime());
+		this.end = new Date(end.getTime());
 	}
 
 	/**
 	 * Answers whether a given {@link Date} lies between the two endpoints.
 	 * 
 	 * @param date the {@link Date} being compared.
-	 * @return true if {@code date} is between {@code before} and {@code after}.
+	 * @return true if {@code date} is between {@code begin} and {@code end}.
 	 */
 	public boolean isBetweenInstants(final Date date) {
 		Preconditions.checkNotNull(date);
-		return date.after(after) && date.before(before);
+		return date.after(begin) && date.before(end);
 	}
 
-	public Date getAfter() {
-		return new Date(after.getTime());
+	public Date getBegin() {
+		return new Date(begin.getTime());
 	}
 
-	public Date getBefore() {
-		return new Date(before.getTime());
+	public Date getEnd() {
+		return new Date(end.getTime());
 	}
 
 	public static String formatDate(final Date date) {
@@ -69,32 +69,35 @@ public final class DateInterval implements ITimeInterval {
 	}
 
 	@JsonCreator
-	public static DateInterval valueOf(@JsonProperty("after") String after, @JsonProperty("before") String before) {
+	public static DateInterval valueOf(@JsonProperty("begin") String begin, @JsonProperty("end") String end) {
 		Date today = new Date();
 		Calendar cal = new GregorianCalendar();
-		if (Strings.isNullOrEmpty(after)) {
-			// no 'after' given? set date 100yrs back into the past
+		if (Strings.isNullOrEmpty(begin)) {
+			// no 'begin' given? set date 100yrs back into the past
 			cal.setTime(today);
 			cal.add(Calendar.YEAR, -100);
-			after = formatDate(cal.getTime());
+			begin = formatDate(cal.getTime());
 		}
-		if (Strings.isNullOrEmpty(before)) {
-			// no 'before' given? set date 100yrs in the future
+		if (Strings.isNullOrEmpty(end)) {
+			// no 'end' given? set date 100yrs in the future
 			cal.setTime(today);
 			cal.add(Calendar.YEAR, 100);
-			before = formatDate(cal.getTime());
+			end = formatDate(cal.getTime());
 		}
 		try {
-			return new DateInterval(parseDate(after), parseDate(before));
+			return new DateInterval(parseDate(begin), parseDate(end));
 		} catch (ParseException pe) {
 			// If the date format is wrong, fail quickly
-			throw new IllegalArgumentException(
-					String.format("One or both of 'dateInterval' arguments before='%s', after='%s' failed to be parsed with pattern '%s'; check JSON config file.", before, after, DATE_FORMAT), pe);
+			throw new IllegalArgumentException(String.format("Unable to parse one or both of 'dateInterval' arguments begin='%s', end='%s' with pattern '%s'; check JSON config file.",
+					begin,
+					end,
+					DATE_FORMAT),
+					pe);
 		}
 	}
 
 	@Override
 	public String toString() {
-		return String.format("{after=%s, before=%s}", formatDate(after), formatDate(before));
+		return String.format("{begin=%s, end=%s}", formatDate(begin), formatDate(end));
 	}
 }

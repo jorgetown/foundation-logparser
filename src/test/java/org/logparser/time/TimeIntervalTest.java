@@ -18,12 +18,12 @@ import org.junit.Test;
  */
 public class TimeIntervalTest {
 	private Calendar cal;
-	
+
 	@Before
 	public void setUp() {
 		cal = Calendar.getInstance();
 	}
-	
+
 	@After
 	public void tearDown() {
 		cal = null;
@@ -31,9 +31,9 @@ public class TimeIntervalTest {
 
 	@Test(expected = NullPointerException.class)
 	public void testNullDateIsNotBetweenTimeInterval() {
-		Instant after = new Instant(12, 30);
-		Instant before = new Instant(19, 30);
-		TimeInterval timeInterval = new TimeInterval(after, before);
+		Instant begin = new Instant(12, 30);
+		Instant end = new Instant(19, 30);
+		TimeInterval timeInterval = new TimeInterval(begin, end);
 
 		timeInterval.isBetweenInstants(null);
 		assertThat(timeInterval, is(nullValue()));
@@ -42,9 +42,9 @@ public class TimeIntervalTest {
 	@Test
 	public void testDateIsBetweenTimeInterval() {
 		cal.set(2010, 1, 14, 14, 23, 10);
-		Instant after = new Instant(12, 30);
-		Instant before = new Instant(19, 30);
-		TimeInterval timeInterval = new TimeInterval(after, before);
+		Instant begin = new Instant(12, 30);
+		Instant end = new Instant(19, 30);
+		TimeInterval timeInterval = new TimeInterval(begin, end);
 
 		boolean isBetween = timeInterval.isBetweenInstants(cal.getTime());
 
@@ -54,9 +54,9 @@ public class TimeIntervalTest {
 	@Test
 	public void testDateIsNotBetweenTimeInterval() {
 		cal.set(2010, 1, 14, 14, 23, 10);
-		Instant after = new Instant(10, 30);
-		Instant before = new Instant(11, 45);
-		TimeInterval timeInterval = new TimeInterval(after, before);
+		Instant begin = new Instant(10, 30);
+		Instant end = new Instant(11, 45);
+		TimeInterval timeInterval = new TimeInterval(begin, end);
 
 		boolean isBetween = timeInterval.isBetweenInstants(cal.getTime());
 

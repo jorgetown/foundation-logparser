@@ -87,8 +87,8 @@ public class DateIntervalTest {
 		underTest = DateInterval.valueOf(after, before);
 		boolean isBetween = underTest.isBetweenInstants(today);
 		assertThat(isBetween, is(true));
-		assertThat(underTest.getAfter(), is(not(nullValue())));
-		assertThat(DateInterval.formatDate(underTest.getAfter()), is(equalTo(DateInterval.formatDate(cal.getTime()))));
+		assertThat(underTest.getBegin(), is(not(nullValue())));
+		assertThat(DateInterval.formatDate(underTest.getBegin()), is(equalTo(DateInterval.formatDate(cal.getTime()))));
 	}
 
 	@Test
@@ -102,8 +102,8 @@ public class DateIntervalTest {
 		underTest = DateInterval.valueOf(after, before);
 		boolean isBetween = underTest.isBetweenInstants(today);
 		assertThat(isBetween, is(true));
-		assertThat(underTest.getBefore(), is(not(nullValue())));
-		assertThat(DateInterval.formatDate(underTest.getBefore()), is(equalTo(DateInterval.formatDate(cal.getTime()))));
+		assertThat(underTest.getEnd(), is(not(nullValue())));
+		assertThat(DateInterval.formatDate(underTest.getEnd()), is(equalTo(DateInterval.formatDate(cal.getTime()))));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
