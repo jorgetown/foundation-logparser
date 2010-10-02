@@ -5,13 +5,19 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.logparser.LogEntryFilter;
+import org.logparser.io.CommandLineArguments;
+import org.logparser.time.DateInterval;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
+import org.logparser.time.TimeInterval;
+
+import com.beust.jcommander.JCommander;
 
 /**
  * Unit tests for {@link FilterProvider}.
@@ -25,7 +31,7 @@ public class FilterProviderTest {
 	private static final String TIMESTAMP_FORMAT = "dd/MMM/yyyy:HH:mm:ss";
 	private static final String ACTION_PATTERN = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
 	private static final String DURATION_PATTERN = "(\\d+)$";
-	private static final String FILTER_PATTERN = ".*save.do$";
+	private static final String FILTER_PATTERN = ".*lock.do$";
 	private ITimeInterval timeInterval = new InfiniteTimeInterval();
 	private ITimeInterval dateInterval = new InfiniteTimeInterval();
 	private FilterProvider underTest;
@@ -125,6 +131,70 @@ public class FilterProviderTest {
 				dateInterval);
 
 		assertThat(underTest.getFilterPattern(), is(equalTo(filterPatternOverride)));
+	}
+
+	@Test
+	public void testCommandLineOverrideOfOptionalFilterPatternReturnsTheOverride() {
+		String filterPatternOverride = ".*.action";
+		CommandLineArguments cla = new CommandLineArguments();
+		String[] argv = { "-log", "somelog", "-filterpattern", filterPatternOverride };
+		new JCommander(cla, argv);
+		underTest.applyCommandLineOverrides(cla);
+		assertThat(underTest.getFilterPattern(), is(equalTo(filterPatternOverride)));
+	}
+
+	@Test
+	public void testCommandLineOverrideOfOptionalTimeIntervalReturnsTheOverride() {
+		String timeIntervalOverride = "20:30,22:30";
+		underTest.setTimeInterval(null);
+		CommandLineArguments cla = new CommandLineArguments();
+		String[] argv = { "-log", "somelog", "-timeinterval", timeIntervalOverride };
+		new JCommander(cla, argv);
+		underTest.applyCommandLineOverrides(cla);
+
+		assertThat(underTest.getTimeInterval(), is(notNullValue()));
+		assertThat(underTest.getTimeInterval(), is(instanceOf(TimeInterval.class)));
+		assertThat(((TimeInterval) underTest.getTimeInterval()).getBegin().getHour(), is(20));
+		assertThat(((TimeInterval) underTest.getTimeInterval()).getBegin().getMinute(), is(30));
+		assertThat(((TimeInterval) underTest.getTimeInterval()).getEnd().getHour(), is(22));
+		assertThat(((TimeInterval) underTest.getTimeInterval()).getEnd().getMinute(), is(30));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCommandLineOverrideOfOptionalTimeIntervalThrowsOnInvalidFormat() {
+		String timeIntervalOverride = "20:30-22:30";
+		underTest.setTimeInterval(null);
+		CommandLineArguments cla = new CommandLineArguments();
+		String[] argv = { "-log", "somelog", "-timeinterval", timeIntervalOverride };
+		new JCommander(cla, argv);
+		underTest.applyCommandLineOverrides(cla);
+
+		assertThat(underTest.build(), is(nullValue()));
+	}
+
+	@Test
+	public void testCommandLineOverrideOfOptionalDateIntervalReturnsTheOverride() {
+		String dateIntervalOverride = "2010/01/01,2010/02/01";
+		underTest.setDateInterval(null);
+		CommandLineArguments cla = new CommandLineArguments();
+		String[] argv = { "-log", "somelog", "-dateinterval", dateIntervalOverride };
+		new JCommander(cla, argv);
+		underTest.applyCommandLineOverrides(cla);
+
+		assertThat(underTest.getDateInterval(), is(notNullValue()));
+		assertThat(underTest.getDateInterval(), is(instanceOf(DateInterval.class)));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCommandLineOverrideOfOptionalDateIntervalThrowsOnInvalidFormat() {
+		String dateIntervalOverride = "201000202013";
+		underTest.setDateInterval(null);
+		CommandLineArguments cla = new CommandLineArguments();
+		String[] argv = { "-log", "somelog", "-dateinterval", dateIntervalOverride };
+		new JCommander(cla, argv);
+		underTest.applyCommandLineOverrides(cla);
+
+		assertThat(underTest.build(), is(nullValue()));
 	}
 
 	@Test
