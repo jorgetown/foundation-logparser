@@ -1,6 +1,7 @@
 package org.logparser.io;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -17,7 +18,6 @@ import org.junit.Test;
  * 
  */
 public class LogFilesTest {
-	private static final String FILENAME_PATTERN = ".*.log$";
 	private static final String[] INPUT_DIRS = new String[] { DEFAULT_OUTPUT_DIR };
 	LogFiles underTest;
 
@@ -27,7 +27,7 @@ public class LogFilesTest {
 		assertThat(underTest, is(notNullValue()));
 		assertThat(underTest.getFilenamePattern().pattern(), is(equalTo(LogFiles.DEFAULT_FILENAME_PATTERN)));
 		assertThat(underTest.getInputDirs(), is(equalTo(INPUT_DIRS)));
-		assertThat(underTest.getOutputDir(), is(equalTo(DEFAULT_OUTPUT_DIR)));
+		assertThat(underTest.getOutputDir(), is(notNullValue()));
 		assertThat(underTest.getPreProcessor(), is(notNullValue()));
 		assertThat(underTest.getPreProcessor(), is(instanceOf(IPreProcessor.class)));
 	}
@@ -40,8 +40,9 @@ public class LogFilesTest {
 
 	@Test
 	public void testOverrideOfFilenamePatternReturnsTheOverride() {
-		underTest = new LogFiles.Builder().filenamePattern(FILENAME_PATTERN).build();
-		assertThat(underTest.getFilenamePattern().pattern(), is(equalTo(FILENAME_PATTERN)));
+		String filenamePatternOverride = ".*.log$";
+		underTest = new LogFiles.Builder().filenamePattern(filenamePatternOverride).build();
+		assertThat(underTest.getFilenamePattern().pattern(), is(equalTo(filenamePatternOverride)));
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -52,9 +53,9 @@ public class LogFilesTest {
 
 	@Test
 	public void testOverrideOfInputDirsArgumentReturnsTheOverride() {
-		String[] override = new String[] {};
-		underTest = new LogFiles.Builder().inputDirs(override).build();
-		assertThat(underTest.getInputDirs(), is(equalTo(override)));
+		String[] inputDirsOverride = new String[] {};
+		underTest = new LogFiles.Builder().inputDirs(inputDirsOverride).build();
+		assertThat(underTest.getInputDirs(), is(equalTo(inputDirsOverride)));
 	}
 
 	@Test
@@ -70,6 +71,14 @@ public class LogFilesTest {
 	public void testNullOutputDirArgumentThrows() {
 		underTest = new LogFiles.Builder().outputDir(null).build();
 		assertThat(underTest, is(nullValue()));
+	}
+
+	@Test
+	public void testOverrideOfOutputDirArgumentReturnsTheOverride() {
+		String overrideOutputDir = "test";
+		underTest = new LogFiles.Builder().outputDir(overrideOutputDir).build();
+		assertThat(underTest, is(notNullValue()));
+		assertThat(underTest.getOutputDir(), containsString(overrideOutputDir));
 	}
 
 	@Test(expected = NullPointerException.class)

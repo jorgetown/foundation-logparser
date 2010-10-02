@@ -1,10 +1,14 @@
 package org.logparser.io;
 
 import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
+import static org.logparser.Constants.FILE_SEPARATOR;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -12,6 +16,7 @@ import net.jcip.annotations.Immutable;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -25,6 +30,7 @@ import com.google.common.base.Strings;
 @Immutable
 public final class LogFiles {
 	private static final Logger LOGGER = Logger.getLogger(LogFiles.class);
+	public static final String DEFAULT_TIMESTAMP_PATTERN = "yyyyMMdd_HHmmss";
 	public static final String DEFAULT_FILENAME_PATTERN = ".*";
 
 	private final Pattern filenamePattern;
@@ -86,15 +92,17 @@ public final class LogFiles {
 		// optional parameters
 		private Pattern filenamePattern = Pattern.compile(DEFAULT_FILENAME_PATTERN);
 		private String[] inputDirs = new String[] { DEFAULT_OUTPUT_DIR };
-		private String outputDir = DEFAULT_OUTPUT_DIR;
 		private IPreProcessor preProcessor = new IdentityPreProcessor();
+		private DateFormat dateFormat = new SimpleDateFormat(DEFAULT_TIMESTAMP_PATTERN);
+		private Date today = new Date();
+		private String outputDir = "";
 
 		public Builder() {
 		}
 
 		public Builder filenamePattern(final String filenamePattern) {
 			if (Strings.isNullOrEmpty(filenamePattern)) {
-				throw new IllegalArgumentException("'filenamePattern' argument is required.");
+				throw new IllegalArgumentException("'filenamePattern' argument cannot be null.");
 			}
 			this.filenamePattern = Pattern.compile(filenamePattern);
 			return this;
@@ -107,16 +115,6 @@ public final class LogFiles {
 
 		public Builder outputDir(final String outputDir) {
 			this.outputDir = Preconditions.checkNotNull(outputDir, "'outputDir' argument cannot be null.");
-			if (!this.outputDir.equals(DEFAULT_OUTPUT_DIR)) {
-				File f = new File(outputDir);
-				boolean createdDirSuccessfully = false;
-				if (!(f.exists() && f.isDirectory())) {
-					createdDirSuccessfully = f.mkdirs();
-					if (!createdDirSuccessfully) {
-						throw new IllegalArgumentException(String.format("Unable to make 'outputDir' dir at '%s'.", f.getAbsolutePath()));
-					}
-				}
-			}
 			return this;
 		}
 
@@ -126,7 +124,15 @@ public final class LogFiles {
 		}
 
 		public LogFiles build() {
+			sanitizeOutputDir();
 			return new LogFiles(this);
+		}
+
+		private void sanitizeOutputDir() {
+			outputDir = CharMatcher.anyOf("/\\").replaceFrom(outputDir, FILE_SEPARATOR);
+			outputDir = CharMatcher.anyOf("<>:;\"|?*,~'[]{}=&^%$£@!±¤`").replaceFrom(outputDir, "_");
+			// allow distinct output folders
+			outputDir = String.format("%s%s%s", outputDir, FILE_SEPARATOR, dateFormat.format(today));
 		}
 	}
 }

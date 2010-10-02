@@ -1,13 +1,13 @@
 package org.logparser.config;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
-
-import net.jcip.annotations.Immutable;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.logparser.io.CommandLineArguments;
 import org.logparser.io.IPreProcessor;
 import org.logparser.io.LogFiles;
 
@@ -19,12 +19,11 @@ import com.google.common.base.Strings;
  * @author jorge.decastro
  * 
  */
-@Immutable
 public final class LogFilesProvider {
 	private static final Logger LOGGER = Logger.getLogger(LogFilesProvider.class);
 	private final String filenamePattern;
-	private final String[] inputDirs;
-	private final String outputDir;
+	private String[] inputDirs;
+	private String outputDir;
 	private final PreProcessorProvider preProcessorProvider;
 
 	@JsonCreator
@@ -34,6 +33,9 @@ public final class LogFilesProvider {
 			@JsonProperty("outputDir") final String outputDir,
 			@JsonProperty("preprocessor") final PreProcessorProvider preProcessorProvider) {
 
+		if (Strings.isNullOrEmpty(filenamePattern)) {
+			throw new IllegalArgumentException("'filenamePattern' argument is required.");
+		}
 		this.filenamePattern = filenamePattern;
 		this.inputDirs = inputDirs;
 		this.outputDir = outputDir;
@@ -48,8 +50,16 @@ public final class LogFilesProvider {
 		return inputDirs;
 	}
 
+	public void setInputDirs(final String[] inputDirs) {
+		this.inputDirs = inputDirs;
+	}
+
 	public String getOutputDir() {
 		return outputDir;
+	}
+
+	public void setOutputDir(final String outputDir) {
+		this.outputDir = outputDir;
 	}
 
 	public PreProcessorProvider getPreProcessorProvider() {
@@ -61,6 +71,15 @@ public final class LogFilesProvider {
 		return ReflectionToStringBuilder.toString(this);
 	}
 
+	public void applyCommandLineOverrides(final CommandLineArguments cla) {
+		if (!Strings.isNullOrEmpty(cla.inputDir)) {
+			inputDirs = new String[] { cla.inputDir };
+		}
+		if (cla.outputDir != null) {
+			outputDir = cla.outputDir;
+		}
+	}
+
 	public static class PreProcessorProvider {
 		private final String type;
 		private final String filenamePattern;
@@ -68,7 +87,7 @@ public final class LogFilesProvider {
 
 		@JsonCreator
 		public PreProcessorProvider(
-				@JsonProperty("type") final String type, 
+				@JsonProperty("type") final String type,
 				@JsonProperty("filenamePattern") final String filenamePattern,
 				@JsonProperty("outputDir") final String outputDir) {
 
@@ -103,7 +122,7 @@ public final class LogFilesProvider {
 		if (inputDirs != null) {
 			logFilesBuilder.inputDirs(inputDirs);
 		}
-		if (!Strings.isNullOrEmpty(outputDir)) {
+		if (outputDir != null) {
 			logFilesBuilder.outputDir(outputDir);
 		}
 		if (preProcessorProvider != null) {
@@ -137,6 +156,19 @@ public final class LogFilesProvider {
 				throw new IllegalArgumentException(String.format("Unable to instantiate pre-processor of type '%s'", type), t);
 			}
 		}
-		return logFilesBuilder.build();
+		LogFiles logFiles = logFilesBuilder.build();
+		makeOutputDir(logFiles.getOutputDir());
+		return logFiles;
+	}
+
+	private void makeOutputDir(final String outputDir) {
+		File f = new File(outputDir);
+		boolean createdDirSuccessfully = false;
+		if (!(f.exists() && f.isDirectory())) {
+			createdDirSuccessfully = f.mkdirs();
+			if (!createdDirSuccessfully) {
+				throw new IllegalArgumentException(String.format("Unable to make 'outputDir' dir at '%s'.", f.getAbsolutePath()));
+			}
+		}
 	}
 }
