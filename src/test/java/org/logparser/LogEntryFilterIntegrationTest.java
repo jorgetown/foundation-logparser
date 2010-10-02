@@ -10,7 +10,6 @@ import java.io.File;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.logparser.config.Config;
 import org.logparser.config.FilterProvider;
 import org.logparser.config.LogFilesProvider;
 import org.logparser.io.LineByLineLogFilter;
@@ -25,14 +24,14 @@ import org.logparser.time.InfiniteTimeInterval;
  * 
  */
 public class LogEntryFilterIntegrationTest {
-	private static final String SAMPLE_ENTRY = "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/lock.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14";
+	private static final String SAMPLE_ENTRY = "10.117.101.80 - - [15/Dec/2009:00:00:15 +0000] \"GET /example/action/save.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14";
 	private static final String TIMESTAMP_PATTERN = "\\[((.*?))\\]";
 	private static final String TIMESTAMP_FORMAT = "dd/MMM/yyyy:HH:mm:ss";
 	private static final String ACTION_PATTERN = "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))";
 	private static final String DURATION_PATTERN = "(\\d+)$";
 	private static final String FILTER_PATTERN = ".*save.do$";
-	private Config config; // TODO remove config dependency
 	private FilterProvider filterProvider;
+	private LogFilesProvider logFilesProvider;
 	private LogEntryFilter underTest;
 
 	@Before
@@ -49,28 +48,20 @@ public class LogEntryFilterIntegrationTest {
 				timeInterval,
 				dateInterval);
 
-		config = new Config();
-		config.setFriendlyName("Example Log Integration Test");
-		LogFilesProvider logFilesProvider = new LogFilesProvider(
-				"EXAMPLE_log_(.+)-15.log",
-				new String[] { DEFAULT_OUTPUT_DIR },
-				DEFAULT_OUTPUT_DIR,
-				null);
-		config.setLogFilesProvider(logFilesProvider);
-		config.setFilterProvider(filterProvider);
+		logFilesProvider = new LogFilesProvider("EXAMPLE_log_(.+)-15.log", new String[] { "logs" }, DEFAULT_OUTPUT_DIR, null);
 
 		underTest = filterProvider.build();
 	}
 
 	@After
 	public void teardown() {
-		config = null;
 		filterProvider = null;
+		logFilesProvider = null;
 		underTest = null;
 	}
 
 	@Test
-	public void testLogFilterSettingsAgainstGivenParams() {
+	public void testFilterProviderSettings() {
 		assertThat(underTest.getTimestampPattern().pattern(), is(equalTo(TIMESTAMP_PATTERN)));
 		assertThat(underTest.getTimestampFormat(), is(equalTo(TIMESTAMP_FORMAT)));
 		assertThat(underTest.getActionPattern().pattern(), is(equalTo(ACTION_PATTERN)));
@@ -81,10 +72,10 @@ public class LogEntryFilterIntegrationTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testLogFilterParsesAndFiltersLogEntries() {
-		LogFiles logfiles = config.getLogFilesProvider().build();
+		LogFiles logfiles = logFilesProvider.build();
 		File[] files = logfiles.list();
 
-		LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);
+		LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>();
 
 		LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(underTest);
 		lineByLineParser.attach(logSnapshot);
