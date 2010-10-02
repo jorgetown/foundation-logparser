@@ -1,32 +1,32 @@
 package org.logparser.config;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.logparser.ILogFilter;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * Represents {@link ILogFilter} configuration obtained from the JSON file.
- * Contains configuration parameters for the participants.
+ * Represents configuration mapped from the JSON file.
  * 
- * @author jorge.decastro 
- * TODO split it, as it became the 'The Bloated One'
+ * @author jorge.decastro
  */
-public class Config {
-	public static final String DEFAULT_DECIMAL_FORMAT = "#.#####";
-
+public final class Config {
 	private String friendlyName;
-	private FilterProvider filterProvider;
+	private final FilterProvider filterProvider;
 	private StatsParams statsParams;
 	private ChartParams chartParams;
-	private SamplerConfig samplerConfig;
-	private String decimalFormat;
-	private LogFilesProvider logFilesProvider;
-	private boolean filteredEntriesStored;
+	private SamplerProvider samplerProvider;
+	private final LogFilesProvider logFilesProvider;
 
-	public Config() {
-		decimalFormat = DEFAULT_DECIMAL_FORMAT;
-		filteredEntriesStored = true;
+	@JsonCreator
+	public Config(@JsonProperty("filterProvider") final FilterProvider filterProvider, @JsonProperty("logFilesProvider") final LogFilesProvider logFilesProvider) {
+		if (filterProvider == null) {
+			throw new IllegalArgumentException("'filterProvider' property is required. Check configuration file.");
+		}
+		if (logFilesProvider == null) {
+			throw new IllegalArgumentException("'logFilesProvider' property is required. Check configuration file.");
+		}
+		this.filterProvider = filterProvider;
+		this.logFilesProvider = logFilesProvider;
 	}
 
 	public String getFriendlyName() {
@@ -41,10 +41,6 @@ public class Config {
 		return filterProvider;
 	}
 
-	public void setFilterProvider(final FilterProvider filterProvider) {
-		this.filterProvider = filterProvider;
-	}
-
 	public StatsParams getStatsParams() {
 		return statsParams;
 	}
@@ -53,36 +49,12 @@ public class Config {
 		this.statsParams = statsParams;
 	}
 
-	public SamplerConfig getSampler() {
-		return samplerConfig;
+	public SamplerProvider getSamplerProvider() {
+		return samplerProvider;
 	}
 
-	public void setSampler(final SamplerConfig samplerConfig) {
-		this.samplerConfig = samplerConfig;
-	}
-
-	public LogFilesProvider getLogFilesProvider() {
-		return logFilesProvider;
-	}
-
-	public void setLogFilesProvider(final LogFilesProvider logFiles) {
-		this.logFilesProvider = logFiles;
-	}
-
-	public String getDecimalFormat() {
-		return decimalFormat;
-	}
-
-	public void setDecimalFormat(final String decimalFormat) {
-		this.decimalFormat = decimalFormat;
-	}
-
-	public boolean isFilteredEntriesStored() {
-		return filteredEntriesStored;
-	}
-
-	public void setFilteredEntriesStored(final boolean filteredEntriesStored) {
-		this.filteredEntriesStored = filteredEntriesStored;
+	public void setSamplerProvider(final SamplerProvider samplerProvider) {
+		this.samplerProvider = samplerProvider;
 	}
 
 	public ChartParams getChartParams() {
@@ -93,37 +65,12 @@ public class Config {
 		this.chartParams = chartParams;
 	}
 
-	public void validate() {
-		if (filterProvider == null) {
-			throw new IllegalArgumentException("'filterProvider' property is required. Check configuration file.");
-		}
-		if (logFilesProvider == null) {
-			throw new IllegalArgumentException("'logFilesProvider' property is required. Check configuration file.");
-		}
-		// TODO move sampler onto its own provider class
-		if (samplerConfig != null && samplerConfig.value < 0) {
-			throw new IllegalArgumentException("'value' property of sampler must be a positive integer. Check configuration file.");
-		}
+	public LogFilesProvider getLogFilesProvider() {
+		return logFilesProvider;
 	}
 
 	@Override
 	public String toString() {
 		return ReflectionToStringBuilder.toString(this);
-	}
-
-	// TODO clean-up & make consistent
-	public static class SamplerConfig {
-		public enum SampleBy {
-			TIME, FREQUENCY
-		};
-
-		public SampleBy sampleBy;
-		public int value;
-		public TimeUnit timeUnit;
-
-		@Override
-		public String toString() {
-			return ReflectionToStringBuilder.toString(this);
-		}
 	}
 }
