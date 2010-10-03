@@ -1,11 +1,13 @@
 package org.logparser.stats;
 
+import static org.logparser.Constants.DEFAULT_DECIMAL_FORMAT;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,19 +49,23 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 	protected transient final ObjectMapper jsonMapper;
 	protected final ThreadLocal<DateFormat> outputFormat;
 	protected final DecimalFormat df;
+	private final boolean detailed;
 
 	public DayStats() {
+		this(false, new DecimalFormat(DEFAULT_DECIMAL_FORMAT));
+	}
+
+	public DayStats(final boolean detailed, final DecimalFormat decimalFormat) {
+		this.df = Preconditions.checkNotNull(decimalFormat, "'decimalFormat' argument cannot be null.");
 		dayStats = new TreeMap<String, TimeStats<E>>();
 		jsonMapper = new ObjectMapper();
-		// TODO inject as constructor argument?
 		this.outputFormat = new ThreadLocal<DateFormat>() {
 			@Override
 			protected DateFormat initialValue() {
 				return new SimpleDateFormat(DEFAULT_REPORT_DATE_FORMAT);
 			}
 		};
-		// TODO inject as constructor argument?
-		df = new DecimalFormat(DEFAULT_DECIMAL_FORMAT);
+		this.detailed = detailed;
 	}
 
 	@Override
@@ -93,7 +99,7 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 			timeStats = new TimeStats<E>();
 			for (Entry<Integer, StatisticalSummary> times : entries.getValue().getTimeStats().entrySet()) {
 				currentStats = times.getValue();
-				movingStats.addValue(currentStats.getMean()); // calculate moving average
+				movingStats.addValue(currentStats.getMean()); // calculate MA
 				arguments = new PredicateArguments(movingStats, currentStats.getMean());
 				if (predicate.apply(arguments)) {
 					timeStats.add(times.getKey(), times.getValue());
@@ -112,11 +118,17 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 	public Map<String, TimeStats<E>> getDayStats() {
 		return Collections.unmodifiableMap(dayStats);
 	}
-	
+
 	public Function<Integer, String> formatToShortDate = new Function<Integer, String>() {
+		private final ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
+			@Override
+			protected DateFormat initialValue() {
+				return new SimpleDateFormat("M/d");
+			}
+		};
+
 		public String apply(final Integer date) {
-			DateFormat to = new SimpleDateFormat("M/d");
-			return formatDate(to, "" + date);
+			return formatDate(dateFormatter.get(), "" + date);
 		}
 	};
 
@@ -127,18 +139,24 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 
 	public String toString(final Map<String, TimeStats<E>> dayStats) {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
+
 		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			Tuple tuple = calculateSummary(entry.getValue().getTimeStats().values());
 			sb.append(entry.getKey());
+			sb.append(",");
+			sb.append(String.format(" %s days, ~%s/day, avg %sms/day", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
 			sb.append(LINE_SEPARATOR);
-			writeColumns(sb, entry.getValue());
-			sb.append(LINE_SEPARATOR);
+			if (detailed) {
+				writeColumns(sb, entry.getValue());
+				sb.append(LINE_SEPARATOR);
+			}
 		}
 
 		return sb.toString();
 	}
 
 	protected void writeColumns(StringBuilder sb, final TimeStats<E> timeStats) {
-		sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
+		sb.append("\tDate, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
 		for (Entry<Integer, StatisticalSummary> entry : timeStats.getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
 			StatisticalSummary summary = entry.getValue();
@@ -155,24 +173,32 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 	public String toCsvString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			Tuple tuple = calculateSummary(entry.getValue().getTimeStats().values());
 			sb.append(StringEscapeUtils.escapeCsv(entry.getKey()));
+			sb.append(", ");
+			sb.append(StringEscapeUtils.escapeCsv(String.format(" %s days, ~%s/day, avg %sms/day",
+					tuple.count,
+					tuple.avgCount,
+					df.format(tuple.avgTime))));
 			sb.append(LINE_SEPARATOR);
-			writeCsvColumns(sb, entry.getValue());
-			sb.append(LINE_SEPARATOR);
+			if (detailed) {
+				writeCsvColumns(sb, entry.getValue());
+				sb.append(LINE_SEPARATOR);
+			}
 		}
 		return sb.toString();
 	}
 
 	protected void writeCsvColumns(StringBuilder sb, final TimeStats<E> timeStats) {
-		sb.append(", Day, #, Mean, Standard Deviation, Max, Min");
+		sb.append(", Date, #, Mean, Standard Deviation, Max, Min");
 		for (Entry<Integer, StatisticalSummary> entry : timeStats.getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
 			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format(", %s, %s, %s, %s, %s, %s",
 					formatDate(outputFormat.get(), "" + entry.getKey()),
-					summary.getN(), 
+					summary.getN(),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMean())),
-					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())), 
+					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMax())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMin()))));
 		}
@@ -195,5 +221,19 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 
 	public DayStats<E> fromJsonString(final String jsonString) {
 		throw new NotImplementedException("DayStats does not implement JSON deserialization.");
+	}
+
+	private Tuple calculateSummary(final Collection<StatisticalSummary> stats) {
+		int count = 0;
+		int avgCount = 0;
+		double avgTime = 0D;
+		for (StatisticalSummary stat : stats) {
+			avgCount += stat.getN();
+			avgTime += stat.getMean();
+		}
+		count = stats.size();
+		avgCount = avgCount > 0 ? Math.round(avgCount / count) : 0;
+		avgTime = avgTime > 0 ? avgTime / count : 0;
+		return new Tuple(count, avgCount, avgTime);
 	}
 }

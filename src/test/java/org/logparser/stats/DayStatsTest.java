@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,6 +60,12 @@ public class DayStatsTest {
 		entryYAtTimeA = null;
 		entryXAtTimeB = null;
 		underTest = null;
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testNullDecimalFormatArgument() {
+		underTest = new DayStats<LogEntry>(true, null);
+		assertThat(underTest, is(nullValue()));
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -127,7 +134,7 @@ public class DayStatsTest {
 		assertThat(filtered, is(notNullValue()));
 		assertThat(filtered.size(), is(0));
 	}
-	
+
 	@Test
 	public void testFilterEntriesWherePredicateIsTrue() {
 		when(mockPredicate.apply(any(PredicateArguments.class))).thenReturn(true);

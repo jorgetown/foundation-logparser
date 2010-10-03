@@ -22,7 +22,6 @@ public abstract class AbstractStats<E> implements Serializable, IObserver<E> {
 	private static final long serialVersionUID = -5699879056725405682L;
 
 	protected static final String DEFAULT_REPORT_DATE_FORMAT = "MM/dd";
-	protected static final String DEFAULT_DECIMAL_FORMAT = "#.##";
 	protected static final String DATE_FORMAT = "yyyyMMdd";
 	protected ThreadLocal<DateFormat> dateFormatter = new ThreadLocal<DateFormat>() {
 		@Override
@@ -50,6 +49,18 @@ public abstract class AbstractStats<E> implements Serializable, IObserver<E> {
 		}
 		return "";
 	}
-	
+
+	protected static class Tuple {
+		public int count;
+		public int avgCount;
+		public double avgTime;
+
+		public Tuple(final int timeUnitCount, final int avgCountPerTimeUnit, final double avgTimePerTimeUnit) {
+			this.count = timeUnitCount;
+			this.avgCount = avgCountPerTimeUnit;
+			this.avgTime = avgTimePerTimeUnit;
+		}
+	}
+
 	public abstract void consume(final E entry);
 }

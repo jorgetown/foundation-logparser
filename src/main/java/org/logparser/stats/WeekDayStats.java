@@ -1,7 +1,9 @@
 package org.logparser.stats;
 
+import static org.logparser.Constants.DEFAULT_DECIMAL_FORMAT;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Map.Entry;
 
@@ -31,7 +33,11 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 	private final TimeStats<E> aggregateTimeStats;
 
 	public WeekDayStats() {
-		super();
+		this(false, new DecimalFormat(DEFAULT_DECIMAL_FORMAT));
+	}
+
+	public WeekDayStats(final boolean detailed, final DecimalFormat decimalFormat) {
+		super(detailed, decimalFormat);
 		aggregateTimeStats = new TimeStats<E>(Calendar.DAY_OF_WEEK);
 	}
 
@@ -73,12 +79,12 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 
 	@Override
 	protected void writeColumns(StringBuilder sb, final TimeStats<E> timeStats) {
-		sb.append("\tDay, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
+		sb.append("\tDay of the Week, \t#, \tMean, \tStandard Deviation, \tMax, \tMin");
 		for (Entry<Integer, StatisticalSummary> entry : timeStats.getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
 			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s, \t%s",
-					formatToDayOfWeek.apply(entry.getKey()), 
+					formatToDayOfWeek.apply(entry.getKey()),
 					summary.getN(),
 					df.format(summary.getMean()),
 					df.format(summary.getStandardDeviation()),
@@ -103,37 +109,37 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 
 	@Override
 	protected void writeCsvColumns(StringBuilder sb, final TimeStats<E> timeStats) {
-		sb.append(", Day, #, Mean, Standard Deviation, Max, Min");
+		sb.append(", Day of the Week, #, Mean, Standard Deviation, Max, Min");
 		for (Entry<Integer, StatisticalSummary> entry : timeStats.getTimeStats().entrySet()) {
 			sb.append(LINE_SEPARATOR);
 			StatisticalSummary summary = entry.getValue();
 			sb.append(String.format(", %s, %s, %s, %s, %s, %s",
-					formatToDayOfWeek.apply(entry.getKey()), 
+					formatToDayOfWeek.apply(entry.getKey()),
 					summary.getN(),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMean())),
-					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())), 
+					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMax())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMin()))));
 		}
 	}
-	
+
 	public Function<Integer, String> formatToDayOfWeek = new Function<Integer, String>() {
 		public String apply(final Integer day) {
 			switch (day) {
-			case 1:
-				return "Sun";
-			case 2:
-				return "Mon";
-			case 3:
-				return "Tue";
-			case 4:
-				return "Wed";
-			case 5:
-				return "Thu";
-			case 6:
-				return "Fri";
-			case 7:
-				return "Sat";
+				case 1:
+					return "Sun";
+				case 2:
+					return "Mon";
+				case 3:
+					return "Tue";
+				case 4:
+					return "Wed";
+				case 5:
+					return "Thu";
+				case 6:
+					return "Fri";
+				case 7:
+					return "Sat";
 			}
 			return "";
 		}
