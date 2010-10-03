@@ -12,7 +12,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public final class Config {
 	private String friendlyName;
 	private final FilterProvider filterProvider;
-	private StatsParams statsParams;
+	private StatsProvider statsProvider;
 	private ChartParams chartParams;
 	private SamplerProvider samplerProvider;
 	private final LogFilesProvider logFilesProvider;
@@ -41,12 +41,12 @@ public final class Config {
 		return filterProvider;
 	}
 
-	public StatsParams getStatsParams() {
-		return statsParams;
+	public StatsProvider getStatsProvider() {
+		return statsProvider;
 	}
 
-	public void setStatsParams(final StatsParams statsParams) {
-		this.statsParams = statsParams;
+	public void setStatsProvider(final StatsProvider statsProvider) {
+		this.statsProvider = statsProvider;
 	}
 
 	public SamplerProvider getSamplerProvider() {
