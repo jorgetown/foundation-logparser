@@ -1,6 +1,5 @@
 package org.logparser.io;
 
-import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
 import static org.logparser.Constants.FILE_SEPARATOR;
 
 import java.io.File;
@@ -31,7 +30,8 @@ import com.google.common.base.Strings;
 public final class LogFiles {
 	private static final Logger LOGGER = Logger.getLogger(LogFiles.class);
 	public static final String DEFAULT_TIMESTAMP_PATTERN = "yyyyMMdd_HHmmss";
-	public static final String DEFAULT_FILENAME_PATTERN = ".*";
+	public static final String DEFAULT_FILENAME_PATTERN = ".*.log$";
+	public static final String DEFAULT_INPUT_DIR = ".";
 
 	private final Pattern filenamePattern;
 	private final String[] inputDirs;
@@ -91,7 +91,7 @@ public final class LogFiles {
 		// required parameters
 		// optional parameters
 		private Pattern filenamePattern = Pattern.compile(DEFAULT_FILENAME_PATTERN);
-		private String[] inputDirs = new String[] { DEFAULT_OUTPUT_DIR };
+		private String[] inputDirs = new String[] { DEFAULT_INPUT_DIR };
 		private IPreProcessor preProcessor = new IdentityPreProcessor();
 		private DateFormat dateFormat = new SimpleDateFormat(DEFAULT_TIMESTAMP_PATTERN);
 		private Date today = new Date();

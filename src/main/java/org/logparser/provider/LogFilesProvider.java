@@ -21,7 +21,7 @@ import com.google.common.base.Strings;
  */
 public final class LogFilesProvider {
 	private static final Logger LOGGER = Logger.getLogger(LogFilesProvider.class);
-	private final String filenamePattern;
+	private String filenamePattern;
 	private String[] inputDirs;
 	private String outputDir;
 	private final PreProcessorProvider preProcessorProvider;
@@ -33,9 +33,6 @@ public final class LogFilesProvider {
 			@JsonProperty("outputDir") final String outputDir,
 			@JsonProperty("preprocessor") final PreProcessorProvider preProcessorProvider) {
 
-		if (Strings.isNullOrEmpty(filenamePattern)) {
-			throw new IllegalArgumentException("'filenamePattern' argument is required.");
-		}
 		this.filenamePattern = filenamePattern;
 		this.inputDirs = inputDirs;
 		this.outputDir = outputDir;
@@ -50,16 +47,8 @@ public final class LogFilesProvider {
 		return inputDirs;
 	}
 
-	public void setInputDirs(final String[] inputDirs) {
-		this.inputDirs = inputDirs;
-	}
-
 	public String getOutputDir() {
 		return outputDir;
-	}
-
-	public void setOutputDir(final String outputDir) {
-		this.outputDir = outputDir;
 	}
 
 	public PreProcessorProvider getPreProcessorProvider() {

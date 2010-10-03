@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
 
 import org.junit.Test;
 
@@ -18,7 +17,7 @@ import org.junit.Test;
  * 
  */
 public class LogFilesTest {
-	private static final String[] INPUT_DIRS = new String[] { DEFAULT_OUTPUT_DIR };
+	private static final String[] INPUT_DIRS = new String[] { LogFiles.DEFAULT_INPUT_DIR };
 	LogFiles underTest;
 
 	@Test
