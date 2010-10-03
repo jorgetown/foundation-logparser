@@ -91,8 +91,7 @@ public final class DateInterval implements ITimeInterval {
 			throw new IllegalArgumentException(String.format("Unable to parse one or both of 'dateInterval' arguments begin='%s', end='%s' with pattern '%s'; check JSON config file.",
 					begin,
 					end,
-					DATE_FORMAT),
-					pe);
+					DATE_FORMAT));
 		}
 	}
 

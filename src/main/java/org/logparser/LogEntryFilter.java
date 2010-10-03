@@ -89,7 +89,7 @@ public final class LogEntryFilter implements ILogEntryFilter<LogEntry> {
 			} catch (ParseException pe) {
 				// If the date format is wrong, fail quickly
 				throw new IllegalArgumentException(
-						String.format("Check timestamp regex '%s' or timestamp format '%s'; unable to parse '%s'", getTimestampPattern().pattern(), getTimestampFormat(), date), pe);
+						String.format("Check timestamp regex '%s' or timestamp format '%s'; unable to parse '%s'", getTimestampPattern().pattern(), getTimestampFormat(), date));
 			}
 		}
 	};
