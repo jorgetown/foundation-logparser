@@ -1,5 +1,6 @@
 package org.logparser;
 
+import static org.logparser.Constants.DEFAULT_DECIMAL_FORMAT;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.IOException;

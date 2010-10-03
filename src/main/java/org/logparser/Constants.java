@@ -14,6 +14,7 @@ public final class Constants {
 	public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 	public static final String CSV_VALUE_SEPARATOR = ",";
 	public static final String DEFAULT_OUTPUT_DIR = ".";
+	public static final String DEFAULT_DECIMAL_FORMAT = "#.#";
 
 	private Constants() {
 
