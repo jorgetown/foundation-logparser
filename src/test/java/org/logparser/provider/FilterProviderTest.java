@@ -1,4 +1,4 @@
-package org.logparser.config;
+package org.logparser.provider;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.logparser.LogEntryFilter;
 import org.logparser.io.CommandLineArguments;
+import org.logparser.provider.FilterProvider;
 import org.logparser.time.DateInterval;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;

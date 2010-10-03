@@ -1,4 +1,4 @@
-package org.logparser.config;
+package org.logparser.provider;
 
 import java.util.concurrent.TimeUnit;
 

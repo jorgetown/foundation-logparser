@@ -1,4 +1,4 @@
-package org.logparser.config;
+package org.logparser.provider;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -10,6 +10,9 @@ import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.logparser.provider.Config;
+import org.logparser.provider.FilterProvider;
+import org.logparser.provider.LogFilesProvider;
 import org.logparser.time.InfiniteTimeInterval;
 
 /**

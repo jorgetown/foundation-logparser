@@ -16,10 +16,10 @@ import org.junit.Test;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
-import org.logparser.config.FilterProvider;
-import org.logparser.config.LogFilesProvider;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
+import org.logparser.provider.FilterProvider;
+import org.logparser.provider.LogFilesProvider;
 import org.logparser.time.ITimeInterval;
 import org.logparser.time.InfiniteTimeInterval;
 

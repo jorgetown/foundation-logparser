@@ -1,4 +1,4 @@
-package org.logparser.config;
+package org.logparser.provider;
 
 import java.lang.reflect.Field;
 import java.util.regex.Pattern;

@@ -1,6 +1,7 @@
-package org.logparser.config;
+package org.logparser.provider;
 
 import org.junit.Ignore;
+import org.logparser.provider.StatsProvider;
 
 /**
  * Unit tests for {@link StatsProvider}.

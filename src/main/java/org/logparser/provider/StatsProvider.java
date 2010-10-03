@@ -1,4 +1,4 @@
-package org.logparser.config;
+package org.logparser.provider;
 
 import static org.logparser.Constants.DEFAULT_DECIMAL_FORMAT;
 

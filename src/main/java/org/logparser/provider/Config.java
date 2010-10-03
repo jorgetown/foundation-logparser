@@ -1,4 +1,4 @@
-package org.logparser.config;
+package org.logparser.provider;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.codehaus.jackson.annotate.JsonCreator;

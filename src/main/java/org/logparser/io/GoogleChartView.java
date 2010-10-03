@@ -21,7 +21,7 @@ import org.apache.commons.math.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
 import org.logparser.LogEntry;
-import org.logparser.config.ChartParams;
+import org.logparser.provider.ChartParams;
 import org.logparser.stats.DayStats;
 import org.logparser.stats.TimeStats;
 

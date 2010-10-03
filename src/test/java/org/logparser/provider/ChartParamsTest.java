@@ -1,4 +1,4 @@
-package org.logparser.config;
+package org.logparser.provider;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
+import org.logparser.provider.ChartParams;
 
 /**
  * Unit tests for {@link ChartParams}.
