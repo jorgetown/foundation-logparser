@@ -63,14 +63,16 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
-		writeColumns(sb, aggregateTimeStats);
-		sb.append(LINE_SEPARATOR);
-		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+		if (detailed) {
+			writeColumns(sb, aggregateTimeStats);
 			sb.append(LINE_SEPARATOR);
-			sb.append(entry.getKey());
-			sb.append(LINE_SEPARATOR);
-			writeColumns(sb, entry.getValue());
-			sb.append(LINE_SEPARATOR);
+			for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+				sb.append(LINE_SEPARATOR);
+				sb.append(entry.getKey());
+				sb.append(LINE_SEPARATOR);
+				writeColumns(sb, entry.getValue());
+				sb.append(LINE_SEPARATOR);
+			}
 		}
 		return sb.toString();
 	}
@@ -94,13 +96,15 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 	@Override
 	public String toCsvString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
-		writeCsvColumns(sb, aggregateTimeStats);
-		sb.append(LINE_SEPARATOR);
-		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
-			sb.append(StringEscapeUtils.escapeCsv(entry.getKey()));
+		if (detailed) {
+			writeCsvColumns(sb, aggregateTimeStats);
 			sb.append(LINE_SEPARATOR);
-			writeCsvColumns(sb, entry.getValue());
-			sb.append(LINE_SEPARATOR);
+			for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+				sb.append(StringEscapeUtils.escapeCsv(entry.getKey()));
+				sb.append(LINE_SEPARATOR);
+				writeCsvColumns(sb, entry.getValue());
+				sb.append(LINE_SEPARATOR);
+			}
 		}
 		return sb.toString();
 	}

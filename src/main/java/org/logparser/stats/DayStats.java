@@ -46,7 +46,7 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 	protected transient final ObjectMapper jsonMapper;
 	protected final ThreadLocal<DateFormat> outputFormat;
 	protected final DecimalFormat df;
-	private final boolean detailed;
+	protected final boolean detailed;
 
 	public DayStats() {
 		this(false, new DecimalFormat(DEFAULT_DECIMAL_FORMAT));

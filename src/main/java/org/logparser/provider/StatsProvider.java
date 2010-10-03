@@ -33,7 +33,7 @@ import com.google.common.base.Predicate;
 @Immutable
 public final class StatsProvider {
 	public enum GroupBy {
-		DAY_OF_MONTH, DAY_OF_WEEK
+		DAY_OF_MONTH, DAY_OF_WEEK, HOUR_OF_DAY, MINUTE
 	};
 
 	public enum PredicateType {
