@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
@@ -45,8 +46,8 @@ public class ChartView<E extends ITimestampedEntry> {
 		this.logSnapshot = Preconditions.checkNotNull(logSnapshot);
 		this.x = x;
 		this.y = y;
-		this.xAxisLegend = String.format("%s entries", logSnapshot.getTotalEntries());
-		this.yAxisLegend = "";
+		this.xAxisLegend = String.format("%s entries", logSnapshot.getSize());
+		this.yAxisLegend = "Time in secs";
 		this.cal = Calendar.getInstance();
 	}
 
@@ -58,12 +59,12 @@ public class ChartView<E extends ITimestampedEntry> {
 
 		JFreeChart jFreeChart = ChartFactory.createBarChart(
 				filename,
-				getXAxisLegend(), 
-				getYAxisLegend(), 
+				getXAxisLegend(),
+				getYAxisLegend(),
 				dataset,
-				PlotOrientation.VERTICAL, 
-				true, 
-				false, 
+				PlotOrientation.VERTICAL,
+				true,
+				false,
 				false);
 
 		String filepath = String.format("%s%s%s.png", path, FILE_SEPARATOR, filename);
@@ -82,7 +83,7 @@ public class ChartView<E extends ITimestampedEntry> {
 
 		for (E entry : entries) {
 			cal.setTimeInMillis(entry.getTimestamp());
-			dataset.addValue(entry.getDuration(), entry.getAction(), cal.getTime());
+			dataset.addValue(TimeUnit.SECONDS.convert((long) entry.getDuration(), TimeUnit.MILLISECONDS), entry.getAction(), cal.getTime());
 		}
 		return dataset;
 	}
@@ -94,7 +95,7 @@ public class ChartView<E extends ITimestampedEntry> {
 			Date fromDate = cal.getTime();
 			cal.setTimeInMillis(logSnapshot.getFilteredEntries().get(size - 1).getTimestamp());
 			Date toDate = cal.getTime();
-			return String.format("%s entries, %s to %s", logSnapshot.getTotalEntries(), fromDate, toDate);
+			return String.format("%s entries, %s to %s", logSnapshot.getSize(), fromDate, toDate);
 		}
 		return xAxisLegend;
 	}
