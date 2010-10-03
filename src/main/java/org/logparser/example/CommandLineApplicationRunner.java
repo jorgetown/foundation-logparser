@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -20,17 +19,18 @@ import org.logparser.LogEntryFilter;
 import org.logparser.LogSnapshot;
 import org.logparser.config.ChartParams;
 import org.logparser.config.Config;
-import org.logparser.config.Config.SamplerConfig;
-import org.logparser.config.StatsParams;
+import org.logparser.config.FilterProvider;
+import org.logparser.config.LogFilesProvider;
+import org.logparser.config.StatsProvider;
 import org.logparser.io.ChartView;
 import org.logparser.io.CommandLineArguments;
 import org.logparser.io.CsvView;
 import org.logparser.io.GoogleChartView;
 import org.logparser.io.LineByLineLogFilter;
 import org.logparser.io.LogFiles;
-import org.logparser.sampling.SamplingByFrequency;
-import org.logparser.sampling.SamplingByTime;
 import org.logparser.stats.DayStats;
+import org.logparser.stats.HourStats;
+import org.logparser.stats.MinuteStats;
 import org.logparser.stats.PredicateArguments;
 import org.logparser.stats.TimeStats;
 import org.logparser.stats.WeekDayStats;
@@ -59,7 +59,6 @@ import com.google.common.base.Predicate;
  */
 @SuppressWarnings("unchecked")
 public class CommandLineApplicationRunner {
-	private static final Logger LOGGER = Logger.getLogger(CommandLineApplicationRunner.class.getName());
 
 	public static void main(String[] args) {
 		CommandLineArguments cla = new CommandLineArguments();
@@ -72,29 +71,37 @@ public class CommandLineApplicationRunner {
 		Config config = getConfig(cla);
 
 		if (config != null) {
-			LogFiles logfiles = config.getLogFilesProvider().build();
-			File[] files = logfiles.list();
-
-			LogEntryFilter filter = config.getFilterProvider().build();
+			FilterProvider filterProvider = config.getFilterProvider();
+			filterProvider.applyCommandLineOverrides(cla);
+			LogEntryFilter filter = filterProvider.build();
+			
 			// for large log files sampling is preferred/required
-			ILogEntryFilter<LogEntry> sampler = getSamplerIfAvailable(config, filter);
+			ILogEntryFilter<LogEntry> sampler = config.getSamplerProvider() != null ? config.getSamplerProvider().build(filter) : filter;
 
-			LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>(config);
+			// sampler returns filter if unable to decorate
+			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(sampler);
 
-			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(sampler != null ? sampler : filter);
-			lineByLineParser.attach(logSnapshot);
-
-			StatsParams statsParams = config.getStatsParams();
+			// stuff below is a big mess...
+			LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>();
 			DayStats<LogEntry> dayStats = null;
 			WeekDayStats<LogEntry> weekStats = null;
-			if (statsParams != null) {
-				dayStats = new DayStats<LogEntry>();
-				weekStats = new WeekDayStats<LogEntry>();
+			HourStats<LogEntry> hourStats = null;
+			MinuteStats<LogEntry> minuteStats = null;
+			StatsProvider statsProvider = config.getStatsProvider();
+			if (statsProvider != null) {
+				logSnapshot = statsProvider.buildLogSnapshot();
+				dayStats = statsProvider.buildDayStats();
+				weekStats = statsProvider.buildWeekDayStats();
+				hourStats = statsProvider.buildHourStats();
+				minuteStats = statsProvider.buildMinuteStats();
 				lineByLineParser.attach(dayStats);
 				lineByLineParser.attach(weekStats);
+				lineByLineParser.attach(hourStats);
+				lineByLineParser.attach(minuteStats);
 			}
+			lineByLineParser.attach(logSnapshot);
 
-			DecimalFormat df = new DecimalFormat("#.##");
+			DecimalFormat df = new DecimalFormat("#.#");
 
 			String filepath;
 			String filename = null;
@@ -102,6 +109,11 @@ public class CommandLineApplicationRunner {
 			int filteredEntries = 0;
 			int previousFiltered = 0;
 
+			LogFilesProvider logFilesProvider = config.getLogFilesProvider();
+			logFilesProvider.applyCommandLineOverrides(cla);
+			LogFiles logfiles = logFilesProvider.build();
+
+			File[] files = logfiles.list();
 			for (File f : files) {
 				filepath = f.getAbsolutePath();
 				filename = f.getName();
@@ -111,33 +123,33 @@ public class CommandLineApplicationRunner {
 				long end = (System.nanoTime() - start) / 1000000;
 				totalEntries = lineByLineParser.size();
 				filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
-				LOGGER.info(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n", filename, end, df.format(totalEntries / (double) end), totalEntries, filteredEntries));
+				System.out.println(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n",
+						filename,
+						end,
+						df.format(totalEntries / (double) end),
+						totalEntries,
+						filteredEntries));
 				previousFiltered = filteredEntries;
 			}
-			
-			LOGGER.info(LINE_SEPARATOR + logSnapshot.toString() + LINE_SEPARATOR);
+
+			System.out.println(LINE_SEPARATOR + logSnapshot.toString() + LINE_SEPARATOR);
 
 			String outputDir = logfiles.getOutputDir();
-			if (StringUtils.isNotBlank(filename)) {
-				CsvView csvView = new CsvView();
-				csvView.write(outputDir, filename, logSnapshot, dayStats, weekStats);
-				if (config.isFilteredEntriesStored()) {
-					ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
-					chartView.write(outputDir, filename);					
-				}
-			}
 
-			if (dayStats != null) {
-				LOGGER.info(LINE_SEPARATOR + dayStats.toString() + LINE_SEPARATOR);
-				LOGGER.info(LINE_SEPARATOR + weekStats.toString() + LINE_SEPARATOR);
+			if (statsProvider != null) {
+				System.out.println(LINE_SEPARATOR + dayStats.toString() + LINE_SEPARATOR);
+				System.out.println(LINE_SEPARATOR + weekStats.toString() + LINE_SEPARATOR);
+				System.out.println(LINE_SEPARATOR + hourStats.toString() + LINE_SEPARATOR);
+				System.out.println(LINE_SEPARATOR + minuteStats.toString() + LINE_SEPARATOR);
 				Map<String, TimeStats<LogEntry>> filtered = new HashMap<String, TimeStats<LogEntry>>();
-				if (statsParams != null) {
-					Predicate<PredicateArguments> predicate = statsParams.getPredicate();
-					if (predicate != null) {
-						LOGGER.info(String.format("Filtering by %s %s %s", statsParams.getPredicateValue(), statsParams.getPredicateType().toString(), LINE_SEPARATOR));
-						filtered = dayStats.filter(predicate);
-						LOGGER.info(dayStats.toString(filtered));				
-					}
+				Predicate<PredicateArguments> predicate = statsProvider.getPredicate();
+				if (predicate != null) {
+					System.out.println(String.format("Filtering by %s %s %s",
+							statsProvider.getPredicateValue(),
+							statsProvider.getPredicateType().toString(),
+							LINE_SEPARATOR));
+					filtered = dayStats.filter(predicate);
+					System.out.println(dayStats.toString(filtered));
 				}
 				ChartParams chartParams = config.getChartParams();
 				if (chartParams != null) {
@@ -150,37 +162,30 @@ public class CommandLineApplicationRunner {
 					gcv.write(urls, "png", "weekly_");
 				}
 			}
-		}
-	}
 
-	// TODO this should be responsibility of 'sampler params': return given filter decorated with a sampler if one is given, or return given filter 
-	private static ILogEntryFilter<LogEntry> getSamplerIfAvailable(final Config config, final LogEntryFilter filter) {
-		ILogEntryFilter<LogEntry> sampler = null;
-		if (config.getSampler() != null) {
-			SamplerConfig samplerConfig = config.getSampler();
-			switch (samplerConfig.sampleBy) {
-			case TIME:
-				sampler = new SamplingByTime<LogEntry>(filter, samplerConfig.value);
-				break;
-			case FREQUENCY:
-				sampler = new SamplingByFrequency<LogEntry>(filter, samplerConfig.value);
-				break;
-			default:
-				sampler = null;
+			if (StringUtils.isNotBlank(filename)) {
+				CsvView csvView = new CsvView();
+				if (statsProvider != null) {
+					csvView.write(outputDir, filename, logSnapshot, dayStats, weekStats, hourStats, minuteStats);
+				} else {
+					csvView.write(outputDir, filename, logSnapshot);
+				}
+
+				ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
+				chartView.write(outputDir, filename);
 			}
 		}
-		return sampler;
 	}
 
 	private static Config getConfig(final CommandLineArguments cla) {
 		ObjectMapper mapper = new ObjectMapper();
 		Config config = null;
 		try {
-			Map<String, Config> configs = mapper.readValue(new File(cla.configFile), new TypeReference<Map<String, Config>>() {});
+			Map<String, Config> configs = mapper.readValue(new File(cla.configFile), new TypeReference<Map<String, Config>>() {
+			});
 			config = configs.get(cla.logName);
 
-			config.validate();
-			LOGGER.info(String.format("Loaded '%s' configuration", config.getFriendlyName()));
+			System.out.println(String.format("Loaded '%s' configuration", config.getFriendlyName()));
 			// TODO fix exception handling
 		} catch (JsonParseException jpe) {
 			jpe.printStackTrace();
