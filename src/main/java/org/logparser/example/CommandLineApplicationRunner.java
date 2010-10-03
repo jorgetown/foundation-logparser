@@ -13,6 +13,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.logparser.ICsvSerializable;
 import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
@@ -74,7 +75,7 @@ public class CommandLineApplicationRunner {
 			FilterProvider filterProvider = config.getFilterProvider();
 			filterProvider.applyCommandLineOverrides(cla);
 			LogEntryFilter filter = filterProvider.build();
-			
+
 			// for large log files sampling is preferred/required
 			ILogEntryFilter<LogEntry> sampler = config.getSamplerProvider() != null ? config.getSamplerProvider().build(filter) : filter;
 
@@ -114,67 +115,106 @@ public class CommandLineApplicationRunner {
 			LogFiles logfiles = logFilesProvider.build();
 
 			File[] files = logfiles.list();
-			for (File f : files) {
-				filepath = f.getAbsolutePath();
-				filename = f.getName();
+			if (files.length > 0) {
+				for (File f : files) {
+					filepath = f.getAbsolutePath();
+					filename = f.getName();
 
-				long start = System.nanoTime();
-				lineByLineParser.filter(filepath);
-				long end = (System.nanoTime() - start) / 1000000;
-				totalEntries = lineByLineParser.size();
-				filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
-				System.out.println(String.format("\n%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s\n",
-						filename,
-						end,
-						df.format(totalEntries / (double) end),
-						totalEntries,
-						filteredEntries));
-				previousFiltered = filteredEntries;
-			}
-
-			System.out.println(LINE_SEPARATOR + logSnapshot.toString() + LINE_SEPARATOR);
-
-			String outputDir = logfiles.getOutputDir();
-
-			if (statsProvider != null) {
-				System.out.println(LINE_SEPARATOR + dayStats.toString() + LINE_SEPARATOR);
-				System.out.println(LINE_SEPARATOR + weekStats.toString() + LINE_SEPARATOR);
-				System.out.println(LINE_SEPARATOR + hourStats.toString() + LINE_SEPARATOR);
-				System.out.println(LINE_SEPARATOR + minuteStats.toString() + LINE_SEPARATOR);
-				Map<String, TimeStats<LogEntry>> filtered = new HashMap<String, TimeStats<LogEntry>>();
-				Predicate<PredicateArguments> predicate = statsProvider.getPredicate();
-				if (predicate != null) {
-					System.out.println(String.format("Filtering by %s %s %s",
-							statsProvider.getPredicateValue(),
-							statsProvider.getPredicateType().toString(),
-							LINE_SEPARATOR));
-					filtered = dayStats.filter(predicate);
-					System.out.println(dayStats.toString(filtered));
+					long start = System.nanoTime();
+					lineByLineParser.filter(filepath);
+					long end = (System.nanoTime() - start) / 1000000;
+					totalEntries = lineByLineParser.size();
+					filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
+					System.out.println(String.format("%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
+							filename,
+							end,
+							df.format(totalEntries / (double) end),
+							totalEntries,
+							filteredEntries));
+					previousFiltered = filteredEntries;
 				}
-				ChartParams chartParams = config.getChartParams();
-				if (chartParams != null) {
-					GoogleChartView gcv = new GoogleChartView(config.getChartParams(), outputDir);
-					Map<String, String> urls = gcv.createChartUrls(dayStats, filtered, dayStats.formatToShortDate);
-					gcv.write(urls, "png", "daily_");
-					urls = gcv.createChartUrls(weekStats, weekStats.formatToDayOfWeek);
-					gcv.write(urls, "png", "weekly_");
-					urls = gcv.createChartUrl("aggregate", weekStats.getAggregatedStats(), weekStats.formatToDayOfWeek);
-					gcv.write(urls, "png", "weekly_");
-				}
-			}
 
-			if (StringUtils.isNotBlank(filename)) {
-				CsvView csvView = new CsvView();
+				System.out.println(LINE_SEPARATOR + logSnapshot.toString());
+
+				String outputDir = logfiles.getOutputDir();
+
 				if (statsProvider != null) {
-					csvView.write(outputDir, filename, logSnapshot, dayStats, weekStats, hourStats, minuteStats);
-				} else {
-					csvView.write(outputDir, filename, logSnapshot);
+					printStats(dayStats, weekStats, hourStats, minuteStats);
+					Map<String, TimeStats<LogEntry>> filtered = getAlerts(dayStats, statsProvider);
+					writeCharts(config, dayStats, weekStats, outputDir, filtered);
 				}
 
-				ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
-				chartView.write(outputDir, filename);
+				if (StringUtils.isNotBlank(filename)) {
+					writeCsv(logSnapshot, outputDir, filename, statsProvider, logSnapshot, dayStats, weekStats, hourStats, minuteStats);
+				}
+			} else {
+				System.out.println("No log files found!");
 			}
 		}
+
+	}
+
+	private static void writeCsv(
+			final LogSnapshot<LogEntry> logSnapshot,
+			final String outputDir,
+			final String filename,
+			final StatsProvider statsProvider,
+			final ICsvSerializable<?>...csvSerializables) {
+		CsvView csvView = new CsvView();
+		if (statsProvider != null) {
+			csvView.write(outputDir, filename, csvSerializables);
+		} else {
+			csvView.write(outputDir, filename, logSnapshot);
+		}
+
+		ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
+		chartView.write(outputDir, filename);
+	}
+
+	private static void writeCharts(
+			final Config config,
+			final DayStats<LogEntry> dayStats,
+			final WeekDayStats<LogEntry> weekStats,
+			final String outputDir,
+			final Map<String, TimeStats<LogEntry>> filtered) {
+
+		ChartParams chartParams = config.getChartParams();
+		if (chartParams != null) {
+			GoogleChartView gcv = new GoogleChartView(config.getChartParams(), outputDir);
+			Map<String, String> urls = gcv.createChartUrls(dayStats, filtered, dayStats.formatToShortDate);
+			gcv.write(urls, "png", "daily_");
+			urls = gcv.createChartUrls(weekStats, weekStats.formatToDayOfWeek);
+			gcv.write(urls, "png", "weekly_");
+			urls = gcv.createChartUrl("aggregate", weekStats.getAggregatedStats(), weekStats.formatToDayOfWeek);
+			gcv.write(urls, "png", "weekly_");
+		}
+	}
+
+	// TODO extract common interface to allow varargs here
+	private static void printStats(
+			final DayStats<LogEntry> dayStats,
+			final WeekDayStats<LogEntry> weekStats,
+			final HourStats<LogEntry> hourStats,
+			final MinuteStats<LogEntry> minuteStats) {
+
+		System.out.println(dayStats.toString());
+		System.out.println(weekStats.toString());
+		System.out.println(hourStats.toString());
+		System.out.println(minuteStats.toString());
+	}
+
+	private static Map<String, TimeStats<LogEntry>> getAlerts(DayStats<LogEntry> dayStats, StatsProvider statsProvider) {
+		Map<String, TimeStats<LogEntry>> filtered = new HashMap<String, TimeStats<LogEntry>>();
+		Predicate<PredicateArguments> predicate = statsProvider.getPredicate();
+		if (predicate != null) {
+			System.out.println(String.format("%sFiltering by %s %s ",
+					LINE_SEPARATOR,
+					statsProvider.getPredicateValue(),
+					statsProvider.getPredicateType().toString()));
+			filtered = dayStats.filter(predicate);
+			System.out.println(dayStats.toString(filtered));
+		}
+		return filtered;
 	}
 
 	private static Config getConfig(final CommandLineArguments cla) {
