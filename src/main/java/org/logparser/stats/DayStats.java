@@ -13,8 +13,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import net.jcip.annotations.Immutable;
-
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.math.stat.descriptive.StatisticalSummary;
@@ -41,7 +39,6 @@ import com.google.common.base.Predicate;
  * 
  * @param <E> the type of log entries held.
  */
-@Immutable
 @JsonPropertyOrder({ "dayStats" })
 public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> implements ICsvSerializable<DayStats<E>>, IJsonSerializable<DayStats<E>> {
 	private static final long serialVersionUID = 6551391859868552192L;
@@ -141,10 +138,11 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 
 		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			sb.append(LINE_SEPARATOR);
 			Tuple tuple = calculateSummary(entry.getValue().getTimeStats().values());
 			sb.append(entry.getKey());
 			sb.append(",");
-			sb.append(String.format(" %s days, ~%s/day, avg %sms/day", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
+			sb.append(String.format(" %s days, ~%s/day, ~%sms/day", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
 			sb.append(LINE_SEPARATOR);
 			if (detailed) {
 				writeColumns(sb, entry.getValue());
@@ -173,13 +171,14 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 	public String toCsvString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			sb.append(LINE_SEPARATOR);
 			Tuple tuple = calculateSummary(entry.getValue().getTimeStats().values());
 			sb.append(StringEscapeUtils.escapeCsv(entry.getKey()));
 			sb.append(", ");
-			sb.append(StringEscapeUtils.escapeCsv(String.format(" %s days, ~%s/day, avg %sms/day",
+			sb.append(String.format(" %s days, avg %s/day, avg %sms/day",
 					tuple.count,
 					tuple.avgCount,
-					df.format(tuple.avgTime))));
+					StringEscapeUtils.escapeCsv(df.format(tuple.avgTime))));
 			sb.append(LINE_SEPARATOR);
 			if (detailed) {
 				writeCsvColumns(sb, entry.getValue());

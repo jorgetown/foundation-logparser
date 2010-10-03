@@ -7,8 +7,6 @@ import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Map.Entry;
 
-import net.jcip.annotations.Immutable;
-
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.math.stat.descriptive.StatisticalSummary;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -26,7 +24,6 @@ import com.google.common.base.Function;
  * 
  * @param <E> the type of log entries held.
  */
-@Immutable
 @JsonPropertyOrder({ "dayStats", "aggregatedStats" })
 public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 	private static final long serialVersionUID = -3821734276444687735L;
@@ -69,6 +66,7 @@ public class WeekDayStats<E extends ITimestampedEntry> extends DayStats<E> {
 		writeColumns(sb, aggregateTimeStats);
 		sb.append(LINE_SEPARATOR);
 		for (Entry<String, TimeStats<E>> entry : dayStats.entrySet()) {
+			sb.append(LINE_SEPARATOR);
 			sb.append(entry.getKey());
 			sb.append(LINE_SEPARATOR);
 			writeColumns(sb, entry.getValue());

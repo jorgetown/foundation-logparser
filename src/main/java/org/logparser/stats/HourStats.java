@@ -1,5 +1,6 @@
 package org.logparser.stats;
 
+import static org.logparser.Constants.DEFAULT_DECIMAL_FORMAT;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.IOException;
@@ -9,8 +10,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
-import net.jcip.annotations.Immutable;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -36,21 +35,25 @@ import com.google.common.base.Preconditions;
  * 
  * @param <E> the type of log entries held.
  */
-@Immutable
 @JsonPropertyOrder({ "hourStats" })
 public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> implements ICsvSerializable<HourStats<E>>, IJsonSerializable<HourStats<E>> {
 	private static final long serialVersionUID = -6956010383538378498L;
-	private final Map<String, Map<Integer, TimeStats<E>>> hourStats;
+	protected final Map<String, Map<Integer, TimeStats<E>>> timeStats;
 	private final Calendar calendar;
 	private transient final ObjectMapper jsonMapper;
-	private final DecimalFormat df;
+	protected final DecimalFormat df;
+	private final boolean detailed;
 
 	public HourStats() {
-		hourStats = new TreeMap<String, Map<Integer, TimeStats<E>>>();
+		this(false, new DecimalFormat(DEFAULT_DECIMAL_FORMAT));
+	}
+
+	public HourStats(final boolean detailed, final DecimalFormat decimalFormat) {
+		timeStats = new TreeMap<String, Map<Integer, TimeStats<E>>>();
 		calendar = Calendar.getInstance();
 		jsonMapper = new ObjectMapper();
-		// TODO inject as constructor argument?
-		df = new DecimalFormat(DEFAULT_DECIMAL_FORMAT);
+		df = Preconditions.checkNotNull(decimalFormat, "'decimalFormat' argument cannot be null.");
+		this.detailed = false; // there's too much detail on the minute view!
 	}
 
 	@Override
@@ -67,20 +70,20 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 
 		hourlyStats.consume(newEntry);
 		dayStatsByKey.put(dayOfMonth, hourlyStats);
-		hourStats.put(key, dayStatsByKey);
+		timeStats.put(key, dayStatsByKey);
 	}
 
 	private Map<Integer, TimeStats<E>> getNewOrExistingDayStats(final String key) {
 		Map<Integer, TimeStats<E>> dayStats = null;
-		if (hourStats.containsKey(key)) {
-			dayStats = hourStats.get(key);
+		if (timeStats.containsKey(key)) {
+			dayStats = timeStats.get(key);
 		} else {
 			dayStats = new TreeMap<Integer, TimeStats<E>>();
 		}
 		return dayStats;
 	}
 
-	private TimeStats<E> getNewOrExistingHourStats(Map<Integer, TimeStats<E>> dayStatsByKey, final int dayOfMonth) {
+	protected TimeStats<E> getNewOrExistingHourStats(Map<Integer, TimeStats<E>> dayStatsByKey, final int dayOfMonth) {
 		TimeStats<E> hourlyStats = null;
 		if (dayStatsByKey.containsKey(dayOfMonth)) {
 			hourlyStats = dayStatsByKey.get(dayOfMonth);
@@ -92,29 +95,33 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 
 	@JsonIgnore
 	public Map<Integer, TimeStats<E>> getTimeStats(final String key) {
-		return hourStats.get(key);
+		return timeStats.get(key);
 	}
 
 	public Map<String, Map<Integer, TimeStats<E>>> getHourStats() {
-		return Collections.unmodifiableMap(hourStats);
+		return Collections.unmodifiableMap(timeStats);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
-		for (Entry<String, Map<Integer, TimeStats<E>>> entries : hourStats.entrySet()) {
+		for (Entry<String, Map<Integer, TimeStats<E>>> entries : timeStats.entrySet()) {
 			sb.append(LINE_SEPARATOR);
+			Tuple tuple = calculateSummary(entries.getValue());
 			sb.append(entries.getKey());
+			sb.append(",");
+			sb.append(String.format(" %s hrs, ~%s/hr, ~%sms/hr", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
 			sb.append(LINE_SEPARATOR);
-
-			writeColumns(sb, entries);
+			if (detailed) {
+				writeColumns(sb, entries);
+			}
 		}
 		return sb.toString();
 	}
 
 	private void writeColumns(StringBuilder sb, final Entry<String, Map<Integer, TimeStats<E>>> entries) {
 		for (Entry<Integer, TimeStats<E>> values : entries.getValue().entrySet()) {
-			sb.append("\tDay, ");
+			sb.append("\tDate, ");
 			for (Integer i : values.getValue().getTimeStats().keySet()) {
 				sb.append("\t#, \tMean, \tStandard Deviation, \tMax, \tMin\t");
 			}
@@ -125,9 +132,9 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 			for (Entry<Integer, StatisticalSummary> stats : values.getValue().getTimeStats().entrySet()) {
 				StatisticalSummary summary = stats.getValue();
 				sb.append(String.format("\t%s, \t%s, \t%s, \t%s, \t%s\t",
-						summary.getN(), 
+						summary.getN(),
 						Double.valueOf(df.format(summary.getMean())),
-						Double.valueOf(df.format(summary.getStandardDeviation())), 
+						Double.valueOf(df.format(summary.getStandardDeviation())),
 						Double.valueOf(df.format(summary.getMax())),
 						Double.valueOf(df.format(summary.getMin()))));
 			}
@@ -138,9 +145,12 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 	public String toCsvString() {
 		StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 		boolean header = true;
-		for (Entry<String, Map<Integer, TimeStats<E>>> entries : hourStats.entrySet()) {
+		for (Entry<String, Map<Integer, TimeStats<E>>> entries : timeStats.entrySet()) {
 			sb.append(LINE_SEPARATOR);
+			Tuple tuple = calculateSummary(entries.getValue());
 			sb.append(StringEscapeUtils.escapeCsv(entries.getKey()));
+			sb.append(",");
+			sb.append(String.format(" %s hrs, avg %s/hr, avg %sms/hr", tuple.count, tuple.avgCount, StringEscapeUtils.escapeCsv(df.format(tuple.avgTime))));
 			sb.append(LINE_SEPARATOR);
 
 			for (Entry<Integer, TimeStats<E>> values : entries.getValue().entrySet()) {
@@ -151,7 +161,7 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 						sb.append(", , ");
 					}
 					sb.append(LINE_SEPARATOR);
-	
+
 					sb.append(", Day, ");
 					for (Integer i : values.getValue().getTimeStats().keySet()) {
 						sb.append("#, Mean, Standard Deviation, Max, Min, , ");
@@ -173,9 +183,9 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 	private void writeCsvColumns(StringBuilder sb, final Entry<Integer, TimeStats<E>> values) {
 		for (Entry<Integer, StatisticalSummary> stats : values.getValue().getTimeStats().entrySet()) {
 			StatisticalSummary summary = stats.getValue();
-			sb.append(String.format("%s, %s, %s, %s, %s, ,", 
-					summary.getN(), 
-					StringEscapeUtils.escapeCsv(df.format(summary.getMean())), 
+			sb.append(String.format("%s, %s, %s, %s, %s, ,",
+					summary.getN(),
+					StringEscapeUtils.escapeCsv(df.format(summary.getMean())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getStandardDeviation())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMax())),
 					StringEscapeUtils.escapeCsv(df.format(summary.getMin()))));
@@ -199,5 +209,21 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 
 	public HourStats<E> fromJsonString(final String jsonString) {
 		throw new NotImplementedException("HourStats does not implement JSON deserialization.");
+	}
+
+	protected Tuple calculateSummary(final Map<Integer, TimeStats<E>> hourStats) {
+		int count = 0;
+		int avgCount = 0;
+		double avgTime = 0D;
+		for (Entry<Integer, TimeStats<E>> values : hourStats.entrySet()) {
+			for (StatisticalSummary stat : values.getValue().getTimeStats().values()) {
+				avgCount += stat.getN();
+				avgTime += stat.getMean();
+				count++;
+			}
+		}
+		avgCount = avgCount > 0 ? Math.round(avgCount / count) : 0;
+		avgTime = avgTime > 0 ? avgTime / count : 0;
+		return new Tuple(count, avgCount, avgTime);
 	}
 }
