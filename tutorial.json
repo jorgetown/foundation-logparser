@@ -1,0 +1,26 @@
+{
+	"tutorial" : {
+		"friendlyName" : "Tutorial",
+		"filterProvider" : {
+			"sampleEntry" : "10.117.101.80 - - [15/Dec/2008:00:00:15 +0000] \"GET /example/action/save.do?loid=26.0.1108263263&event=unlock&eventId=37087422 HTTP/1.1\" 200 - 14",
+			"timestampPattern" : "\\[((.*?))\\]",
+			"timestampFormat" : "dd/MMM/yyyy:HH:mm:ss",
+			"actionPattern" : "(?:\\[.*?\\].*\\s)(((?:\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+))",
+			"durationPattern" : "(\\d+)$",
+			"filterPattern" : ".*(refresh|reload|save)\\.do$"
+		},
+		"statsProvider" : {
+			"storeFilteredEntries" : "true",
+			"decimalFormat" : "#.#",
+			"detailed" : "true",
+			"groupBy" : ["DAY_OF_MONTH", "DAY_OF_MONTH", "DAY_OF_WEEK", "HOUR_OF_DAY", "MINUTE"],	
+			"predicateType" : "PERCENTAGE",
+			"predicateValue" : "30"
+		},
+		"logFilesProvider" : {
+			"filenamePattern" : "^EXAMPLE(.+)-12-\\d{2}.log$",
+			"inputDirs" : ["logs"],
+			"outputDir" : "data"
+		}
+	}
+}
