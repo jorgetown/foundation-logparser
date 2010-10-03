@@ -9,12 +9,15 @@
 			"durationPattern" : "(\\d+)$",
 			"filterPattern" : ".*(refresh|reload|save)\\.do$"
 		},
-		"sampler" : {
+		"samplerProvider" : {
 			"sampleBy" : "FREQUENCY", 
 			"value" : "1"
 		},
-		"statsParams" : {
-			"groupBy" : "DAY_OF_MONTH",	
+		"statsProvider" : {
+			"storeFilteredEntries" : "true",
+			"decimalFormat" : "#.#",
+			"detailed" : "true",
+			"groupBy" : ["DAY_OF_MONTH"],	
 			"predicateType" : "STDEV",
 			"predicateValue" : "1"
 		},
@@ -33,10 +36,9 @@
 				"chxs" : "2,C2BDDD,10,1,t,C2BDDD"
 			}
 		},
-		"filteredEntriesStored" : "true",
 		"logFilesProvider" : {
 			"filenamePattern" : "^EXAMPLE(.+)-12-\\d{2}.log$",
-			"inputDirs" : ["."],
+			"inputDirs" : ["logs"],
 			"outputDir" : "data"
 		}
 	},
@@ -52,12 +54,15 @@
 			"durationPattern" : "\\s((\\d)*)ms$",
 			"filterPattern" : ".*.do"
 		},
-		"statsParams" : {
-			"groupBy" : "DAY_OF_MONTH",	
+		"statsProvider" : {
+			"storeFilteredEntries" : "true",
+			"decimalFormat" : "#.#",
+			"detailed" : "true",
+			"groupBy" : ["DAY_OF_MONTH"],	
 			"predicateType" : "PERCENTAGE",
 			"predicateValue" : "30"
 		},		
-		"sampler" : {  		
+		"samplerProvider" : {  		
 			"sampleBy" : "FREQUENCY",   		
 			"value" : "10"
 		},
@@ -75,10 +80,9 @@
 				"chg" : "0,25"
 			}
 		},  
-		"filteredEntriesStored" : "true",
 		"logFilesProvider" : {
 			"filenamePattern" : "EXAMPLE_2_cms.log",
-			"inputDirs" : ["."],
+			"inputDirs" : ["logs"],
 			"outputDir" : "data"
 		}
 	}    
