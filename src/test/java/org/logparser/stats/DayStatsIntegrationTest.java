@@ -79,10 +79,8 @@ public class DayStatsIntegrationTest {
 		lineByLineParser.attach(logSnapshot);
 		lineByLineParser.attach(dayStats);
 
-		String filepath;
 		for (File f : files) {
-			filepath = f.getAbsolutePath();
-			lineByLineParser.filter(filepath);
+			lineByLineParser.filter(f);
 		}
 		Map<String, TimeStats<LogEntry>> stats = dayStats.getDayStats();
 

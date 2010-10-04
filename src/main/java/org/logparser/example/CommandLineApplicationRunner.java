@@ -4,16 +4,13 @@ import static org.logparser.Constants.LINE_SEPARATOR;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-import org.logparser.ICsvSerializable;
 import org.logparser.ILogEntryFilter;
 import org.logparser.LogEntry;
 import org.logparser.LogEntryFilter;
@@ -29,6 +26,7 @@ import org.logparser.provider.Config;
 import org.logparser.provider.FilterProvider;
 import org.logparser.provider.LogFilesProvider;
 import org.logparser.provider.StatsProvider;
+import org.logparser.stats.AbstractStats;
 import org.logparser.stats.DayStats;
 import org.logparser.stats.HourStats;
 import org.logparser.stats.MinuteStats;
@@ -53,7 +51,7 @@ import com.google.common.base.Predicate;
  * Execute the generated jar (running the default 'example' below):
  * 
  * <pre>
- * 		java -Xms256m -Xmx256m -jar target/log-parser-1.7.X-jar-with-dependencies.jar -configfile config.json -logname example
+ * 		java -Xms256m -Xmx256m -jar target/log-parser-1.9.X-jar-with-dependencies.jar -configfile config.json -logname example
  * </pre>
  * 
  * @author jorge.decastro
@@ -72,71 +70,52 @@ public class CommandLineApplicationRunner {
 		Config config = getConfig(cla);
 
 		if (config != null) {
-			FilterProvider filterProvider = config.getFilterProvider();
-			filterProvider.applyCommandLineOverrides(cla);
-			LogEntryFilter filter = filterProvider.build();
-
-			// for large log files sampling is preferred/required
-			ILogEntryFilter<LogEntry> sampler = config.getSamplerProvider() != null ? config.getSamplerProvider().build(filter) : filter;
-
-			// sampler returns filter if unable to decorate
-			LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(sampler);
-
-			// stuff below is a big mess...
-			LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>();
-			DayStats<LogEntry> dayStats = null;
-			WeekDayStats<LogEntry> weekStats = null;
-			HourStats<LogEntry> hourStats = null;
-			MinuteStats<LogEntry> minuteStats = null;
-			StatsProvider statsProvider = config.getStatsProvider();
-			if (statsProvider != null) {
-				logSnapshot = statsProvider.buildLogSnapshot();
-				dayStats = statsProvider.buildDayStats();
-				weekStats = statsProvider.buildWeekDayStats();
-				hourStats = statsProvider.buildHourStats();
-				minuteStats = statsProvider.buildMinuteStats();
-				lineByLineParser.attach(dayStats);
-				lineByLineParser.attach(weekStats);
-				lineByLineParser.attach(hourStats);
-				lineByLineParser.attach(minuteStats);
-			}
-			lineByLineParser.attach(logSnapshot);
-
-			DecimalFormat df = new DecimalFormat("#.#");
-
-			String filepath;
-			String filename = null;
-			int totalEntries = 0;
-			int filteredEntries = 0;
-			int previousFiltered = 0;
-
 			LogFilesProvider logFilesProvider = config.getLogFilesProvider();
 			logFilesProvider.applyCommandLineOverrides(cla);
 			LogFiles logfiles = logFilesProvider.build();
 
-			File[] files = logfiles.list();
-			if (files.length > 0) {
-				for (File f : files) {
-					filepath = f.getAbsolutePath();
-					filename = f.getName();
+			File[] listOfLogFiles = logfiles.list();
+			if (listOfLogFiles.length > 0) { // there's something to work with
+				String outputDir = logfiles.getOutputDir();
 
-					long start = System.nanoTime();
-					lineByLineParser.filter(filepath);
-					long end = (System.nanoTime() - start) / 1000000;
-					totalEntries = lineByLineParser.size();
-					filteredEntries = logSnapshot.getFilteredEntries().size() - previousFiltered;
-					System.out.println(String.format("%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s, filtered = %s",
-							filename,
-							end,
-							df.format(totalEntries / (double) end),
-							totalEntries,
-							filteredEntries));
-					previousFiltered = filteredEntries;
+				FilterProvider filterProvider = config.getFilterProvider();
+				filterProvider.applyCommandLineOverrides(cla);
+				LogEntryFilter filter = filterProvider.build();
+
+				// for large log files sampling is preferred/required
+				ILogEntryFilter<LogEntry> sampler = config.getSamplerProvider() != null ? config.getSamplerProvider().build(filter) : filter;
+
+				// sampler returns filter if unable to decorate
+				LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(sampler);
+				LogSnapshot<LogEntry> logSnapshot = new LogSnapshot<LogEntry>();
+				DayStats<LogEntry> dayStats = null;
+				WeekDayStats<LogEntry> weekStats = null;
+				HourStats<LogEntry> hourStats = null;
+				MinuteStats<LogEntry> minuteStats = null;
+				StatsProvider statsProvider = config.getStatsProvider();
+				if (statsProvider != null) {
+					logSnapshot = statsProvider.buildLogSnapshot();
+					dayStats = statsProvider.buildDayStats();
+					weekStats = statsProvider.buildWeekDayStats();
+					hourStats = statsProvider.buildHourStats();
+					minuteStats = statsProvider.buildMinuteStats();
+					lineByLineParser.attach(dayStats);
+					lineByLineParser.attach(weekStats);
+					lineByLineParser.attach(hourStats);
+					lineByLineParser.attach(minuteStats);
 				}
+				lineByLineParser.attach(logSnapshot);
+				CsvView csvView = new CsvView(outputDir);
+				// submit csv serializables in the order we want them presented
+				csvView.submit(logSnapshot);
+				csvView.submit(dayStats);
+				csvView.submit(hourStats);
+				csvView.submit(weekStats);
+				csvView.submit(minuteStats);
+
+				lineByLineParser.filter(listOfLogFiles);
 
 				System.out.println(LINE_SEPARATOR + logSnapshot.toString());
-
-				String outputDir = logfiles.getOutputDir();
 
 				if (statsProvider != null) {
 					printStats(dayStats, weekStats, hourStats, minuteStats);
@@ -144,9 +123,9 @@ public class CommandLineApplicationRunner {
 					writeCharts(config, dayStats, weekStats, outputDir, filtered);
 				}
 
-				if (StringUtils.isNotBlank(filename)) {
-					writeCsv(logSnapshot, outputDir, filename, statsProvider, logSnapshot, dayStats, weekStats, hourStats, minuteStats);
-				}
+				csvView.write();
+				ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
+				chartView.write(outputDir, "log-analysis");
 			} else {
 				System.out.println("No log files found!");
 			}
@@ -154,25 +133,7 @@ public class CommandLineApplicationRunner {
 
 	}
 
-	private static void writeCsv(
-			final LogSnapshot<LogEntry> logSnapshot,
-			final String outputDir,
-			final String filename,
-			final StatsProvider statsProvider,
-			final ICsvSerializable<?>...csvSerializables) {
-		CsvView csvView = new CsvView();
-		if (statsProvider != null) {
-			csvView.write(outputDir, filename, csvSerializables);
-		} else {
-			csvView.write(outputDir, filename, logSnapshot);
-		}
-
-		ChartView<LogEntry> chartView = new ChartView<LogEntry>(logSnapshot);
-		chartView.write(outputDir, filename);
-	}
-
-	private static void writeCharts(
-			final Config config,
+	private static void writeCharts(final Config config,
 			final DayStats<LogEntry> dayStats,
 			final WeekDayStats<LogEntry> weekStats,
 			final String outputDir,
@@ -190,17 +151,10 @@ public class CommandLineApplicationRunner {
 		}
 	}
 
-	// TODO extract common interface to allow varargs here
-	private static void printStats(
-			final DayStats<LogEntry> dayStats,
-			final WeekDayStats<LogEntry> weekStats,
-			final HourStats<LogEntry> hourStats,
-			final MinuteStats<LogEntry> minuteStats) {
-
-		System.out.println(dayStats.toString());
-		System.out.println(weekStats.toString());
-		System.out.println(hourStats.toString());
-		System.out.println(minuteStats.toString());
+	private static void printStats(final AbstractStats<?>... stats) {
+		for (AbstractStats<?> stat : stats) {
+			System.out.println(stat.toString());
+		}
 	}
 
 	private static Map<String, TimeStats<LogEntry>> getAlerts(DayStats<LogEntry> dayStats, StatsProvider statsProvider) {
@@ -233,6 +187,9 @@ public class CommandLineApplicationRunner {
 			jme.printStackTrace();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
+		}
+		if (config == null) {
+			System.out.println(String.format("Unable to find profile '%s' on JSON configuration file '%s'", cla.logName, cla.configFile));
 		}
 		return config;
 	}

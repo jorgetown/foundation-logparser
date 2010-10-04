@@ -80,10 +80,8 @@ public class LogEntryFilterIntegrationTest {
 		LineByLineLogFilter<LogEntry> lineByLineParser = new LineByLineLogFilter<LogEntry>(underTest);
 		lineByLineParser.attach(logSnapshot);
 
-		String filepath;
 		for (File f : files) {
-			filepath = f.getAbsolutePath();
-			lineByLineParser.filter(filepath);
+			lineByLineParser.filter(f);
 		}
 		System.out.println("\n" + logSnapshot.toString());
 

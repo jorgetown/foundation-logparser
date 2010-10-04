@@ -1,11 +1,14 @@
 package org.logparser.io;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import net.jcip.annotations.Immutable;
 
@@ -20,8 +23,8 @@ import com.google.common.io.Closeables;
 
 /**
  * Implementation of {@link ILogFilter} that processes a log file one line at a
- * time, and publishes filtered entries as events to all
- * {@link IObserver}s attached.
+ * time, and publishes filtered entries as events to all {@link IObserver}s
+ * attached.
  * 
  * It is expected to have slightly worse performance than an "in memory"
  * implementation but with better memory utilization.
@@ -49,12 +52,12 @@ public final class LineByLineLogFilter<E> extends Observable<E> implements ILogF
 		this.size = 0;
 	}
 
-	public void filter(final String filepath) {
-		Preconditions.checkNotNull(filepath, "'filepath' argument cannot be null.");
+	public void filter(final File file) {
+		Preconditions.checkNotNull(file, "'file' argument cannot be null.");
 		BufferedReader in = null;
 		size = 0;
 		try {
-			in = new BufferedReader(new FileReader(filepath));
+			in = new BufferedReader(new FileReader(file));
 			String str;
 			E entry;
 			while ((str = in.readLine()) != null) {
@@ -66,9 +69,29 @@ public final class LineByLineLogFilter<E> extends Observable<E> implements ILogF
 			}
 			in.close();
 		} catch (IOException ioe) {
-			LOGGER.warn(String.format("IO error reading file '%s'", filepath), ioe);
+			LOGGER.warn(String.format("IO error reading file '%s'", file.getAbsolutePath()), ioe);
 		} finally {
 			Closeables.closeQuietly(in);
+		}
+	}
+
+	public void filter(final File[] files) {
+		Preconditions.checkNotNull(files, "'files' argument cannot be null.");
+		DecimalFormat df = new DecimalFormat("#.#");
+
+		int current = 0;
+		int previous = 0;
+		for (File f : files) {
+			long start = System.nanoTime();
+			filter(f);
+			long end = TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+			current = size - previous;
+			LOGGER.info(String.format("%s - Ellapsed = %sms, rate = %sstrings/ms, total = %s entries",
+					f.getName(),
+					end,
+					df.format(current / (double) end),
+					current));
+			previous = current;
 		}
 	}
 
