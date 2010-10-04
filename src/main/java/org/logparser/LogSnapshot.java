@@ -1,5 +1,6 @@
 package org.logparser;
 
+import static org.logparser.Constants.CSV_VALUE_SEPARATOR;
 import static org.logparser.Constants.DEFAULT_DECIMAL_FORMAT;
 import static org.logparser.Constants.LINE_SEPARATOR;
 
@@ -15,16 +16,16 @@ import java.util.Map.Entry;
 import net.jcip.annotations.Immutable;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.logparser.stats.AbstractStats;
 
 import com.google.common.base.Preconditions;
 
 /**
- * Represents a log file snapshot, containing log entries and log summaries.
+ * Represents a log file snapshot, containing log entries and summary.
  * 
  * @author jorge.decastro
  * 
@@ -32,7 +33,7 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 @JsonPropertyOrder({ "storeFilteredEntries", "size", "summary", "filteredEntries" })
-public final class LogSnapshot<E extends ITimestampedEntry> extends AbstractStats<E> implements IJsonSerializable<LogSnapshot<E>>, ICsvSerializable<LogSnapshot<E>> {
+public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSerializable<LogSnapshot<E>>, ICsvSerializable<LogSnapshot<E>>, IObserver<E> {
 	private static final long serialVersionUID = 4389255038622214430L;
 	private final List<E> filteredEntries;
 	private final Map<String, Integer> summary;
@@ -57,7 +58,7 @@ public final class LogSnapshot<E extends ITimestampedEntry> extends AbstractStat
 
 	public void consume(final E entry) {
 		if (entry != null) {
-			// avoid the overhead of storing the filtered entries if dealing with large datasets
+			// don't store the filtered entries if it's a large dataset
 			if (storeFilteredEntries) {
 				filteredEntries.add(entry);
 			}
@@ -102,9 +103,13 @@ public final class LogSnapshot<E extends ITimestampedEntry> extends AbstractStat
 		StringBuilder sb = new StringBuilder("Action,\t # Entries,\t % Distribution\t");
 		if (!summary.isEmpty()) {
 			sb.append(LINE_SEPARATOR);
-			sb.append(summarizeAsString(summary, size, "%s,\t %s,\t %s\t"));
+			int value = 0;
+			for (Entry<String, Integer> entries : summary.entrySet()) {
+				value = entries.getValue();
+				sb.append(String.format("%s,\t %s,\t %s\t", entries.getKey(), value, asPercentOf(value, size)));
+				sb.append(LINE_SEPARATOR);
+			}
 		}
-		sb.append(LINE_SEPARATOR);
 		return sb.toString();
 	}
 
@@ -123,9 +128,17 @@ public final class LogSnapshot<E extends ITimestampedEntry> extends AbstractStat
 		StringBuilder sb = new StringBuilder("Action, # Entries, % Distribution");
 		if (!summary.isEmpty()) {
 			sb.append(LINE_SEPARATOR);
-			sb.append(summarizeAsString(summary, size, "\"%s\", %s, \"%s\""));
+			int value = 0;
+			for (Entry<String, Integer> entries : summary.entrySet()) {
+				value = entries.getValue();
+				sb.append(StringEscapeUtils.escapeCsv(entries.getKey()));
+				sb.append(CSV_VALUE_SEPARATOR);
+				sb.append(value);
+				sb.append(CSV_VALUE_SEPARATOR);
+				sb.append(StringEscapeUtils.escapeCsv(asPercentOf(value, size)));
+				sb.append(LINE_SEPARATOR);
+			}
 		}
-		sb.append(LINE_SEPARATOR);
 		return sb.toString();
 	}
 
@@ -136,17 +149,6 @@ public final class LogSnapshot<E extends ITimestampedEntry> extends AbstractStat
 	private String asPercentOf(final int value, final int total, final DecimalFormat df) {
 		double percent = value > 0 ? value / (double) total : 0D;
 		return df.format(percent);
-	}
-
-	private <K> String summarizeAsString(final Map<K, Integer> summary, final int filteredEntries, final String formatString) {
-		int value = 0;
-		StringBuilder sb = new StringBuilder();
-		for (Entry<K, Integer> entries : summary.entrySet()) {
-			value = entries.getValue();
-			sb.append(String.format(formatString, entries.getKey(), entries.getValue(), asPercentOf(value, filteredEntries)));
-			sb.append(LINE_SEPARATOR);
-		}
-		return sb.toString();
 	}
 
 	public LogSnapshot<E> fromCsvString(String csvString) {
