@@ -110,7 +110,7 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 			Tuple tuple = calculateSummary(entries.getValue());
 			sb.append(entries.getKey());
 			sb.append(",");
-			sb.append(String.format(" %s hrs, ~%s/hr, ~%sms/hr", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
+			sb.append(String.format(" %s hours, ~%s/hour, ~%sms", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
 			sb.append(LINE_SEPARATOR);
 			if (detailed) {
 				writeColumns(sb, entries);
@@ -150,32 +150,34 @@ public class HourStats<E extends ITimestampedEntry> extends AbstractStats<E> imp
 			Tuple tuple = calculateSummary(entries.getValue());
 			sb.append(StringEscapeUtils.escapeCsv(entries.getKey()));
 			sb.append(",");
-			sb.append(String.format(" %s hrs, avg %s/hr, avg %sms/hr", tuple.count, tuple.avgCount, StringEscapeUtils.escapeCsv(df.format(tuple.avgTime))));
+			sb.append(String.format(" %s hours, avg %s/hour, avg %sms", tuple.count, tuple.avgCount, StringEscapeUtils.escapeCsv(df.format(tuple.avgTime))));
 			sb.append(LINE_SEPARATOR);
+			
+			if (detailed) {
+				for (Entry<Integer, TimeStats<E>> values : entries.getValue().entrySet()) {
+					if (header) {
+						for (Integer i : values.getValue().getTimeStats().keySet()) {
+							sb.append(", , , , ");
+							sb.append(i);
+							sb.append(", , ");
+						}
+						sb.append(LINE_SEPARATOR);
 
-			for (Entry<Integer, TimeStats<E>> values : entries.getValue().entrySet()) {
-				if (header) {
-					for (Integer i : values.getValue().getTimeStats().keySet()) {
-						sb.append(", , , , ");
-						sb.append(i);
-						sb.append(", , ");
+						sb.append(", Day, ");
+						for (Integer i : values.getValue().getTimeStats().keySet()) {
+							sb.append("#, Mean, Standard Deviation, Max, Min, , ");
+						}
+						sb.append(LINE_SEPARATOR);
+						header = false;
 					}
+					sb.append(",");
+					sb.append(values.getKey());
+					sb.append(",");
+					writeCsvColumns(sb, values);
 					sb.append(LINE_SEPARATOR);
-
-					sb.append(", Day, ");
-					for (Integer i : values.getValue().getTimeStats().keySet()) {
-						sb.append("#, Mean, Standard Deviation, Max, Min, , ");
-					}
-					sb.append(LINE_SEPARATOR);
-					header = false;
 				}
-				sb.append(",");
-				sb.append(values.getKey());
-				sb.append(",");
-				writeCsvColumns(sb, values);
-				sb.append(LINE_SEPARATOR);
+				header = true;
 			}
-			header = true;
 		}
 		return sb.toString();
 	}

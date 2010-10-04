@@ -58,7 +58,7 @@ public class MinuteStats<E extends ITimestampedEntry> extends HourStats<E> {
 			Tuple tuple = calculateSummary(entries.getValue());
 			sb.append(entries.getKey());
 			sb.append(",");
-			sb.append(String.format(" %s mins, ~%s/min, ~%sms/min", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
+			sb.append(String.format(" %s minutes, ~%s/minute, ~%sms", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
 			sb.append(LINE_SEPARATOR);
 		}
 		return sb.toString();

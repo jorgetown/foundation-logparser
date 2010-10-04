@@ -142,7 +142,7 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 			Tuple tuple = calculateSummary(entry.getValue().getTimeStats().values());
 			sb.append(entry.getKey());
 			sb.append(",");
-			sb.append(String.format(" %s days, ~%s/day, ~%sms/day", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
+			sb.append(String.format(" %s days, ~%s/day, ~%sms", tuple.count, tuple.avgCount, df.format(tuple.avgTime)));
 			sb.append(LINE_SEPARATOR);
 			if (detailed) {
 				writeColumns(sb, entry.getValue());
@@ -175,7 +175,7 @@ public class DayStats<E extends ITimestampedEntry> extends AbstractStats<E> impl
 			Tuple tuple = calculateSummary(entry.getValue().getTimeStats().values());
 			sb.append(StringEscapeUtils.escapeCsv(entry.getKey()));
 			sb.append(", ");
-			sb.append(String.format(" %s days, avg %s/day, avg %sms/day",
+			sb.append(String.format(" %s days, avg %s/day, avg %sms",
 					tuple.count,
 					tuple.avgCount,
 					StringEscapeUtils.escapeCsv(df.format(tuple.avgTime))));
