@@ -1,5 +1,6 @@
 package org.logparser.io;
 
+import static org.logparser.Constants.DEFAULT_OUTPUT_DIR;
 import static org.logparser.Constants.FILE_SEPARATOR;
 
 import java.io.File;
@@ -95,7 +96,7 @@ public final class LogFiles {
 		private IPreProcessor preProcessor = new IdentityPreProcessor();
 		private DateFormat dateFormat = new SimpleDateFormat(DEFAULT_TIMESTAMP_PATTERN);
 		private Date today = new Date();
-		private String outputDir = "";
+		private String outputDir = DEFAULT_OUTPUT_DIR;
 
 		public Builder() {
 		}
@@ -130,7 +131,7 @@ public final class LogFiles {
 
 		private void sanitizeOutputDir() {
 			outputDir = CharMatcher.anyOf("/\\").replaceFrom(outputDir, FILE_SEPARATOR);
-			outputDir = CharMatcher.anyOf("<>:;\"|?*,~'[]{}=&^%$£@!±¤`").replaceFrom(outputDir, "_");
+			outputDir = CharMatcher.anyOf("<>:;\"|?*,~'[]{}=&^%$~#@!`").replaceFrom(outputDir, "_");
 			// allow distinct output folders
 			outputDir = String.format("%s%s%s", outputDir, FILE_SEPARATOR, dateFormat.format(today));
 		}

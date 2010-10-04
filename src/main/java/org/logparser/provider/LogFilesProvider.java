@@ -72,17 +72,12 @@ public final class LogFilesProvider {
 	public static class PreProcessorProvider {
 		private final String type;
 		private final String filenamePattern;
-		private final String outputDir;
 
 		@JsonCreator
-		public PreProcessorProvider(
-				@JsonProperty("type") final String type,
-				@JsonProperty("filenamePattern") final String filenamePattern,
-				@JsonProperty("outputDir") final String outputDir) {
+		public PreProcessorProvider(@JsonProperty("type") final String type, @JsonProperty("filenamePattern") final String filenamePattern) {
 
 			this.type = type;
 			this.filenamePattern = filenamePattern;
-			this.outputDir = outputDir;
 		}
 
 		public String getType() {
@@ -91,10 +86,6 @@ public final class LogFilesProvider {
 
 		public String getFilenamePattern() {
 			return filenamePattern;
-		}
-
-		public String getOutputDir() {
-			return outputDir;
 		}
 
 		@Override
@@ -122,10 +113,6 @@ public final class LogFilesProvider {
 			String filenamePattern = preProcessorProvider.filenamePattern;
 			if (Strings.isNullOrEmpty(filenamePattern)) {
 				throw new IllegalArgumentException("'filenamePattern' argument of pre-processor is required.");
-			}
-			String outputDir = preProcessorProvider.outputDir;
-			if (Strings.isNullOrEmpty(outputDir)) {
-				throw new IllegalArgumentException("'outputDir' argument of pre-processor is required.");
 			}
 
 			try {
