@@ -148,7 +148,7 @@ public final class LogSnapshot<E extends ITimestampedEntry> implements IJsonSeri
 
 	private String asPercentOf(final int value, final int total, final DecimalFormat df) {
 		double percent = value > 0 ? value / (double) total : 0D;
-		return df.format(percent);
+		return df.format(percent * 100);
 	}
 
 	public LogSnapshot<E> fromCsvString(String csvString) {
